@@ -68,13 +68,13 @@ int main()
 {
 	random_device rd;  //Will be used to obtain a seed for the random number engine
 	mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
-	uniform_real_distribution<float> dis(-0.5, 0.5);
+	uniform_real_distribution<float> dis(-1.0, 1.0);
 
 	// Setup input
 	for (int i = 0; i < 65; i++) {
 		for (int j = 0; j < 65; j++) {
-			testImg[i][j].x = (i + 1.0) / 65.0;
-			testImg[i][j].y = (64.0 - j + 1.0) / 65.0;
+			testImg[i][j].x = (i + 1.0) / 32.0;
+			testImg[i][j].y = (65 - j + 1.0) / 32.0;
 			testImg[i][j].z = ((i % 2) == ((j + 1) % 2)) ? 1.0 : 0.0;
 			testImg[i][j].z = 0.0;
 		}
@@ -439,6 +439,42 @@ int main()
 		}
 	}
 
+	// Max pooling layer 2, size=2x2, stride=2
+	for (int k = 0; k < 16; k++) {
+		for (int i = 0; i < 7; i++) {
+			for (int j = 0; j < 7; j++) {
+				int i0 = i * 2;
+				int j0 = j * 2;
+				int i1 = i0 + 1;
+				int j1 = j0 + 1;
+
+				float m = convL2[i0][j0][k].x;
+				m = fmaxf(m, convL2[i0][j1][k].x);
+				m = fmaxf(m, convL2[i1][j0][k].x);
+				m = fmaxf(m, convL2[i1][j1][k].x);
+				maxL2[i][j][k].x = m;
+
+				m = convL2[i0][j0][k].y;
+				m = fmaxf(m, convL2[i0][j1][k].y);
+				m = fmaxf(m, convL2[i1][j0][k].y);
+				m = fmaxf(m, convL2[i1][j1][k].y);
+				maxL2[i][j][k].y = m;
+
+				m = convL2[i0][j0][k].z;
+				m = fmaxf(m, convL2[i0][j1][k].z);
+				m = fmaxf(m, convL2[i1][j0][k].z);
+				m = fmaxf(m, convL2[i1][j1][k].z);
+				maxL2[i][j][k].z = m;
+
+				m = convL2[i0][j0][k].w;
+				m = fmaxf(m, convL2[i0][j1][k].w);
+				m = fmaxf(m, convL2[i1][j0][k].w);
+				m = fmaxf(m, convL2[i1][j1][k].w);
+				maxL2[i][j][k].w = m;
+			}
+		}
+	}
+
 	// Print debugging
 
 	string out;
@@ -484,6 +520,15 @@ int main()
 	for (int i = 0; i < 14; i++) {
 		for (int j = 0; j < 14; j++) {
 			out += to_string(convL2[i][j][0].w);
+			out.push_back(' ');
+		}
+		out.push_back('\n');
+	}
+
+	out += "\nmax2\n";
+	for (int i = 0; i < 7; i++) {
+		for (int j = 0; j < 7; j++) {
+			out += to_string(maxL2[i][j][0].w);
 			out.push_back(' ');
 		}
 		out.push_back('\n');
