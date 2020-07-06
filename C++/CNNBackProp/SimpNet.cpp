@@ -22,11 +22,11 @@ typedef struct {
 
 inline int clamp(int x, int y, int z)
 {
-	return fmin(fmax(x, y), z);
+	return x < y ? y : x > z ? z : x;
 }
 
 inline float fnRELU(float x) {
-	return fmax(0.0, x);
+	return fmaxf(0.0, x);
 }
 
 inline float fnSig(float x) {
@@ -34,7 +34,7 @@ inline float fnSig(float x) {
 }
 
 inline float fnELU(float x, float alpha) {
-	return x >= 0. ? x : alpha * (exp(x) - 1.0);
+	return (float) (x >= 0. ? x : alpha * (exp(x) - 1.0));
 }
 
 float4 testImg[65][65] = { 0.0 };
@@ -68,7 +68,7 @@ int main()
 {
 	random_device rd;  //Will be used to obtain a seed for the random number engine
 	mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
-	uniform_real_distribution<> dis(0.0, 1.0);
+	uniform_real_distribution<float> dis(-0.5, 0.5);
 
 	// Setup input
 	for (int i = 0; i < 65; i++) {
@@ -194,129 +194,51 @@ int main()
 				int j2 = j0 + 2;
 
 				// Sample
-				convL1[i][j][k].x =
-					testImg[i0][j0].x * kern1[0][0][0][k].x + 
-					testImg[i0][j1].x * kern1[0][1][0][k].x +
-					testImg[i0][j2].x * kern1[0][2][0][k].x +
-					testImg[i1][j0].x * kern1[1][0][0][k].x +
-					testImg[i1][j1].x * kern1[1][1][0][k].x +
-					testImg[i1][j2].x * kern1[1][2][0][k].x +
-					testImg[i2][j0].x * kern1[2][0][0][k].x +
-					testImg[i2][j1].x * kern1[2][1][0][k].x +
-					testImg[i2][j2].x * kern1[2][2][0][k].x +
+				for (int l = 0; l < 3; l++) {
+					convL1[i][j][k].x +=
+						testImg[i0][j0].x * kern1[0][0][l][k].x +
+						testImg[i0][j1].x * kern1[0][1][l][k].x +
+						testImg[i0][j2].x * kern1[0][2][l][k].x +
+						testImg[i1][j0].x * kern1[1][0][l][k].x +
+						testImg[i1][j1].x * kern1[1][1][l][k].x +
+						testImg[i1][j2].x * kern1[1][2][l][k].x +
+						testImg[i2][j0].x * kern1[2][0][l][k].x +
+						testImg[i2][j1].x * kern1[2][1][l][k].x +
+						testImg[i2][j2].x * kern1[2][2][l][k].x;
 
-					testImg[i0][j0].y * kern1[0][0][1][k].x +
-					testImg[i0][j1].y * kern1[0][1][1][k].x +
-					testImg[i0][j2].y * kern1[0][2][1][k].x +
-					testImg[i1][j0].y * kern1[1][0][1][k].x +
-					testImg[i1][j1].y * kern1[1][1][1][k].x +
-					testImg[i1][j2].y * kern1[1][2][1][k].x +
-					testImg[i2][j0].y * kern1[2][0][1][k].x +
-					testImg[i2][j1].y * kern1[2][1][1][k].x +
-					testImg[i2][j2].y * kern1[2][2][1][k].x +
-					
-					testImg[i0][j0].z * kern1[0][0][2][k].x +
-					testImg[i0][j1].z * kern1[0][1][2][k].x +
-					testImg[i0][j2].z * kern1[0][2][2][k].x +
-					testImg[i1][j0].z * kern1[1][0][2][k].x +
-					testImg[i1][j1].z * kern1[1][1][2][k].x +
-					testImg[i1][j2].z * kern1[1][2][2][k].x +
-					testImg[i2][j0].z * kern1[2][0][2][k].x +
-					testImg[i2][j1].z * kern1[2][1][2][k].x +
-					testImg[i2][j2].z * kern1[2][2][2][k].x;
+					convL1[i][j][k].y =
+						testImg[i0][j0].x * kern1[0][0][l][k].y +
+						testImg[i0][j1].x * kern1[0][1][l][k].y +
+						testImg[i0][j2].x * kern1[0][2][l][k].y +
+						testImg[i1][j0].x * kern1[1][0][l][k].y +
+						testImg[i1][j1].x * kern1[1][1][l][k].y +
+						testImg[i1][j2].x * kern1[1][2][l][k].y +
+						testImg[i2][j0].x * kern1[2][0][l][k].y +
+						testImg[i2][j1].x * kern1[2][1][l][k].y +
+						testImg[i2][j2].x * kern1[2][2][l][k].y;
 
-				convL1[i][j][k].y =
-					testImg[i0][j0].x * kern1[0][0][0][k].y +
-					testImg[i0][j1].x * kern1[0][1][0][k].y +
-					testImg[i0][j2].x * kern1[0][2][0][k].y +
-					testImg[i1][j0].x * kern1[1][0][0][k].y +
-					testImg[i1][j1].x * kern1[1][1][0][k].y +
-					testImg[i1][j2].x * kern1[1][2][0][k].y +
-					testImg[i2][j0].x * kern1[2][0][0][k].y +
-					testImg[i2][j1].x * kern1[2][1][0][k].y +
-					testImg[i2][j2].x * kern1[2][2][0][k].y +
+					convL1[i][j][k].z =
+						testImg[i0][j0].x * kern1[0][0][l][k].z +
+						testImg[i0][j1].x * kern1[0][1][l][k].z +
+						testImg[i0][j2].x * kern1[0][2][l][k].z +
+						testImg[i1][j0].x * kern1[1][0][l][k].z +
+						testImg[i1][j1].x * kern1[1][1][l][k].z +
+						testImg[i1][j2].x * kern1[1][2][l][k].z +
+						testImg[i2][j0].x * kern1[2][0][l][k].z +
+						testImg[i2][j1].x * kern1[2][1][l][k].z +
+						testImg[i2][j2].x * kern1[2][2][l][k].z;
 
-					testImg[i0][j0].y * kern1[0][0][1][k].y +
-					testImg[i0][j1].y * kern1[0][1][1][k].y +
-					testImg[i0][j2].y * kern1[0][2][1][k].y +
-					testImg[i1][j0].y * kern1[1][0][1][k].y +
-					testImg[i1][j1].y * kern1[1][1][1][k].y +
-					testImg[i1][j2].y * kern1[1][2][1][k].y +
-					testImg[i2][j0].y * kern1[2][0][1][k].y +
-					testImg[i2][j1].y * kern1[2][1][1][k].y +
-					testImg[i2][j2].y * kern1[2][2][1][k].y +
-
-					testImg[i0][j0].z * kern1[0][0][2][k].y +
-					testImg[i0][j1].z * kern1[0][1][2][k].y +
-					testImg[i0][j2].z * kern1[0][2][2][k].y +
-					testImg[i1][j0].z * kern1[1][0][2][k].y +
-					testImg[i1][j1].z * kern1[1][1][2][k].y +
-					testImg[i1][j2].z * kern1[1][2][2][k].y +
-					testImg[i2][j0].z * kern1[2][0][2][k].y +
-					testImg[i2][j1].z * kern1[2][1][2][k].y +
-					testImg[i2][j2].z * kern1[2][2][2][k].y;
-
-				convL1[i][j][k].z =
-					testImg[i0][j0].x * kern1[0][0][0][k].z +
-					testImg[i0][j1].x * kern1[0][1][0][k].z +
-					testImg[i0][j2].x * kern1[0][2][0][k].z +
-					testImg[i1][j0].x * kern1[1][0][0][k].z +
-					testImg[i1][j1].x * kern1[1][1][0][k].z +
-					testImg[i1][j2].x * kern1[1][2][0][k].z +
-					testImg[i2][j0].x * kern1[2][0][0][k].z +
-					testImg[i2][j1].x * kern1[2][1][0][k].z +
-					testImg[i2][j2].x * kern1[2][2][0][k].z +
-
-					testImg[i0][j0].y * kern1[0][0][1][k].z +
-					testImg[i0][j1].y * kern1[0][1][1][k].z +
-					testImg[i0][j2].y * kern1[0][2][1][k].z +
-					testImg[i1][j0].y * kern1[1][0][1][k].z +
-					testImg[i1][j1].y * kern1[1][1][1][k].z +
-					testImg[i1][j2].y * kern1[1][2][1][k].z +
-					testImg[i2][j0].y * kern1[2][0][1][k].z +
-					testImg[i2][j1].y * kern1[2][1][1][k].z +
-					testImg[i2][j2].y * kern1[2][2][1][k].z +
-
-					testImg[i0][j0].z * kern1[0][0][2][k].z +
-					testImg[i0][j1].z * kern1[0][1][2][k].z +
-					testImg[i0][j2].z * kern1[0][2][2][k].z +
-					testImg[i1][j0].z * kern1[1][0][2][k].z +
-					testImg[i1][j1].z * kern1[1][1][2][k].z +
-					testImg[i1][j2].z * kern1[1][2][2][k].z +
-					testImg[i2][j0].z * kern1[2][0][2][k].z +
-					testImg[i2][j1].z * kern1[2][1][2][k].z +
-					testImg[i2][j2].z * kern1[2][2][2][k].z;
-
-				convL1[i][j][k].w =
-					testImg[i0][j0].x * kern1[0][0][0][k].w +
-					testImg[i0][j1].x * kern1[0][1][0][k].w +
-					testImg[i0][j2].x * kern1[0][2][0][k].w +
-					testImg[i1][j0].x * kern1[1][0][0][k].w +
-					testImg[i1][j1].x * kern1[1][1][0][k].w +
-					testImg[i1][j2].x * kern1[1][2][0][k].w +
-					testImg[i2][j0].x * kern1[2][0][0][k].w +
-					testImg[i2][j1].x * kern1[2][1][0][k].w +
-					testImg[i2][j2].x * kern1[2][2][0][k].w +
-
-					testImg[i0][j0].y * kern1[0][0][1][k].w +
-					testImg[i0][j1].y * kern1[0][1][1][k].w +
-					testImg[i0][j2].y * kern1[0][2][1][k].w +
-					testImg[i1][j0].y * kern1[1][0][1][k].w +
-					testImg[i1][j1].y * kern1[1][1][1][k].w +
-					testImg[i1][j2].y * kern1[1][2][1][k].w +
-					testImg[i2][j0].y * kern1[2][0][1][k].w +
-					testImg[i2][j1].y * kern1[2][1][1][k].w +
-					testImg[i2][j2].y * kern1[2][2][1][k].w +
-
-					testImg[i0][j0].z * kern1[0][0][2][k].w +
-					testImg[i0][j1].z * kern1[0][1][2][k].w +
-					testImg[i0][j2].z * kern1[0][2][2][k].w +
-					testImg[i1][j0].z * kern1[1][0][2][k].w +
-					testImg[i1][j1].z * kern1[1][1][2][k].w +
-					testImg[i1][j2].z * kern1[1][2][2][k].w +
-					testImg[i2][j0].z * kern1[2][0][2][k].w +
-					testImg[i2][j1].z * kern1[2][1][2][k].w +
-					testImg[i2][j2].z * kern1[2][2][2][k].w;
+					convL1[i][j][k].w =
+						testImg[i0][j0].x * kern1[0][0][l][k].w +
+						testImg[i0][j1].x * kern1[0][1][l][k].w +
+						testImg[i0][j2].x * kern1[0][2][l][k].w +
+						testImg[i1][j0].x * kern1[1][0][l][k].w +
+						testImg[i1][j1].x * kern1[1][1][l][k].w +
+						testImg[i1][j2].x * kern1[1][2][l][k].w +
+						testImg[i2][j0].x * kern1[2][0][l][k].w +
+						testImg[i2][j1].x * kern1[2][1][l][k].w +
+						testImg[i2][j2].x * kern1[2][2][l][k].w;
+				}
 
 				// Bias
 				convL1[i][j][k].x += bias1[k].x;
@@ -444,10 +366,75 @@ int main()
 		}
 	}
 
-	for (int k = 0; k < 8; k++) {
-		for (int i = 0; i < 32; i++) {
-			for (int j = 0; j < 32; j++) {
+	// Convolutional layer 2, kernel=3x3, stride=1
+	for (int k = 0; k < 16; k++) {
+		for (int i = 0; i < 14; i++) {
+			for (int j = 0; j < 14; j++) {
+				int i0 = i;
+				int j0 = j;
+				int i1 = i + 1;
+				int i2 = i + 2;
+				int j1 = j + 1;
+				int j2 = j + 2;
+				for (int l = 0; l < 8; l++) {
+					for (int m = 0; m < 4; m++) {
+						convL2[i][j][k].x +=
+							maxL1[i0][j0][l].x * kern2[0][0][l * 4 + m][k].x +
+							maxL1[i0][j1][l].x * kern2[0][1][l * 4 + m][k].x +
+							maxL1[i0][j2][l].x * kern2[0][2][l * 4 + m][k].x +
+							maxL1[i1][j0][l].x * kern2[1][0][l * 4 + m][k].x +
+							maxL1[i1][j1][l].x * kern2[1][1][l * 4 + m][k].x +
+							maxL1[i1][j2][l].x * kern2[1][2][l * 4 + m][k].x +
+							maxL1[i2][j0][l].x * kern2[2][0][l * 4 + m][k].x +
+							maxL1[i2][j1][l].x * kern2[2][1][l * 4 + m][k].x +
+							maxL1[i2][j2][l].x * kern2[2][2][l * 4 + m][k].x;
 
+						convL2[i][j][k].y +=
+							maxL1[i0][j0][l].x * kern2[0][0][l * 4 + m][k].y +
+							maxL1[i0][j1][l].x * kern2[0][1][l * 4 + m][k].y +
+							maxL1[i0][j2][l].x * kern2[0][2][l * 4 + m][k].y +
+							maxL1[i1][j0][l].x * kern2[1][0][l * 4 + m][k].y +
+							maxL1[i1][j1][l].x * kern2[1][1][l * 4 + m][k].y +
+							maxL1[i1][j2][l].x * kern2[1][2][l * 4 + m][k].y +
+							maxL1[i2][j0][l].x * kern2[2][0][l * 4 + m][k].y +
+							maxL1[i2][j1][l].x * kern2[2][1][l * 4 + m][k].y +
+							maxL1[i2][j2][l].x * kern2[2][2][l * 4 + m][k].y;
+
+						convL2[i][j][k].z +=
+							maxL1[i0][j0][l].x * kern2[0][0][l * 4 + m][k].z +
+							maxL1[i0][j1][l].x * kern2[0][1][l * 4 + m][k].z +
+							maxL1[i0][j2][l].x * kern2[0][2][l * 4 + m][k].z +
+							maxL1[i1][j0][l].x * kern2[1][0][l * 4 + m][k].z +
+							maxL1[i1][j1][l].x * kern2[1][1][l * 4 + m][k].z +
+							maxL1[i1][j2][l].x * kern2[1][2][l * 4 + m][k].z +
+							maxL1[i2][j0][l].x * kern2[2][0][l * 4 + m][k].z +
+							maxL1[i2][j1][l].x * kern2[2][1][l * 4 + m][k].z +
+							maxL1[i2][j2][l].x * kern2[2][2][l * 4 + m][k].z;
+
+						convL2[i][j][k].w +=
+							maxL1[i0][j0][l].x * kern2[0][0][l * 4 + m][k].w +
+							maxL1[i0][j1][l].x * kern2[0][1][l * 4 + m][k].w +
+							maxL1[i0][j2][l].x * kern2[0][2][l * 4 + m][k].w +
+							maxL1[i1][j0][l].x * kern2[1][0][l * 4 + m][k].w +
+							maxL1[i1][j1][l].x * kern2[1][1][l * 4 + m][k].w +
+							maxL1[i1][j2][l].x * kern2[1][2][l * 4 + m][k].w +
+							maxL1[i2][j0][l].x * kern2[2][0][l * 4 + m][k].w +
+							maxL1[i2][j1][l].x * kern2[2][1][l * 4 + m][k].w +
+							maxL1[i2][j2][l].x * kern2[2][2][l * 4 + m][k].w;
+					}
+				}
+
+				// Bias
+				convL2[i][j][k].x += bias2[k].x;
+				convL2[i][j][k].y += bias2[k].y;
+				convL2[i][j][k].z += bias2[k].z;
+				convL2[i][j][k].w += bias2[k].w;
+
+				// Activation
+				convL2[i][j][k].x = fnELU(convL2[i][j][k].x, 0.15);
+				convL2[i][j][k].y = fnELU(convL2[i][j][k].y, 0.15);
+				convL2[i][j][k].z = fnELU(convL2[i][j][k].z, 0.15);
+				convL2[i][j][k].w = fnELU(convL2[i][j][k].w, 0.15);
 			}
 		}
 	}
@@ -459,7 +446,7 @@ int main()
 	for (int i = 0; i < 3; i++) {
 		for (int j = 0; j < 3; j++) {
 			for (int k = 0; k < 3; k++) {
-				out += to_string(kern1[i][j][k][1].w);
+				out += to_string(kern1[i][j][k][0].w);
 				out.push_back(' ');
 			}
 			out.push_back('\n');
@@ -469,7 +456,7 @@ int main()
 	out += "\nconv1\n";
 	for (int i = 0; i < 32; i++) {
 		for (int j = 0; j < 32; j++) {
-			out += to_string(convL1[i][j][1].w);
+			out += to_string(convL1[i][j][0].w);
 			out.push_back(' ');
 		}
 		out.push_back('\n');
@@ -478,7 +465,7 @@ int main()
 	out += "\nmax1\n";
 	for (int i = 0; i < 16; i++) {
 		for (int j = 0; j < 16; j++) {
-			out += to_string(maxL1[i][j][1].w);
+			out += to_string(maxL1[i][j][0].w);
 			out.push_back(' ');
 		}
 		out.push_back('\n');
@@ -487,7 +474,16 @@ int main()
 	out += "\nmax1 index\n";
 	for (int i = 0; i < 16; i++) {
 		for (int j = 0; j < 16; j++) {
-			out += to_string(imaxL1[i][j][1].w);
+			out += to_string(imaxL1[i][j][0].w);
+			out.push_back(' ');
+		}
+		out.push_back('\n');
+	}
+
+	out += "\nconv2\n";
+	for (int i = 0; i < 14; i++) {
+		for (int j = 0; j < 14; j++) {
+			out += to_string(convL2[i][j][0].w);
 			out.push_back(' ');
 		}
 		out.push_back('\n');

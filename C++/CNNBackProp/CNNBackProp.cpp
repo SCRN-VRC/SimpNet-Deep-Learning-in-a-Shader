@@ -8,6 +8,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <iostream>
+#include <random>
 
 using namespace std;
 using namespace cv;
@@ -45,36 +46,22 @@ inline float fnELU(float x, float alpha) {
 
 int main()
 {
-	//// 0, 0 is top left, encoding is BGR
-	//int width = 512, height = 512;
-	//Mat image = Mat::zeros(height, width, CV_8UC3);
-	//// Show the decision regions given by the SVM
-	//Vec3b green(0, 255, 0), blue(255, 0, 0);
-	//for (int i = 0; i < image.rows; i++)
-	//{
-	//	for (int j = 0; j < image.cols; j++)
-	//	{
-	//		image.at<Vec3b>(i, j) = Vec3b(i, 0, 0);
-	//	}
-	//}
-	//
-	//imshow("SVM Simple Example", image);
-	//waitKey();
+	random_device rd;  //Will be used to obtain a seed for the random number engine
+	mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+	uniform_real_distribution<float> dis(-1.0, 1.0);
 
 	// Learning rate
 	float lr = 0.2;
 
 	// Bias learning rate
 	float lrb = 0.1;
-
-	RNG rng(12345);
 	float input[4][4] = { 0.0 };
 
 	// Filters
-	float w[2][2][2] = { rng.uniform(0., 1.), rng.uniform(0., 1.),
-		rng.uniform(0., 1.), rng.uniform(0., 1.),
-		rng.uniform(0., 1.), rng.uniform(0., 1.),
-		rng.uniform(0., 1.), rng.uniform(0., 1.) };
+	float w[2][2][2] = { dis(gen), dis(gen),
+		dis(gen), dis(gen),
+		dis(gen), dis(gen),
+		dis(gen), dis(gen) };
 
 	// 2x2 Convolution
 	float conv1[3][3][2] = { 0.0 };
@@ -92,7 +79,7 @@ int main()
 	float fcw[8][3];
 	for (int i = 0; i < 8; i++)
 		for (int j = 0; j < 3; j++)
-			fcw[i][j] = rng.uniform(0., 1.);
+			fcw[i][j] = dis(gen);
 
 	// Full connected net output
 	float nout[3] = { 0.0 };
@@ -101,11 +88,11 @@ int main()
 	float smOut[3] = { 0.0 };
 
 	// Layer 1 bias deltas
-	float b1[2] = { rng.uniform(0., 1.), rng.uniform(0., 1.) };
+	float b1[2] = { dis(gen), dis(gen) };
 
 	// Layer 2 bias deltas
 	float b2[3];
-	for (int i = 0; i < 3; i++) b2[i] = rng.uniform(0., 1.);
+	for (int i = 0; i < 3; i++) b2[i] = dis(gen);
 
 	// Full connected weight deltas
 	float dfcw[8][3];
