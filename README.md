@@ -1,2 +1,2 @@
-# SimpNet Simple Convolutional Neural Network in a Shader
- A simple CNN coded inside a fragment shader
+# SimpNet
+ A simple convolutional neural network coded inside a fragment shader

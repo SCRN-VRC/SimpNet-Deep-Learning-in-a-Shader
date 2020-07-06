@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="BiggerCNN.cpp">
+    <ClCompile Include="SimpNet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
