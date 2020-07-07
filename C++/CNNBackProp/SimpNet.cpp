@@ -58,11 +58,11 @@ float4 convL3[4][4][32] = { 0.0f }; // 4x4x128
 float4 maxL3[128] = { 0.0f }; // 2x2x128
 int4 imaxL3[128] = { 0 }; // 2x2x128
 // L4
-float4 w1[512][16]; // 512x64
-float4 biasw1[16];
-float4 fc1[16] = { 0.0f }; // 1x1x64
+float4 w1[512][32]; // 512x128
+float4 biasw1[32];
+float4 fc1[32] = { 0.0f }; // 1x1x128
 // L5
-float4 w2[64][2]; // 64x8
+float4 w2[128][2]; // 128x8
 float4 biasw2[2];
 float4 out[2] = { 0.0f }; // 1x1x8
 
@@ -734,6 +734,8 @@ int main()
 			for (int j = 0; j < 4; j++) {
 				int i0 = i * 2, i1 = i0 - 1, i2 = i0 + 1;
 				int j0 = j * 2, j1 = j0 - 1, j2 = j0 + 1;
+				
+				// Padding
 				bool bi1 = i1 < 0, bj1 = j1 < 0, bi2 = i2 > 6, bj2 = j2 > 6;
 				bool b02 = bi1 || bj1, b03 = bi1 || bj2, b04 = bi2 || bj1, b05 = bi2 || bj2;
 
@@ -903,8 +905,108 @@ int main()
 						(bi2 ? 0.0f : maxL2[i2][j0][l].w * kern3[2][1][l * 4 + 3][k].w) +
 						(b05 ? 0.0f : maxL2[i2][j2][l].w * kern3[2][2][l * 4 + 3][k].w);
 				}
+
+				// Bias
+				convL3[i][j][k].x += bias3[k].x;
+				convL3[i][j][k].y += bias3[k].y;
+				convL3[i][j][k].z += bias3[k].z;
+				convL3[i][j][k].w += bias3[k].w;
+
+				// Activation
+				convL3[i][j][k].x = fnELU(convL3[i][j][k].x, 0.15f);
+				convL3[i][j][k].y = fnELU(convL3[i][j][k].y, 0.15f);
+				convL3[i][j][k].z = fnELU(convL3[i][j][k].z, 0.15f);
+				convL3[i][j][k].w = fnELU(convL3[i][j][k].w, 0.15f);
 			}
 		}
+	}
+
+	// Max pooling layer 3, size=2x2, stride=2
+	for (int k = 0; k < 32; k++) {
+		// X
+		float m = convL3[0][0][k].x;
+		m = fmaxf(m, convL3[0][1][k].x);
+		m = fmaxf(m, convL3[1][0][k].x);
+		m = fmaxf(m, convL3[1][1][k].x);
+		maxL3[k * 4].x = m;
+		m = convL3[0][2][k].x;
+		m = fmaxf(m, convL3[0][3][k].x);
+		m = fmaxf(m, convL3[1][2][k].x);
+		m = fmaxf(m, convL3[1][3][k].x);
+		maxL3[k * 4].y = m;
+		m = convL3[2][0][k].x;
+		m = fmaxf(m, convL3[2][1][k].x);
+		m = fmaxf(m, convL3[3][0][k].x);
+		m = fmaxf(m, convL3[3][1][k].x);
+		maxL3[k * 4].z = m;
+		m = convL3[2][2][k].x;
+		m = fmaxf(m, convL3[2][3][k].x);
+		m = fmaxf(m, convL3[3][2][k].x);
+		m = fmaxf(m, convL3[3][3][k].x);
+		maxL3[k * 4].w = m;
+		// Y
+		m = convL3[0][0][k].y;
+		m = fmaxf(m, convL3[0][1][k].y);
+		m = fmaxf(m, convL3[1][0][k].y);
+		m = fmaxf(m, convL3[1][1][k].y);
+		maxL3[k * 4 + 1].x = m;
+		m = convL3[0][2][k].y;
+		m = fmaxf(m, convL3[0][3][k].y);
+		m = fmaxf(m, convL3[1][2][k].y);
+		m = fmaxf(m, convL3[1][3][k].y);
+		maxL3[k * 4 + 1].y = m;
+		m = convL3[2][0][k].y;
+		m = fmaxf(m, convL3[2][1][k].y);
+		m = fmaxf(m, convL3[3][0][k].y);
+		m = fmaxf(m, convL3[3][1][k].y);
+		maxL3[k * 4 + 1].z = m;
+		m = convL3[2][2][k].y;
+		m = fmaxf(m, convL3[2][3][k].y);
+		m = fmaxf(m, convL3[3][2][k].y);
+		m = fmaxf(m, convL3[3][3][k].y);
+		maxL3[k * 4 + 1].w = m;
+		// Z
+		m = convL3[0][0][k].z;
+		m = fmaxf(m, convL3[0][1][k].z);
+		m = fmaxf(m, convL3[1][0][k].z);
+		m = fmaxf(m, convL3[1][1][k].z);
+		maxL3[k * 4 + 2].x = m;
+		m = convL3[0][2][k].z;
+		m = fmaxf(m, convL3[0][3][k].z);
+		m = fmaxf(m, convL3[1][2][k].z);
+		m = fmaxf(m, convL3[1][3][k].z);
+		maxL3[k * 4 + 2].y = m;
+		m = convL3[2][0][k].z;
+		m = fmaxf(m, convL3[2][1][k].z);
+		m = fmaxf(m, convL3[3][0][k].z);
+		m = fmaxf(m, convL3[3][1][k].z);
+		maxL3[k * 4 + 2].z = m;
+		m = convL3[2][2][k].z;
+		m = fmaxf(m, convL3[2][3][k].z);
+		m = fmaxf(m, convL3[3][2][k].z);
+		m = fmaxf(m, convL3[3][3][k].z);
+		maxL3[k * 4 + 2].w = m;
+		// W
+		m = convL3[0][0][k].w;
+		m = fmaxf(m, convL3[0][1][k].w);
+		m = fmaxf(m, convL3[1][0][k].w);
+		m = fmaxf(m, convL3[1][1][k].w);
+		maxL3[k * 4 + 3].x = m;
+		m = convL3[0][2][k].w;
+		m = fmaxf(m, convL3[0][3][k].w);
+		m = fmaxf(m, convL3[1][2][k].w);
+		m = fmaxf(m, convL3[1][3][k].w);
+		maxL3[k * 4 + 3].y = m;
+		m = convL3[2][0][k].w;
+		m = fmaxf(m, convL3[2][1][k].w);
+		m = fmaxf(m, convL3[3][0][k].w);
+		m = fmaxf(m, convL3[3][1][k].w);
+		maxL3[k * 4 + 3].z = m;
+		m = convL3[2][2][k].w;
+		m = fmaxf(m, convL3[2][3][k].w);
+		m = fmaxf(m, convL3[3][2][k].w);
+		m = fmaxf(m, convL3[3][3][k].w);
+		maxL3[k * 4 + 3].w = m;
 	}
 
 	auto t2 = chrono::high_resolution_clock::now();
@@ -916,7 +1018,18 @@ int main()
 	for (int i = 0; i < 3; i++) {
 		for (int j = 0; j < 3; j++) {
 			for (int k = 0; k < 3; k++) {
-				out += to_string(kern1[i][j][k][0].w);
+				out += to_string(kern1[i][j][k][0].x);
+				out.push_back(' ');
+			}
+			out.push_back('\n');
+		}
+	}
+
+	out += "kern1 weights\n";
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++) {
+			for (int k = 0; k < 3; k++) {
+				out += to_string(kern1[i][j][k][7].w);
 				out.push_back(' ');
 			}
 			out.push_back('\n');
@@ -926,7 +1039,16 @@ int main()
 	out += "\nconv1\n";
 	for (int i = 0; i < 32; i++) {
 		for (int j = 0; j < 32; j++) {
-			out += to_string(convL1[i][j][0].w);
+			out += to_string(convL1[i][j][0].x);
+			out.push_back(' ');
+		}
+		out.push_back('\n');
+	}
+
+	out += "\nconv1\n";
+	for (int i = 0; i < 32; i++) {
+		for (int j = 0; j < 32; j++) {
+			out += to_string(convL1[i][j][7].w);
 			out.push_back(' ');
 		}
 		out.push_back('\n');
@@ -935,7 +1057,16 @@ int main()
 	out += "\nmax1\n";
 	for (int i = 0; i < 16; i++) {
 		for (int j = 0; j < 16; j++) {
-			out += to_string(maxL1[i][j][0].w);
+			out += to_string(maxL1[i][j][0].x);
+			out.push_back(' ');
+		}
+		out.push_back('\n');
+	}
+
+	out += "\nmax1\n";
+	for (int i = 0; i < 16; i++) {
+		for (int j = 0; j < 16; j++) {
+			out += to_string(maxL1[i][j][7].w);
 			out.push_back(' ');
 		}
 		out.push_back('\n');
@@ -944,7 +1075,16 @@ int main()
 	out += "\nmax1 index\n";
 	for (int i = 0; i < 16; i++) {
 		for (int j = 0; j < 16; j++) {
-			out += to_string(imaxL1[i][j][0].w);
+			out += to_string(imaxL1[i][j][0].x);
+			out.push_back(' ');
+		}
+		out.push_back('\n');
+	}
+
+	out += "\nmax1 index\n";
+	for (int i = 0; i < 16; i++) {
+		for (int j = 0; j < 16; j++) {
+			out += to_string(imaxL1[i][j][7].w);
 			out.push_back(' ');
 		}
 		out.push_back('\n');
@@ -953,7 +1093,16 @@ int main()
 	out += "\nconv2\n";
 	for (int i = 0; i < 14; i++) {
 		for (int j = 0; j < 14; j++) {
-			out += to_string(convL2[i][j][0].w);
+			out += to_string(convL2[i][j][0].x);
+			out.push_back(' ');
+		}
+		out.push_back('\n');
+	}
+
+	out += "\nconv2\n";
+	for (int i = 0; i < 14; i++) {
+		for (int j = 0; j < 14; j++) {
+			out += to_string(convL2[i][j][15].w);
 			out.push_back(' ');
 		}
 		out.push_back('\n');
@@ -1007,11 +1156,31 @@ int main()
 	out += "\nconv3\n";
 	for (int i = 0; i < 4; i++) {
 		for (int j = 0; j < 4; j++) {
-			out += to_string(convL3[i][j][32].w);
+			out += to_string(convL3[i][j][31].w);
 			out.push_back(' ');
 		}
 		out.push_back('\n');
 	}
+
+	out += "\nmax3\n";
+	out += to_string(maxL3[0].x);
+	out.push_back(' ');
+	out += to_string(maxL3[0].y);
+	out.push_back('\n');
+	out += to_string(maxL3[0].z);
+	out.push_back(' ');
+	out += to_string(maxL3[0].w);
+	out.push_back('\n');
+
+	out += "\nmax3\n";
+	out += to_string(maxL3[127].x);
+	out.push_back(' ');
+	out += to_string(maxL3[127].y);
+	out.push_back('\n');
+	out += to_string(maxL3[127].z);
+	out.push_back(' ');
+	out += to_string(maxL3[127].w);
+	out.push_back('\n');
 
 	auto duration = chrono::duration_cast<chrono::milliseconds>(t2 - t1).count();
 	out += "\ntotal time: ";
