@@ -3,6 +3,7 @@
 #include <random>
 #include <iostream>
 #include <string>
+#include <chrono>
 
 using namespace std;
 
@@ -55,6 +56,7 @@ float4 kern3[3][3][64][32]; // 3x3x64x128
 float4 bias3[32];
 float4 convL3[4][4][32] = { 0.0 }; // 4x4x128
 float4 maxL3[128] = { 0.0 }; // 2x2x128
+int4 imaxL3[128] = { 0 }; // 2x2x128
 // L4
 float4 w1[512][16]; // 512x64
 float4 biasw1[16];
@@ -181,6 +183,9 @@ int main()
 		biasw2[i].z = dis(gen);
 		biasw2[i].w = dis(gen);
 	}
+
+	// Time the neural net
+	auto t1 = chrono::high_resolution_clock::now();
 
 	// Convolutional layer 1, kernel=3x3, stride=2
 	for (int k = 0; k < 8; k++) {
@@ -475,6 +480,72 @@ int main()
 		}
 	}
 
+	// Max pooling layer 2 index
+	for (int k = 0; k < 16; k++) {
+		for (int i = 0; i < 7; i++) {
+			for (int j = 0; j < 7; j++) {
+				int i0 = i * 2;
+				int j0 = j * 2;
+				int i1 = i0 + 1;
+				int j1 = j0 + 1;
+
+				// X
+				float m = convL2[i0][j0][k].x;
+				imaxL2[i][j][k].x = i0 * 14 + j0;
+				m = fmaxf(m, convL2[i0][j1][k].x);
+				imaxL2[i][j][k].x = m == convL2[i0][j1][k].x ? 
+					i0 * 14 + j1 : imaxL2[i][j][k].x;
+				m = fmaxf(m, convL2[i1][j0][k].x);
+				imaxL2[i][j][k].x = m == convL2[i1][j0][k].x ?
+					i1 * 14 + j0 : imaxL2[i][j][k].x;
+				m = fmaxf(m, convL2[i1][j1][k].x);
+				imaxL2[i][j][k].x = m == convL2[i1][j1][k].x ?
+					i1 * 14 + j1 : imaxL2[i][j][k].x;
+
+				// Y
+				m = convL2[i0][j0][k].y;
+				imaxL2[i][j][k].y = i0 * 14 + j0;
+				m = fmaxf(m, convL2[i0][j1][k].y);
+				imaxL2[i][j][k].y = m == convL2[i0][j1][k].y ?
+					i0 * 14 + j1 : imaxL2[i][j][k].y;
+				m = fmaxf(m, convL2[i1][j0][k].y);
+				imaxL2[i][j][k].y = m == convL2[i1][j0][k].y ?
+					i1 * 14 + j0 : imaxL2[i][j][k].y;
+				m = fmaxf(m, convL2[i1][j1][k].y);
+				imaxL2[i][j][k].y = m == convL2[i1][j1][k].y ?
+					i1 * 14 + j1 : imaxL2[i][j][k].y;
+
+				// Z
+				m = convL2[i0][j0][k].z;
+				imaxL2[i][j][k].z = i0 * 14 + j0;
+				m = fmaxf(m, convL2[i0][j1][k].z);
+				imaxL2[i][j][k].z = m == convL2[i0][j1][k].z ?
+					i0 * 14 + j1 : imaxL2[i][j][k].z;
+				m = fmaxf(m, convL2[i1][j0][k].z);
+				imaxL2[i][j][k].z = m == convL2[i1][j0][k].z ?
+					i1 * 14 + j0 : imaxL2[i][j][k].z;
+				m = fmaxf(m, convL2[i1][j1][k].z);
+				imaxL2[i][j][k].z = m == convL2[i1][j1][k].z ?
+					i1 * 14 + j1 : imaxL2[i][j][k].z;
+
+				// W
+				m = convL2[i0][j0][k].w;
+				imaxL2[i][j][k].w = i0 * 14 + j0;
+				m = fmaxf(m, convL2[i0][j1][k].w);
+				imaxL2[i][j][k].w = m == convL2[i0][j1][k].w ?
+					i0 * 14 + j1 : imaxL2[i][j][k].w;
+				m = fmaxf(m, convL2[i1][j0][k].w);
+				imaxL2[i][j][k].w = m == convL2[i1][j0][k].w ?
+					i1 * 14 + j0 : imaxL2[i][j][k].w;
+				m = fmaxf(m, convL2[i1][j1][k].w);
+				imaxL2[i][j][k].w = m == convL2[i1][j1][k].w ?
+					i1 * 14 + j1 : imaxL2[i][j][k].w;
+			}
+		}
+	}
+
+	auto t2 = chrono::high_resolution_clock::now();
+
 	// Print debugging
 
 	string out;
@@ -534,7 +605,20 @@ int main()
 		out.push_back('\n');
 	}
 
-	cout << out;
+	out += "\nmax2 index\n";
+	for (int i = 0; i < 7; i++) {
+		for (int j = 0; j < 7; j++) {
+			out += to_string(imaxL2[i][j][0].w);
+			out.push_back(' ');
+		}
+		out.push_back('\n');
+	}
+
+	auto duration = chrono::duration_cast<chrono::milliseconds>(t2 - t1).count();
+	out += "\ntotal time: ";
+	out += to_string(duration);
+	out += "ms";
+	cout << out << endl;
 
 	system("pause");
 	return 0;
