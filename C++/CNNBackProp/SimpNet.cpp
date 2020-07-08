@@ -31,11 +31,11 @@ inline float fnRELU(float x) {
 }
 
 inline float fnSig(float x) {
-	return exp(x);
+	return 1.0f / (1.0f + exp(-x));
 }
 
 inline float fnELU(float x, float alpha) {
-	return (float) (x >= 0.0f ? x : (alpha * (exp(x) - 1.0f)));
+	return x >= 0.0f ? x : (alpha * (exp(x) - 1.0f));
 }
 
 float4 testImg[65][65] = { 0.0f };
@@ -62,9 +62,13 @@ float4 w1[512][32]; // 512x128
 float4 biasw1[32];
 float4 fc1[32] = { 0.0f }; // 1x1x128
 // L5
-float4 w2[128][2]; // 128x8
-float4 biasw2[2];
-float4 out[2] = { 0.0f }; // 1x1x8
+float4 w2[128][32]; // 512x128
+float4 biasw2[32];
+float4 fc2[32] = { 0.0f }; // 1x1x128
+// L6
+float4 w3[128][3]; // 128x12
+float4 biasw3[3];
+float4 out[3] = { 0.0f }; // 1x1x12
 
 int main()
 {
@@ -150,7 +154,7 @@ int main()
 
 	// FC1 random weights
 	for (int i = 0; i < 512; i++) {
-		for (int j = 0; j < 16; j++) {
+		for (int j = 0; j < 32; j++) {
 			w1[i][j].x = dis(gen);
 			w1[i][j].y = dis(gen);
 			w1[i][j].z = dis(gen);
@@ -159,7 +163,7 @@ int main()
 	}
 
 	// Bias for FC1
-	for (int i = 0; i < 16; i++) {
+	for (int i = 0; i < 32; i++) {
 		biasw1[i].x = dis(gen);
 		biasw1[i].y = dis(gen);
 		biasw1[i].z = dis(gen);
@@ -167,8 +171,8 @@ int main()
 	}
 
 	// FC2 random weights
-	for (int i = 0; i < 64; i++) {
-		for (int j = 0; j < 2; j++) {
+	for (int i = 0; i < 128; i++) {
+		for (int j = 0; j < 32; j++) {
 			w2[i][j].x = dis(gen);
 			w2[i][j].y = dis(gen);
 			w2[i][j].z = dis(gen);
@@ -177,11 +181,29 @@ int main()
 	}
 
 	// Bias for FC2
-	for (int i = 0; i < 2; i++) {
+	for (int i = 0; i < 32; i++) {
 		biasw2[i].x = dis(gen);
 		biasw2[i].y = dis(gen);
 		biasw2[i].z = dis(gen);
 		biasw2[i].w = dis(gen);
+	}
+
+	// FC3 random weights
+	for (int i = 0; i < 128; i++) {
+		for (int j = 0; j < 3; j++) {
+			w3[i][j].x = dis(gen);
+			w3[i][j].y = dis(gen);
+			w3[i][j].z = dis(gen);
+			w3[i][j].w = dis(gen);
+		}
+	}
+
+	// Bias for FC3
+	for (int i = 0; i < 3; i++) {
+		biasw3[i].x = dis(gen);
+		biasw3[i].y = dis(gen);
+		biasw3[i].z = dis(gen);
+		biasw3[i].w = dis(gen);
 	}
 
 	// Time the neural net
@@ -1162,19 +1184,64 @@ int main()
 
 	// FC1
 	for (int i = 0; i < 32; i++) {
+
+		// Summation
 		for (int j = 0; j < 128; j++) {
+			// X
 			fc1[i].x += maxL3[j].x * w1[j * 4][i].x + maxL3[j].y * w1[j * 4 + 1][i].x +
 				maxL3[j].z * w1[j * 4 + 2][i].x + maxL3[j].w * w1[j * 4 + 3][i].x;
-
+			// Y
 			fc1[i].y += maxL3[j].x * w1[j * 4][i].y + maxL3[j].y * w1[j * 4 + 1][i].y +
 				maxL3[j].z * w1[j * 4 + 2][i].y + maxL3[j].w * w1[j * 4 + 3][i].y;
-			
+			// Z
 			fc1[i].z += maxL3[j].x * w1[j * 4][i].z + maxL3[j].y * w1[j * 4 + 1][i].z +
 				maxL3[j].z * w1[j * 4 + 2][i].z + maxL3[j].w * w1[j * 4 + 3][i].z;
-			
+			// W
 			fc1[i].w += maxL3[j].x * w1[j * 4][i].w + maxL3[j].y * w1[j * 4 + 1][i].w +
 				maxL3[j].z * w1[j * 4 + 2][i].w + maxL3[j].w * w1[j * 4 + 3][i].w;
 		}
+
+		// Bias
+		fc1[i].x += biasw1[i].x;
+		fc1[i].y += biasw1[i].y;
+		fc1[i].z += biasw1[i].z;
+		fc1[i].w += biasw1[i].w;
+
+		//Activation
+		fc1[i].x = fnELU(fc1[i].x, 0.15f);
+		fc1[i].y = fnELU(fc1[i].y, 0.15f);
+		fc1[i].z = fnELU(fc1[i].w, 0.15f);
+		fc1[i].w = fnELU(fc1[i].z, 0.15f);
+	}
+
+	//FC2
+	for (int i = 0; i < 32; i++) {
+		// Summation
+		for (int j = 0; j < 32; j++) {
+			// X
+			fc2[i].x += fc1[j].x * w2[j * 4][i].x + fc1[j].y * w2[j * 4 + 1][i].x +
+				fc1[j].z * w2[j * 4 + 2][i].x + fc1[j].w * w2[j * 4 + 3][i].x;
+			// Y
+			fc2[i].y += fc1[j].x * w2[j * 4][i].y + fc1[j].y * w2[j * 4 + 1][i].y +
+				fc1[j].z * w2[j * 4 + 2][i].y + fc1[j].w * w2[j * 4 + 3][i].y;
+			// Z
+			fc2[i].z += fc1[j].x * w2[j * 4][i].z + fc1[j].y * w2[j * 4 + 1][i].z +
+				fc1[j].z * w2[j * 4 + 2][i].z + fc1[j].w * w2[j * 4 + 3][i].z;
+			// W
+			fc2[i].w += fc1[j].x * w2[j * 4][i].w + fc1[j].y * w2[j * 4 + 1][i].w +
+				fc1[j].z * w2[j * 4 + 2][i].w + fc1[j].w * w2[j * 4 + 3][i].w;
+		}
+		// Bias
+		fc2[i].x += biasw2[i].x;
+		fc2[i].y += biasw2[i].y;
+		fc2[i].z += biasw2[i].z;
+		fc2[i].w += biasw2[i].w;
+
+		//Activation
+		fc2[i].x = fnELU(fc2[i].x, 0.15f);
+		fc2[i].y = fnELU(fc2[i].y, 0.15f);
+		fc2[i].z = fnELU(fc2[i].w, 0.15f);
+		fc2[i].w = fnELU(fc2[i].z, 0.15f);
 	}
 
 	auto t2 = chrono::high_resolution_clock::now();
@@ -1379,6 +1446,19 @@ int main()
 		out += to_string(fc1[i].z);
 		out.push_back(' ');
 		out += to_string(fc1[i].w);
+		out.push_back('\n');
+	}
+	out.push_back('\n');
+
+	out += "\nfc2\n";
+	for (int i = 0; i < 32; i++) {
+		out += to_string(fc2[i].x);
+		out.push_back(' ');
+		out += to_string(fc2[i].y);
+		out.push_back(' ');
+		out += to_string(fc2[i].z);
+		out.push_back(' ');
+		out += to_string(fc2[i].w);
 		out.push_back('\n');
 	}
 	out.push_back('\n');
