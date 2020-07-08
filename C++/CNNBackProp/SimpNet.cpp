@@ -1009,6 +1009,115 @@ int main()
 		maxL3[k * 4 + 3].w = m;
 	}
 
+	// Max pooling layer 3 index
+	for (int k = 0; k < 32; k++) {
+		// X
+		float m = convL3[0][0][k].x;
+		imaxL3[k * 4].x = 0;
+		m = fmaxf(m, convL3[0][1][k].x);
+		imaxL3[k * 4].x = (m == convL3[0][1][k].x) ? 1 : imaxL3[k * 4].x;
+		m = fmaxf(m, convL3[1][0][k].x);
+		imaxL3[k * 4].x = (m == convL3[1][0][k].x) ? 4 : imaxL3[k * 4].x;
+		m = fmaxf(m, convL3[1][1][k].x);
+		imaxL3[k * 4].x = (m == convL3[1][1][k].x) ? 5 : imaxL3[k * 4].x;
+
+		m = convL3[0][2][k].x;
+		imaxL3[k * 4].y = 2;
+		m = fmaxf(m, convL3[0][3][k].x);
+		imaxL3[k * 4].y = (m == convL3[0][3][k].x) ? 3 : imaxL3[k * 4].y;
+		m = fmaxf(m, convL3[1][2][k].x);
+		imaxL3[k * 4].y = (m == convL3[1][2][k].x) ? 6 : imaxL3[k * 4].y;
+		m = fmaxf(m, convL3[1][3][k].x);
+		imaxL3[k * 4].y = (m == convL3[1][3][k].x) ? 7 : imaxL3[k * 4].y;
+
+		m = convL3[2][0][k].x;
+		imaxL3[k * 4].z = 8;
+		m = fmaxf(m, convL3[2][1][k].x);
+		imaxL3[k * 4].z = (m == convL3[2][1][k].x) ? 9 : imaxL3[k * 4].z;
+		m = fmaxf(m, convL3[3][0][k].x);
+		imaxL3[k * 4].z = (m == convL3[3][0][k].x) ? 12 : imaxL3[k * 4].z;
+		m = fmaxf(m, convL3[3][1][k].x);
+		imaxL3[k * 4].z = (m == convL3[3][1][k].x) ? 13 : imaxL3[k * 4].z;
+
+		m = convL3[2][2][k].x;
+		imaxL3[k * 4].w = 10;
+		m = fmaxf(m, convL3[2][3][k].x);
+		imaxL3[k * 4].w = (m == convL3[2][3][k].x) ? 11 : imaxL3[k * 4].w;
+		m = fmaxf(m, convL3[3][2][k].x);
+		imaxL3[k * 4].w = (m == convL3[3][2][k].x) ? 14 : imaxL3[k * 4].w;
+		m = fmaxf(m, convL3[3][3][k].x);
+		imaxL3[k * 4].w = (m == convL3[3][3][k].x) ? 15 : imaxL3[k * 4].w;
+
+		// Y
+		m = convL3[0][0][k].y;
+		m = fmaxf(m, convL3[0][1][k].y);
+		m = fmaxf(m, convL3[1][0][k].y);
+		m = fmaxf(m, convL3[1][1][k].y);
+		maxL3[k * 4 + 1].x = m;
+		m = convL3[0][2][k].y;
+		m = fmaxf(m, convL3[0][3][k].y);
+		m = fmaxf(m, convL3[1][2][k].y);
+		m = fmaxf(m, convL3[1][3][k].y);
+		maxL3[k * 4 + 1].y = m;
+		m = convL3[2][0][k].y;
+		m = fmaxf(m, convL3[2][1][k].y);
+		m = fmaxf(m, convL3[3][0][k].y);
+		m = fmaxf(m, convL3[3][1][k].y);
+		maxL3[k * 4 + 1].z = m;
+		m = convL3[2][2][k].y;
+		m = fmaxf(m, convL3[2][3][k].y);
+		m = fmaxf(m, convL3[3][2][k].y);
+		m = fmaxf(m, convL3[3][3][k].y);
+		maxL3[k * 4 + 1].w = m;
+		// Z
+		m = convL3[0][0][k].z;
+		m = fmaxf(m, convL3[0][1][k].z);
+		m = fmaxf(m, convL3[1][0][k].z);
+		m = fmaxf(m, convL3[1][1][k].z);
+		maxL3[k * 4 + 2].x = m;
+		m = convL3[0][2][k].z;
+		m = fmaxf(m, convL3[0][3][k].z);
+		m = fmaxf(m, convL3[1][2][k].z);
+		m = fmaxf(m, convL3[1][3][k].z);
+		maxL3[k * 4 + 2].y = m;
+		m = convL3[2][0][k].z;
+		m = fmaxf(m, convL3[2][1][k].z);
+		m = fmaxf(m, convL3[3][0][k].z);
+		m = fmaxf(m, convL3[3][1][k].z);
+		maxL3[k * 4 + 2].z = m;
+		m = convL3[2][2][k].z;
+		m = fmaxf(m, convL3[2][3][k].z);
+		m = fmaxf(m, convL3[3][2][k].z);
+		m = fmaxf(m, convL3[3][3][k].z);
+		maxL3[k * 4 + 2].w = m;
+		// W
+		m = convL3[0][0][k].w;
+		m = fmaxf(m, convL3[0][1][k].w);
+		m = fmaxf(m, convL3[1][0][k].w);
+		m = fmaxf(m, convL3[1][1][k].w);
+		maxL3[k * 4 + 3].x = m;
+		m = convL3[0][2][k].w;
+		m = fmaxf(m, convL3[0][3][k].w);
+		m = fmaxf(m, convL3[1][2][k].w);
+		m = fmaxf(m, convL3[1][3][k].w);
+		maxL3[k * 4 + 3].y = m;
+		m = convL3[2][0][k].w;
+		m = fmaxf(m, convL3[2][1][k].w);
+		m = fmaxf(m, convL3[3][0][k].w);
+		m = fmaxf(m, convL3[3][1][k].w);
+		maxL3[k * 4 + 3].z = m;
+		m = convL3[2][2][k].w;
+		m = fmaxf(m, convL3[2][3][k].w);
+		m = fmaxf(m, convL3[3][2][k].w);
+		m = fmaxf(m, convL3[3][3][k].w);
+		maxL3[k * 4 + 3].w = m;
+	}
+
+	// FC1
+	for (int i = 0; i < 32; i++) {
+		fc1[i].x = 0;
+	}
+
 	auto t2 = chrono::high_resolution_clock::now();
 
 	// Print debugging
