@@ -68,7 +68,8 @@ float4 fc2[32] = { 0.0f }; // 1x1x128
 // L6
 float4 w3[128][3]; // 128x12
 float4 biasw3[3];
-float4 out[3] = { 0.0f }; // 1x1x12
+float4 softout[3] = { 0.0f }; // 1x1x12
+float4 softout2[3] = { 0.0f }; // 1x1x12
 
 int main()
 {
@@ -1214,7 +1215,7 @@ int main()
 		fc1[i].w = fnELU(fc1[i].z, 0.15f);
 	}
 
-	//FC2
+	// FC2
 	for (int i = 0; i < 32; i++) {
 		// Summation
 		for (int j = 0; j < 32; j++) {
@@ -1242,6 +1243,53 @@ int main()
 		fc2[i].y = fnELU(fc2[i].y, 0.15f);
 		fc2[i].z = fnELU(fc2[i].w, 0.15f);
 		fc2[i].w = fnELU(fc2[i].z, 0.15f);
+	}
+
+	// Output
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 32; j++) {
+			softout[i].x = fc2[j].x * w3[j * 4][i].x + fc2[j].y * w3[j * 4 + 1][i].x +
+				fc2[j].z * w3[j * 4 + 2][i].x + fc2[j].w * w3[j * 4 + 3][i].x;
+			softout[i].y = fc2[j].x * w3[j * 4][i].y + fc2[j].y * w3[j * 4 + 1][i].y +
+				fc2[j].z * w3[j * 4 + 2][i].y + fc2[j].w * w3[j * 4 + 3][i].y;
+			softout[i].z = fc2[j].x * w3[j * 4][i].z + fc2[j].y * w3[j * 4 + 1][i].z +
+				fc2[j].z * w3[j * 4 + 2][i].z + fc2[j].w * w3[j * 4 + 3][i].z;
+			softout[i].w = fc2[j].x * w3[j * 4][i].w + fc2[j].y * w3[j * 4 + 1][i].w +
+				fc2[j].z * w3[j * 4 + 2][i].w + fc2[j].w * w3[j * 4 + 3][i].w;
+		}
+		// Bias
+		softout[i].x += biasw3[i].x;
+		softout[i].y += biasw3[i].y;
+		softout[i].z += biasw3[i].z;
+		softout[i].w += biasw3[i].w;
+	}
+
+	// Max normalization
+	float high = FLT_MIN;
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++) {
+			high = fmaxf(high, softout[j].x);
+			high = fmaxf(high, softout[j].y);
+			high = fmaxf(high, softout[j].z);
+			high = fmaxf(high, softout[j].w);
+		}
+		softout[i].x -= high;
+		softout[i].y -= high;
+		softout[i].z -= high;
+		softout[i].w -= high;
+	}
+
+	// Softmax
+	for (int i = 0; i < 3; i++) {
+		float s = 0.f;
+		// Total
+		for (int j = 0; j < 3; j++) {
+			s += exp(softout[j].x) + exp(softout[j].y) + exp(softout[j].z) + exp(softout[j].w);
+		}
+		softout2[i].x = exp(softout[i].x) / s;
+		softout2[i].y = exp(softout[i].y) / s;
+		softout2[i].z = exp(softout[i].z) / s;
+		softout2[i].w = exp(softout[i].w) / s;
 	}
 
 	auto t2 = chrono::high_resolution_clock::now();
@@ -1448,7 +1496,6 @@ int main()
 		out += to_string(fc1[i].w);
 		out.push_back('\n');
 	}
-	out.push_back('\n');
 
 	out += "\nfc2\n";
 	for (int i = 0; i < 32; i++) {
@@ -1461,10 +1508,35 @@ int main()
 		out += to_string(fc2[i].w);
 		out.push_back('\n');
 	}
+
+	out += "\nsoftmax\n";
+	for (int i = 0; i < 3; i++) {
+		out += to_string(softout[i].x);
+		out.push_back(' ');
+		out += to_string(softout[i].y);
+		out.push_back(' ');
+		out += to_string(softout[i].z);
+		out.push_back(' ');
+		out += to_string(softout[i].w);
+		out.push_back('\n');
+	}
+	out.push_back('\n');
+
+	out += "\nsoftmax2\n";
+	for (int i = 0; i < 3; i++) {
+		out += to_string(softout2[i].x);
+		out.push_back(' ');
+		out += to_string(softout2[i].y);
+		out.push_back(' ');
+		out += to_string(softout2[i].z);
+		out.push_back(' ');
+		out += to_string(softout2[i].w);
+		out.push_back('\n');
+	}
 	out.push_back('\n');
 
 	auto duration = chrono::duration_cast<chrono::milliseconds>(t2 - t1).count();
-	out += "\ntotal time: ";
+	out += "total time: ";
 	out += to_string(duration);
 	out += "ms";
 	cout << out << endl;
