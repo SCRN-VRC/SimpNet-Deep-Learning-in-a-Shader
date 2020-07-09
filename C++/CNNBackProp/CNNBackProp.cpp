@@ -29,19 +29,19 @@ const float case1Expect[3] =
 
 inline int clamp(int x, int y, int z)
 {
-	return min(max(x, y), z);
+	return x < y ? y : x > z ? z : x;
 }
 
 inline float fnRELU(float x) {
-	return max(float(0.0), x);
+	return fmaxf(0.0f, x);
 }
 
 inline float fnSig(float x) {
-	return exp(x);
+	return 1.0f / (1.0f + exp(-x));
 }
 
 inline float fnELU(float x, float alpha) {
-	return x >= 0. ? x : alpha * (exp(x) - 1.0);
+	return x >= 0.0f ? x : (alpha * (exp(x) - 1.0f));
 }
 
 int main()
