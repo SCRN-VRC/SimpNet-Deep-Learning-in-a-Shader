@@ -30,7 +30,7 @@ inline float actFn(float x) {
 	// Sigmoid
 	return 1.0f / (1.0f + exp(-x));
 	// ELU
-	// return x >= 0.0f ? x : (0.15 * (exp(x) - 1.0f));
+	// return x >= 0.0f ? x : (0.15f * (exp(x) - 1.0f));
 	// RELU
 	// return fmaxf(0.0f, x);
 }
@@ -38,11 +38,11 @@ inline float dactFn(float x) {
 	// Sigmoid
 	return x * (1.0f - x);
 	// ELU
-	// return x >= 0.f ? 1.0f : exp(x) * 0.15;
+	// return x >= 0.0f ? 1.0f : exp(x) * 0.15f;
 }
 
 // Learning rate
-float lr = 0.2f;
+float lr = 0.8f;
 // Bias learning rate
 float lrb = 0.1f;
 
@@ -90,9 +90,8 @@ float4 dbiasw3[3] = { 0.0 };
 
 int main()
 {
-	random_device rd;  //Will be used to obtain a seed for the random number engine
-	mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
-	uniform_real_distribution<float> dis(-0.5f, 0.5f);
+	default_random_engine gen;
+	normal_distribution<float> dis0(-0.5f, 0.5f);
 
 	// Setup input
 	for (int i = 0; i < 65; i++) {
@@ -104,15 +103,21 @@ int main()
 		}
 	}
 
+	/*
+		Initialize weights to normal Gaussians with mean zero and 
+		standard deviation 1/sqrt(Nin) with Nin the cardinality of input 
+		connectivity into a next layer node
+	*/
+	normal_distribution<float> dis1(0.0f, 1.f/sqrt(27.f));
 	// Random kern1 weights
 	for (int i = 0; i < 3; i++) {
 		for (int j = 0; j < 3; j++) {
 			for (int k = 0; k < 3; k++) {
 				for (int l = 0; l < 8; l++) {
-					kern1[i][j][k][l].x = dis(gen);
-					kern1[i][j][k][l].y = dis(gen);
-					kern1[i][j][k][l].z = dis(gen);
-					kern1[i][j][k][l].w = dis(gen);
+					kern1[i][j][k][l].x = dis1(gen);
+					kern1[i][j][k][l].y = dis1(gen);
+					kern1[i][j][k][l].z = dis1(gen);
+					kern1[i][j][k][l].w = dis1(gen);
 				}
 			}
 		}
@@ -120,21 +125,22 @@ int main()
 
 	// Bias for kern1
 	for (int i = 0; i < 8; i++) {
-		bias1[i].x = dis(gen);
-		bias1[i].y = dis(gen);
-		bias1[i].z = dis(gen);
-		bias1[i].w = dis(gen);
+		bias1[i].x = dis0(gen);
+		bias1[i].y = dis0(gen);
+		bias1[i].z = dis0(gen);
+		bias1[i].w = dis0(gen);
 	}
 
+	normal_distribution<float> dis2(0.0f, 1.f / sqrt(288.f));
 	// Random kern2 weights
 	for (int i = 0; i < 3; i++) {
 		for (int j = 0; j < 3; j++) {
 			for (int k = 0; k < 32; k++) {
 				for (int l = 0; l < 16; l++) {
-					kern2[i][j][k][l].x = dis(gen);
-					kern2[i][j][k][l].y = dis(gen);
-					kern2[i][j][k][l].z = dis(gen);
-					kern2[i][j][k][l].w = dis(gen);
+					kern2[i][j][k][l].x = dis2(gen);
+					kern2[i][j][k][l].y = dis2(gen);
+					kern2[i][j][k][l].z = dis2(gen);
+					kern2[i][j][k][l].w = dis2(gen);
 				}
 			}
 		}
@@ -142,21 +148,22 @@ int main()
 
 	// Bias for kern2
 	for (int i = 0; i < 16; i++) {
-		bias2[i].x = dis(gen);
-		bias2[i].y = dis(gen);
-		bias2[i].z = dis(gen);
-		bias2[i].w = dis(gen);
+		bias2[i].x = dis0(gen);
+		bias2[i].y = dis0(gen);
+		bias2[i].z = dis0(gen);
+		bias2[i].w = dis0(gen);
 	}
 
+	normal_distribution<float> dis3(0.0f, 1.f / sqrt(576.f));
 	// Random kern3 weights
 	for (int i = 0; i < 3; i++) {
 		for (int j = 0; j < 3; j++) {
 			for (int k = 0; k < 64; k++) {
 				for (int l = 0; l < 32; l++) {
-					kern3[i][j][k][l].x = dis(gen);
-					kern3[i][j][k][l].y = dis(gen);
-					kern3[i][j][k][l].z = dis(gen);
-					kern3[i][j][k][l].w = dis(gen);
+					kern3[i][j][k][l].x = dis3(gen);
+					kern3[i][j][k][l].y = dis3(gen);
+					kern3[i][j][k][l].z = dis3(gen);
+					kern3[i][j][k][l].w = dis3(gen);
 				}
 			}
 		}
@@ -164,67 +171,69 @@ int main()
 
 	// Bias for kern3
 	for (int i = 0; i < 32; i++) {
-		bias3[i].x = dis(gen);
-		bias3[i].y = dis(gen);
-		bias3[i].z = dis(gen);
-		bias3[i].w = dis(gen);
+		bias3[i].x = dis0(gen);
+		bias3[i].y = dis0(gen);
+		bias3[i].z = dis0(gen);
+		bias3[i].w = dis0(gen);
 	}
 
+	normal_distribution<float> dis4(0.0f, 1.f / sqrt(512.f));
 	// FC1 random weights
 	for (int i = 0; i < 512; i++) {
 		for (int j = 0; j < 32; j++) {
-			w1[i][j].x = dis(gen);
-			w1[i][j].y = dis(gen);
-			w1[i][j].z = dis(gen);
-			w1[i][j].w = dis(gen);
+			w1[i][j].x = dis4(gen);
+			w1[i][j].y = dis4(gen);
+			w1[i][j].z = dis4(gen);
+			w1[i][j].w = dis4(gen);
 		}
 	}
 
 	// Bias for FC1
 	for (int i = 0; i < 32; i++) {
-		biasw1[i].x = dis(gen);
-		biasw1[i].y = dis(gen);
-		biasw1[i].z = dis(gen);
-		biasw1[i].w = dis(gen);
+		biasw1[i].x = dis0(gen);
+		biasw1[i].y = dis0(gen);
+		biasw1[i].z = dis0(gen);
+		biasw1[i].w = dis0(gen);
 	}
 
+	normal_distribution<float> dis5(0.0f, 1.f / sqrt(128.f));
 	// FC2 random weights
 	for (int i = 0; i < 128; i++) {
 		for (int j = 0; j < 32; j++) {
-			w2[i][j].x = dis(gen);
-			w2[i][j].y = dis(gen);
-			w2[i][j].z = dis(gen);
-			w2[i][j].w = dis(gen);
+			w2[i][j].x = dis5(gen);
+			w2[i][j].y = dis5(gen);
+			w2[i][j].z = dis5(gen);
+			w2[i][j].w = dis5(gen);
 		}
 	}
 
 	// Bias for FC2
 	for (int i = 0; i < 32; i++) {
-		biasw2[i].x = dis(gen);
-		biasw2[i].y = dis(gen);
-		biasw2[i].z = dis(gen);
-		biasw2[i].w = dis(gen);
+		biasw2[i].x = dis0(gen);
+		biasw2[i].y = dis0(gen);
+		biasw2[i].z = dis0(gen);
+		biasw2[i].w = dis0(gen);
 	}
 
 	// FC3 random weights
 	for (int i = 0; i < 128; i++) {
 		for (int j = 0; j < 3; j++) {
-			w3[i][j].x = dis(gen);
-			w3[i][j].y = dis(gen);
-			w3[i][j].z = dis(gen);
-			w3[i][j].w = dis(gen);
+			w3[i][j].x = dis5(gen);
+			w3[i][j].y = dis5(gen);
+			w3[i][j].z = dis5(gen);
+			w3[i][j].w = dis5(gen);
 		}
 	}
 
 	// Bias for FC3
 	for (int i = 0; i < 3; i++) {
-		biasw3[i].x = dis(gen);
-		biasw3[i].y = dis(gen);
-		biasw3[i].z = dis(gen);
-		biasw3[i].w = dis(gen);
+		biasw3[i].x = dis0(gen);
+		biasw3[i].y = dis0(gen);
+		biasw3[i].z = dis0(gen);
+		biasw3[i].w = dis0(gen);
 	}
 
-	for (int ll = 0; ll < 20; ll++) {
+	for (int ll = 0; ll < 50; ll++) {
 		// Time the neural net
 		auto t1 = chrono::high_resolution_clock::now();
 
@@ -1282,20 +1291,20 @@ int main()
 			softout[i].w += biasw3[i].w;
 		}
 
-		// Max normalization
-		float high = FLT_MIN;
-		for (int i = 0; i < 3; i++) {
-			for (int j = 0; j < 3; j++) {
-				high = fmaxf(high, softout[j].x);
-				high = fmaxf(high, softout[j].y);
-				high = fmaxf(high, softout[j].z);
-				high = fmaxf(high, softout[j].w);
-			}
-			softout[i].x -= high;
-			softout[i].y -= high;
-			softout[i].z -= high;
-			softout[i].w -= high;
-		}
+		//// Max normalization
+		//float high = FLT_MIN;
+		//for (int i = 0; i < 3; i++) {
+		//	for (int j = 0; j < 3; j++) {
+		//		high = fmaxf(high, softout[j].x);
+		//		high = fmaxf(high, softout[j].y);
+		//		high = fmaxf(high, softout[j].z);
+		//		high = fmaxf(high, softout[j].w);
+		//	}
+		//	softout[i].x -= high;
+		//	softout[i].y -= high;
+		//	softout[i].z -= high;
+		//	softout[i].w -= high;
+		//}
 
 		// Softmax
 		for (int i = 0; i < 3; i++) {
