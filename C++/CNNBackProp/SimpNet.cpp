@@ -85,8 +85,9 @@ float4 softout[3] = { 0.0f }; // 1x1x12
 float4 softout2[3] = { 0.0f }; // 1x1x12
 
 // Backprop
-float4 dw3[128][3] = { 0.0 };
-float4 dbiasw3[3] = { 0.0 };
+float4 dw3[128][3] = { 0.0f };
+float4 dbiasw3[3] = { 0.0f };
+float4 dfc2[32] = { 0.0f };
 
 int main()
 {
@@ -233,7 +234,7 @@ int main()
 		biasw3[i].w = dis0(gen);
 	}
 
-	for (int ll = 0; ll < 100; ll++) {
+	for (int ll = 0; ll < 50; ll++) {
 		// Time the neural net
 		auto t1 = chrono::high_resolution_clock::now();
 
@@ -1315,8 +1316,8 @@ int main()
 				// output of previous layer connected to current weight i
 				dw3[i][j].x = (softout2[j].x - testOut[j].x) * fc2[i / 4].x;
 				dw3[i][j].y = (softout2[j].y - testOut[j].y) * fc2[i / 4].y;
-				dw3[i][j].w = (softout2[j].w - testOut[j].w) * fc2[i / 4].w;
 				dw3[i][j].z = (softout2[j].z - testOut[j].z) * fc2[i / 4].z;
+				dw3[i][j].w = (softout2[j].w - testOut[j].w) * fc2[i / 4].w;
 			}
 		}
 
@@ -1328,27 +1329,51 @@ int main()
 			dbiasw3[i].w = (softout2[i].w - testOut[i].w);
 		}
 
+		// FC2 error
+		for (int i = 0; i < 32; i++) {
+			dfc2[i] = { 0.0f };
+			for (int j = 0; j < 3; j++) {
+				dfc2[i].x += (softout2[j].x - testOut[j].x) * w3[i * 4][j].x;
+				dfc2[i].x += (softout2[j].y - testOut[j].y) * w3[i * 4][j].y;
+				dfc2[i].x += (softout2[j].z - testOut[j].z) * w3[i * 4][j].z;
+				dfc2[i].x += (softout2[j].w - testOut[j].w) * w3[i * 4][j].w;
 
+				dfc2[i].y += (softout2[j].x - testOut[j].x) * w3[i * 4 + 1][j].x;
+				dfc2[i].y += (softout2[j].y - testOut[j].y) * w3[i * 4 + 1][j].y;
+				dfc2[i].y += (softout2[j].z - testOut[j].z) * w3[i * 4 + 1][j].z;
+				dfc2[i].y += (softout2[j].w - testOut[j].w) * w3[i * 4 + 1][j].w;
+
+				dfc2[i].z += (softout2[j].x - testOut[j].x) * w3[i * 4 + 2][j].x;
+				dfc2[i].z += (softout2[j].y - testOut[j].y) * w3[i * 4 + 2][j].y;
+				dfc2[i].z += (softout2[j].z - testOut[j].z) * w3[i * 4 + 2][j].z;
+				dfc2[i].z += (softout2[j].w - testOut[j].w) * w3[i * 4 + 2][j].w;
+
+				dfc2[i].w += (softout2[j].x - testOut[j].x) * w3[i * 4 + 3][j].x;
+				dfc2[i].w += (softout2[j].y - testOut[j].y) * w3[i * 4 + 3][j].y;
+				dfc2[i].w += (softout2[j].z - testOut[j].z) * w3[i * 4 + 3][j].z;
+				dfc2[i].w += (softout2[j].w - testOut[j].w) * w3[i * 4 + 3][j].w;
+			}
+		}
 
 		// Update step
 
-		//// FC2 weights
-		//for (int i = 0; i < 128; i++) {
-		//	for (int j = 0; j < 3; j++) {
-		//		w3[i][j].x -= lr * dw3[i][j].x;
-		//		w3[i][j].y -= lr * dw3[i][j].y;
-		//		w3[i][j].z -= lr * dw3[i][j].z;
-		//		w3[i][j].w -= lr * dw3[i][j].w;
-		//	}
-		//}
+		// FC3 weights
+		for (int i = 0; i < 128; i++) {
+			for (int j = 0; j < 3; j++) {
+				w3[i][j].x -= lr * dw3[i][j].x;
+				w3[i][j].y -= lr * dw3[i][j].y;
+				w3[i][j].z -= lr * dw3[i][j].z;
+				w3[i][j].w -= lr * dw3[i][j].w;
+			}
+		}
 
-		//// Bias 3
-		//for (int i = 0; i < 3; i++) {
-		//	biasw3[i].x -= lrb * dbiasw3[i].x;
-		//	biasw3[i].y -= lrb * dbiasw3[i].y;
-		//	biasw3[i].z -= lrb * dbiasw3[i].z;
-		//	biasw3[i].w -= lrb * dbiasw3[i].w;
-		//}
+		// Bias 3
+		for (int i = 0; i < 3; i++) {
+			biasw3[i].x -= lrb * dbiasw3[i].x;
+			biasw3[i].y -= lrb * dbiasw3[i].y;
+			biasw3[i].z -= lrb * dbiasw3[i].z;
+			biasw3[i].w -= lrb * dbiasw3[i].w;
+		}
 
 		auto t3 = chrono::high_resolution_clock::now();
 
@@ -1591,6 +1616,7 @@ int main()
 			out += to_string(softout2[i].w);
 			out.push_back('\n');
 		}
+
 		out += "\ncross entropy error: ";
 		float ce = 0.0f;
 		for (int i = 0; i < 3; i++) {
@@ -1610,6 +1636,39 @@ int main()
 		out += "ms\n";
 		cout << out << endl;
 		//system("pause");
+
+		// Reset for next iteration
+
+		for (int i = 0; i < 32; i++) {
+			for (int j = 0; j < 32; j++) {
+				for (int k = 0; k < 8; k++) {
+					convL1[i][j][k] = { 0.0f };
+				}
+			}
+		}
+		for (int i = 0; i < 14; i++) {
+			for (int j = 0; j < 14; j++) {
+				for (int k = 0; k < 16; k++) {
+					convL2[i][j][k] = { 0.0f };
+				}
+			}
+		}
+		for (int i = 0; i < 4; i++) {
+			for (int j = 0; j < 4; j++) {
+				for (int k = 0; k < 32; k++) {
+					convL3[i][j][k] = { 0.0f };
+				}
+			}
+		}
+		for (int i = 0; i < 32; i++) {
+			fc1[i] = { 0.0f };
+			fc2[i] = { 0.0f };
+		}
+		for (int i = 0; i < 3; i++) {
+			softout[i] = { 0.0f };
+			softout2[i] = { 0.0f };
+		}
+
 	}
 	system("pause");
 	return 0;
