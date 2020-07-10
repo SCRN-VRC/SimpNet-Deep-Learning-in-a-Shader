@@ -42,7 +42,7 @@ inline float dactFn(float x) {
 }
 
 // Learning rate
-float lr = 0.5f;
+float lr = 2.0f;
 // Bias learning rate
 float lrb = 0.05f;
 
@@ -87,7 +87,8 @@ float4 softout2[3] = { 0.0f }; // 1x1x12
 // Backprop
 float4 dw3[128][3] = { 0.0f };
 float4 dbiasw3[3] = { 0.0f };
-float4 dfc2[32] = { 0.0f };
+float4 dw2[128][32] = { 0.0f };
+float4 dbiasw2[32] = { 0.0f };
 
 int main()
 {
@@ -242,6 +243,7 @@ int main()
 		for (int k = 0; k < 8; k++) {
 			for (int i = 0; i < 32; i++) {
 				for (int j = 0; j < 32; j++) {
+
 					int i0 = i * 2, i1 = i0 + 1, i2 = i0 + 2;
 					int j0 = j * 2, j1 = j0 + 1, j2 = j0 + 2;
 
@@ -1309,7 +1311,7 @@ int main()
 
 		// Backpropagation
 
-		// FC2 gradient, using Cross Entropy Error Function with Softmax
+		// FC3 gradient, using Cross Entropy Error Function with Softmax
 		for (int i = 0; i < 128; i++) {
 			for (int j = 0; j < 3; j++) {
 				// Cross Entropy derivative with softmax *
@@ -1329,50 +1331,66 @@ int main()
 			dbiasw3[i].w = (softout2[i].w - testOut[i].w);
 		}
 
-		// FC2 error
-		for (int i = 0; i < 32; i++) {
-			dfc2[i] = { 0.0f };
-			for (int j = 0; j < 3; j++) {
-				dfc2[i].x += (softout2[j].x - testOut[j].x) * w3[i * 4][j].x;
-				dfc2[i].x += (softout2[j].y - testOut[j].y) * w3[i * 4][j].y;
-				dfc2[i].x += (softout2[j].z - testOut[j].z) * w3[i * 4][j].z;
-				dfc2[i].x += (softout2[j].w - testOut[j].w) * w3[i * 4][j].w;
+		// FC2 gradient
+		for (int i = 0; i < 128; i++) {
+			for (int j = 0; j < 32; j++) {
+				dw2[i][j] = { 0.0f };
+				for (int k = 0; k < 3; k++) {
+					dw2[i][j].x += (softout2[k].x - testOut[k].x) * w3[j * 4][k].x;
+					dw2[i][j].x += (softout2[k].y - testOut[k].y) * w3[j * 4][k].y;
+					dw2[i][j].x += (softout2[k].z - testOut[k].z) * w3[j * 4][k].z;
+					dw2[i][j].x += (softout2[k].w - testOut[k].w) * w3[j * 4][k].w;
 
-				dfc2[i].y += (softout2[j].x - testOut[j].x) * w3[i * 4 + 1][j].x;
-				dfc2[i].y += (softout2[j].y - testOut[j].y) * w3[i * 4 + 1][j].y;
-				dfc2[i].y += (softout2[j].z - testOut[j].z) * w3[i * 4 + 1][j].z;
-				dfc2[i].y += (softout2[j].w - testOut[j].w) * w3[i * 4 + 1][j].w;
+					dw2[i][j].y += (softout2[k].x - testOut[k].x) * w3[j * 4 + 1][k].x;
+					dw2[i][j].y += (softout2[k].y - testOut[k].y) * w3[j * 4 + 1][k].y;
+					dw2[i][j].y += (softout2[k].z - testOut[k].z) * w3[j * 4 + 1][k].z;
+					dw2[i][j].y += (softout2[k].w - testOut[k].w) * w3[j * 4 + 1][k].w;
 
-				dfc2[i].z += (softout2[j].x - testOut[j].x) * w3[i * 4 + 2][j].x;
-				dfc2[i].z += (softout2[j].y - testOut[j].y) * w3[i * 4 + 2][j].y;
-				dfc2[i].z += (softout2[j].z - testOut[j].z) * w3[i * 4 + 2][j].z;
-				dfc2[i].z += (softout2[j].w - testOut[j].w) * w3[i * 4 + 2][j].w;
+					dw2[i][j].z += (softout2[k].x - testOut[k].x) * w3[j * 4 + 2][k].x;
+					dw2[i][j].z += (softout2[k].y - testOut[k].y) * w3[j * 4 + 2][k].y;
+					dw2[i][j].z += (softout2[k].z - testOut[k].z) * w3[j * 4 + 2][k].z;
+					dw2[i][j].z += (softout2[k].w - testOut[k].w) * w3[j * 4 + 2][k].w;
 
-				dfc2[i].w += (softout2[j].x - testOut[j].x) * w3[i * 4 + 3][j].x;
-				dfc2[i].w += (softout2[j].y - testOut[j].y) * w3[i * 4 + 3][j].y;
-				dfc2[i].w += (softout2[j].z - testOut[j].z) * w3[i * 4 + 3][j].z;
-				dfc2[i].w += (softout2[j].w - testOut[j].w) * w3[i * 4 + 3][j].w;
+					dw2[i][j].w += (softout2[k].x - testOut[k].x) * w3[j * 4 + 3][k].x;
+					dw2[i][j].w += (softout2[k].y - testOut[k].y) * w3[j * 4 + 3][k].y;
+					dw2[i][j].w += (softout2[k].z - testOut[k].z) * w3[j * 4 + 3][k].z;
+					dw2[i][j].w += (softout2[k].w - testOut[k].w) * w3[j * 4 + 3][k].w;
+				}
+				dw2[i][j].x *= dactFn(fc2[j].x) * fc1[i / 4].x;
+				dw2[i][j].y *= dactFn(fc2[j].y) * fc1[i / 4].y;
+				dw2[i][j].z *= dactFn(fc2[j].z) * fc1[i / 4].z;
+				dw2[i][j].w *= dactFn(fc2[j].w) * fc1[i / 4].w;
 			}
 		}
 
 		// Update step
 
-		// FC3 weights
-		for (int i = 0; i < 128; i++) {
-			for (int j = 0; j < 3; j++) {
-				w3[i][j].x -= lr * dw3[i][j].x;
-				w3[i][j].y -= lr * dw3[i][j].y;
-				w3[i][j].z -= lr * dw3[i][j].z;
-				w3[i][j].w -= lr * dw3[i][j].w;
-			}
-		}
+		//// FC3 weights
+		//for (int i = 0; i < 128; i++) {
+		//	for (int j = 0; j < 3; j++) {
+		//		w3[i][j].x -= lr * dw3[i][j].x;
+		//		w3[i][j].y -= lr * dw3[i][j].y;
+		//		w3[i][j].z -= lr * dw3[i][j].z;
+		//		w3[i][j].w -= lr * dw3[i][j].w;
+		//	}
+		//}
 
-		// Bias 3
-		for (int i = 0; i < 3; i++) {
-			biasw3[i].x -= lrb * dbiasw3[i].x;
-			biasw3[i].y -= lrb * dbiasw3[i].y;
-			biasw3[i].z -= lrb * dbiasw3[i].z;
-			biasw3[i].w -= lrb * dbiasw3[i].w;
+		//// Bias 3
+		//for (int i = 0; i < 3; i++) {
+		//	biasw3[i].x -= lrb * dbiasw3[i].x;
+		//	biasw3[i].y -= lrb * dbiasw3[i].y;
+		//	biasw3[i].z -= lrb * dbiasw3[i].z;
+		//	biasw3[i].w -= lrb * dbiasw3[i].w;
+		//}
+
+		// FC2 weights
+		for (int i = 0; i < 128; i++) {
+			for (int j = 0; j < 32; j++) {
+				w2[i][j].x -= lr * dw2[i][j].x;
+				w2[i][j].y -= lr * dw2[i][j].y;
+				w2[i][j].z -= lr * dw2[i][j].z;
+				w2[i][j].w -= lr * dw2[i][j].w;
+			}
 		}
 
 		auto t3 = chrono::high_resolution_clock::now();
