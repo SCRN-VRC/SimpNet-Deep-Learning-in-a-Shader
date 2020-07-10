@@ -28,23 +28,23 @@ inline int clamp(int x, int y, int z)
 
 inline float actFn(float x) {
 	// Sigmoid
-	return 1.0f / (1.0f + exp(-x));
+	// return 1.0f / (1.0f + exp(-x));
 	// ELU
-	// return x >= 0.0f ? x : (0.15f * (exp(x) - 1.0f));
+	return x >= 0.0f ? x : (0.15f * (exp(x) - 1.0f));
 	// RELU
 	// return fmaxf(0.0f, x);
 }
 inline float dactFn(float x) {
 	// Sigmoid
-	return x * (1.0f - x);
+	// return x * (1.0f - x);
 	// ELU
-	// return x >= 0.0f ? 1.0f : exp(x) * 0.15f;
+	return x >= 0.0f ? 1.0f : exp(x) * 0.15f;
 }
 
 // Learning rate
-float lr = 0.8f;
+float lr = 0.5f;
 // Bias learning rate
-float lrb = 0.1f;
+float lrb = 0.05f;
 
 float4 testImg[65][65] = { 0.0f };
 float4 testOut[3] = {
@@ -105,7 +105,7 @@ int main()
 
 	/*
 		Initialize weights to normal Gaussians with mean zero and 
-		standard deviation 1/sqrt(Nin) with Nin the cardinality of input 
+		standard deviation 1/sqrt(N_in) with N_in the cardinality of input 
 		connectivity into a next layer node
 	*/
 	normal_distribution<float> dis1(0.0f, 1.f/sqrt(27.f));
@@ -233,7 +233,7 @@ int main()
 		biasw3[i].w = dis0(gen);
 	}
 
-	for (int ll = 0; ll < 50; ll++) {
+	for (int ll = 0; ll < 100; ll++) {
 		// Time the neural net
 		auto t1 = chrono::high_resolution_clock::now();
 
@@ -1284,27 +1284,11 @@ int main()
 				softout[i].w = fc2[j].x * w3[j * 4][i].w + fc2[j].y * w3[j * 4 + 1][i].w +
 					fc2[j].z * w3[j * 4 + 2][i].w + fc2[j].w * w3[j * 4 + 3][i].w;
 			}
-			// Bias
 			softout[i].x += biasw3[i].x;
 			softout[i].y += biasw3[i].y;
 			softout[i].z += biasw3[i].z;
 			softout[i].w += biasw3[i].w;
 		}
-
-		//// Max normalization
-		//float high = FLT_MIN;
-		//for (int i = 0; i < 3; i++) {
-		//	for (int j = 0; j < 3; j++) {
-		//		high = fmaxf(high, softout[j].x);
-		//		high = fmaxf(high, softout[j].y);
-		//		high = fmaxf(high, softout[j].z);
-		//		high = fmaxf(high, softout[j].w);
-		//	}
-		//	softout[i].x -= high;
-		//	softout[i].y -= high;
-		//	softout[i].z -= high;
-		//	softout[i].w -= high;
-		//}
 
 		// Softmax
 		for (int i = 0; i < 3; i++) {
@@ -1313,6 +1297,7 @@ int main()
 			for (int j = 0; j < 3; j++) {
 				s += exp(softout[j].x) + exp(softout[j].y) + exp(softout[j].z) + exp(softout[j].w);
 			}
+
 			softout2[i].x = exp(softout[i].x) / s;
 			softout2[i].y = exp(softout[i].y) / s;
 			softout2[i].z = exp(softout[i].z) / s;
@@ -1323,26 +1308,47 @@ int main()
 
 		// Backpropagation
 
-		// FC2 gradient
+		// FC2 gradient, using Cross Entropy Error Function with Softmax
 		for (int i = 0; i < 128; i++) {
 			for (int j = 0; j < 3; j++) {
-				// (out - target) * derive activation function *
+				// Cross Entropy derivative with softmax *
 				// output of previous layer connected to current weight i
-				dw3[i][j].x = (softout2[j].x - testOut[j].x) * dactFn(softout2[j].x) * fc2[i / 4].x;
-				dw3[i][j].y = (softout2[j].y - testOut[j].y) * dactFn(softout2[j].y) * fc2[i / 4].y;
-				dw3[i][j].z = (softout2[j].z - testOut[j].z) * dactFn(softout2[j].z) * fc2[i / 4].z;
-				dw3[i][j].w = (softout2[j].w - testOut[j].w) * dactFn(softout2[j].w) * fc2[i / 4].w;
+				dw3[i][j].x = (softout2[j].x - testOut[j].x) * fc2[i / 4].x;
+				dw3[i][j].y = (softout2[j].y - testOut[j].y) * fc2[i / 4].y;
+				dw3[i][j].w = (softout2[j].w - testOut[j].w) * fc2[i / 4].w;
+				dw3[i][j].z = (softout2[j].z - testOut[j].z) * fc2[i / 4].z;
 			}
 		}
 
-		for (int i = 0; i < 128; i++) {
-			for (int j = 0; j < 3; j++) {
-				w3[i][j].x -= lr * dw3[i][j].x;
-				w3[i][j].y -= lr * dw3[i][j].y;
-				w3[i][j].z -= lr * dw3[i][j].z;
-				w3[i][j].w -= lr * dw3[i][j].w;
-			}
+		// Bias 3 gradient
+		for (int i = 0; i < 3; i++) {
+			dbiasw3[i].x = (softout2[i].x - testOut[i].x);
+			dbiasw3[i].y = (softout2[i].y - testOut[i].y);
+			dbiasw3[i].z = (softout2[i].z - testOut[i].z);
+			dbiasw3[i].w = (softout2[i].w - testOut[i].w);
 		}
+
+
+
+		// Update step
+
+		//// FC2 weights
+		//for (int i = 0; i < 128; i++) {
+		//	for (int j = 0; j < 3; j++) {
+		//		w3[i][j].x -= lr * dw3[i][j].x;
+		//		w3[i][j].y -= lr * dw3[i][j].y;
+		//		w3[i][j].z -= lr * dw3[i][j].z;
+		//		w3[i][j].w -= lr * dw3[i][j].w;
+		//	}
+		//}
+
+		//// Bias 3
+		//for (int i = 0; i < 3; i++) {
+		//	biasw3[i].x -= lrb * dbiasw3[i].x;
+		//	biasw3[i].y -= lrb * dbiasw3[i].y;
+		//	biasw3[i].z -= lrb * dbiasw3[i].z;
+		//	biasw3[i].w -= lrb * dbiasw3[i].w;
+		//}
 
 		auto t3 = chrono::high_resolution_clock::now();
 
@@ -1561,18 +1567,18 @@ int main()
 		//	out.push_back('\n');
 		//}
 
-		out += "\nsoftmax\n";
-		for (int i = 0; i < 3; i++) {
-			out += to_string(softout[i].x);
-			out.push_back(' ');
-			out += to_string(softout[i].y);
-			out.push_back(' ');
-			out += to_string(softout[i].z);
-			out.push_back(' ');
-			out += to_string(softout[i].w);
-			out.push_back('\n');
-		}
-		out.push_back('\n');
+		//out += "\nsoftmax\n";
+		//for (int i = 0; i < 3; i++) {
+		//	out += to_string(softout[i].x);
+		//	out.push_back(' ');
+		//	out += to_string(softout[i].y);
+		//	out.push_back(' ');
+		//	out += to_string(softout[i].z);
+		//	out.push_back(' ');
+		//	out += to_string(softout[i].w);
+		//	out.push_back('\n');
+		//}
+		//out.push_back('\n');
 
 		out += "\nsoftmax2\n";
 		for (int i = 0; i < 3; i++) {
@@ -1585,17 +1591,25 @@ int main()
 			out += to_string(softout2[i].w);
 			out.push_back('\n');
 		}
-
+		out += "\ncross entropy error: ";
+		float ce = 0.0f;
+		for (int i = 0; i < 3; i++) {
+			ce += testOut[i].x * log(softout2[i].x);
+			ce += testOut[i].y * log(softout2[i].y);
+			ce += testOut[i].z * log(softout2[i].z);
+			ce += testOut[i].w * log(softout2[i].w);
+		}
+		out += to_string(-ce);
 		auto duration = chrono::duration_cast<chrono::milliseconds>(t2 - t1).count();
 		out += "\nforward pass: ";
 		out += to_string(duration);
-		out += "ms\n";
+		out += "ms";
 		duration = chrono::duration_cast<chrono::milliseconds>(t3 - t2).count();
 		out += "\nbackward pass: ";
 		out += to_string(duration);
 		out += "ms\n";
 		cout << out << endl;
-		system("pause");
+		//system("pause");
 	}
 	system("pause");
 	return 0;
