@@ -30,7 +30,7 @@ inline float dactFn(float x) {
 // Learning rate
 float lr = 0.2f;
 // Bias learning rate
-float lrb = 0.1f;
+float lrb = 0.2f;
 
 float testImg[65][65][3] = { 0.0f };
 float testOut[12] = {
@@ -59,7 +59,8 @@ int imaxL3[2][2][128] = { 0 }; // 2x2x128
 // L4
 float w1[2][2][128][128]; // 512x128
 float biasw1[128];
-float fc1[128] = { 0.0f }; // 1x1x128
+float fc1s[128] = { 0.0f }; // 1x1x128
+float fc1a[128] = { 0.0f }; // 1x1x128
 // L5
 float w2[128][128]; // 512x128
 float biasw2[128];
@@ -76,6 +77,9 @@ float dw3[128][12] = { 0.0f };
 float dbiasw3[12] = { 0.0f };
 float dw2[128][128] = { 0.0f };
 float dbiasw2[128] = { 0.0f };
+float dw1[2][2][128][128] = { 0.0f };
+float dbiasw1[128] = { 0.0f };
+float emaxL3[2][2][128] = { 0.0f };
 
 int main()
 {
@@ -410,21 +414,24 @@ int main()
 
 		// FC1
 		for (int i = 0; i < 128; i++) {
-			fc1[i] = 0.0f;
+			fc1s[i] = 0.0f;
 			// Summation
 			for (int k = 0; k < 2; k++) {
 				for (int l = 0; l < 2; l++) {
 					for (int j = 0; j < 128; j++) {
-						fc1[i] += maxL3[k][l][j] * w1[k][l][j][i];
+						fc1s[i] += maxL3[k][l][j] * w1[k][l][j][i];
 					}
 				}
 			}
 
 			// Bias
-			fc1[i] += biasw1[i];
+			fc1s[i] += biasw1[i];
+		}
 
+		// fc1a
+		for (int i = 0; i < 128; i++) {
 			//Activation
-			fc1[i] = actFn(fc1[i]);
+			fc1a[i] = actFn(fc1s[i]);
 		}
 
 		// fc2s
@@ -433,7 +440,7 @@ int main()
 
 			// Summation
 			for (int j = 0; j < 128; j++) {
-				fc2s[i] += fc1[j] * w2[i][j];
+				fc2s[i] += fc1a[j] * w2[i][j];
 			}
 			// Bias
 			fc2s[i] += biasw2[i];
@@ -469,28 +476,17 @@ int main()
 
 		// Backpropagation
 
-		// FC3 gradient, using Cross Entropy Error Function with Softmax
-		for (int i = 0; i < 128; i++) {
-			for (int j = 0; j < 12; j++) {
-				// Cross Entropy derivative with softmax *
-				// output of previous layer connected to current weight i
-				dw3[i][j] = (softout2[j] - testOut[j]) * fc2a[i];
-			}
-		}
-
 		// FC3 bias
 		for (int i = 0; i < 12; i++) {
 			dbiasw3[i] = (softout2[i] - testOut[i]);
 		}
 
-		// FC2 gradient
+		// FC3 gradient, using Cross Entropy Error Function with Softmax
 		for (int i = 0; i < 128; i++) {
-			for (int j = 0; j < 128; j++) {
-				dw2[i][j] = 0.0f;
-				for (int k = 0; k < 12; k++) {
-					dw2[i][j] += (softout2[k] - testOut[k]) * w3[i][k];
-				}
-				dw2[i][j] *= dactFn(fc2s[i]) * fc1[j];
+			for (int j = 0; j < 12; j++) {
+				// Cross Entropy derivative with softmax *
+				// output of previous layer connected to current weight i
+				dw3[i][j] = dbiasw3[j] * fc2a[i];
 			}
 		}
 
@@ -498,35 +494,86 @@ int main()
 		for (int i = 0; i < 128; i++) {
 			dbiasw2[i] = 0.0f;
 			for (int k = 0; k < 12; k++) {
-				dbiasw2[i] += (softout2[k] - testOut[k]) * w3[i][k];
+				dbiasw2[i] += dbiasw3[k] * w3[i][k];
+			}
+		}
+
+		// FC2 gradient
+		for (int i = 0; i < 128; i++) {
+			for (int j = 0; j < 128; j++) {
+				dw2[i][j] = dbiasw2[i] * dactFn(fc2s[i]) * fc1a[j];
+			}
+		}
+
+		// FC1 bias
+		for (int i = 0; i < 128; i++) {
+			dbiasw1[i] = 0.0f;
+			for (int k = 0; k < 128; k++) {
+				dbiasw1[i] += dbiasw2[k] * dactFn(fc2s[k]) * w2[k][i];
+			}
+		}
+
+		// FC1 gradient
+		for (int i = 0; i < 2; i++) {
+			for (int j = 0; j < 2; j++) {
+				for (int k = 0; k < 128; k++) {
+					for (int l = 0; l < 128; l++) {
+						dw1[i][j][k][l] = dbiasw1[l] * dactFn(fc1s[l]) * maxL3[i][j][k];
+					}
+				}
+			}
+		}
+
+		// maxL3 error
+		for (int i = 0; i < 2; i++) {
+			for (int j = 0; j < 2; j++) {
+				for (int k = 0; k < 128; k++) {
+					emaxL3[i][j][k];
+				}
 			}
 		}
 
 		// Update step
 
-		// FC3 weights
+		//// FC3 weights
 		//for (int i = 0; i < 128; i++) {
 		//	for (int j = 0; j < 12; j++) {
 		//		w3[i][j] -= lr * dw3[i][j];
 		//	}
 		//}
 
-		// FC3 bias
+		//// FC3 bias
 		//for (int i = 0; i < 12; i++) {
 		//	biasw3[i] -= lrb * dbiasw3[i];
 		//}
 
-		// FC2 weights
+		//// FC2 weights
 		//for (int i = 0; i < 128; i++) {
 		//	for (int j = 0; j < 128; j++) {
 		//		w2[i][j] -= lr * dw2[i][j];
 		//	}
 		//}
 
-		// FC2 bias
-		for (int i = 0; i < 128; i++) {
-			biasw2[i] -= lrb * dbiasw2[i];
-		}
+		//// FC2 bias
+		//for (int i = 0; i < 128; i++) {
+		//	biasw2[i] -= lrb * dbiasw2[i];
+		//}
+		
+		//// FC1 weights
+		//for (int i = 0; i < 2; i++) {
+		//	for (int j = 0; j < 2; j++) {
+		//		for (int k = 0; k < 128; k++) {
+		//			for (int l = 0; l < 128; l++) {
+		//				w1[i][j][k][l] -= lr * dw1[i][j][k][l];
+		//			}
+		//		}
+		//	}
+		//}
+
+		//// FC1 bias
+		//for (int i = 0; i < 128; i++) {
+		//	biasw1[i] -= lrb * dbiasw1[i];
+		//}
 
 		auto t3 = chrono::high_resolution_clock::now();
 
