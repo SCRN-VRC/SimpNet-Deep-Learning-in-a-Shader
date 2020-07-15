@@ -30,7 +30,7 @@ inline float dactFn(float x) {
 // Learning rate
 float lr = 0.2f;
 // Bias learning rate
-float lrb = 0.5f;
+float lrb = 0.1f;
 
 float testImg[65][65][3] = { 0.0f };
 float testOut[12] = {
@@ -189,7 +189,7 @@ int main()
 		biasw3[i] = dis0(gen);
 	}
 
-	for (int ll = 0; ll < 1; ll++) {
+	for (int ll = 0; ll < 50; ll++) {
 		// Time the neural net
 		auto t1 = chrono::high_resolution_clock::now();
 
@@ -433,7 +433,7 @@ int main()
 
 			// Summation
 			for (int j = 0; j < 128; j++) {
-				fc2s[i] += fc1[j];
+				fc2s[i] += fc1[j] * w2[i][j];
 			}
 			// Bias
 			fc2s[i] += biasw2[i];
@@ -469,45 +469,64 @@ int main()
 
 		// Backpropagation
 
-		//// FC3 gradient, using Cross Entropy Error Function with Softmax
-		//for (int i = 0; i < 128; i++) {
-		//	for (int j = 0; j < 3; j++) {
-		//		// Cross Entropy derivative with softmax *
-		//		// output of previous layer connected to current weight i
-		//		dw3[i][j].x = (softout2[j].x - testOut[j].x) * fc2a[i / 4].x;
-		//		dw3[i][j].y = (softout2[j].y - testOut[j].y) * fc2a[i / 4].y;
-		//		dw3[i][j].z = (softout2[j].z - testOut[j].z) * fc2a[i / 4].z;
-		//		dw3[i][j].w = (softout2[j].w - testOut[j].w) * fc2a[i / 4].w;
-		//	}
-		//}
+		// FC3 gradient, using Cross Entropy Error Function with Softmax
+		for (int i = 0; i < 128; i++) {
+			for (int j = 0; j < 12; j++) {
+				// Cross Entropy derivative with softmax *
+				// output of previous layer connected to current weight i
+				dw3[i][j] = (softout2[j] - testOut[j]) * fc2a[i];
+			}
+		}
 
-		//// FC3 bias
-		//for (int i = 0; i < 3; i++) {
-		//	dbiasw3[i].x = (softout2[i].x - testOut[i].x);
-		//	dbiasw3[i].y = (softout2[i].y - testOut[i].y);
-		//	dbiasw3[i].z = (softout2[i].z - testOut[i].z);
-		//	dbiasw3[i].w = (softout2[i].w - testOut[i].w);
-		//}
+		// FC3 bias
+		for (int i = 0; i < 12; i++) {
+			dbiasw3[i] = (softout2[i] - testOut[i]);
+		}
+
+		// FC2 gradient
+		for (int i = 0; i < 128; i++) {
+			for (int j = 0; j < 128; j++) {
+				dw2[i][j] = 0.0f;
+				for (int k = 0; k < 12; k++) {
+					dw2[i][j] += (softout2[k] - testOut[k]) * w3[i][k];
+				}
+				dw2[i][j] *= dactFn(fc2s[i]) * fc1[j];
+			}
+		}
+
+		// FC2 bias
+		for (int i = 0; i < 128; i++) {
+			dbiasw2[i] = 0.0f;
+			for (int k = 0; k < 12; k++) {
+				dbiasw2[i] += (softout2[k] - testOut[k]) * w3[i][k];
+			}
+		}
 
 		// Update step
 
-		//// FC3 weights
+		// FC3 weights
 		//for (int i = 0; i < 128; i++) {
-		//	for (int j = 0; j < 3; j++) {
-		//		w3[i][j].x -= lr * dw3[i][j].x;
-		//		w3[i][j].y -= lr * dw3[i][j].y;
-		//		w3[i][j].z -= lr * dw3[i][j].z;
-		//		w3[i][j].w -= lr * dw3[i][j].w;
+		//	for (int j = 0; j < 12; j++) {
+		//		w3[i][j] -= lr * dw3[i][j];
 		//	}
 		//}
 
-		//// FC3 bias
-		//for (int i = 0; i < 3; i++) {
-		//	biasw3[i].x -= lrb * dbiasw3[i].x;
-		//	biasw3[i].y -= lrb * dbiasw3[i].y;
-		//	biasw3[i].z -= lrb * dbiasw3[i].z;
-		//	biasw3[i].w -= lrb * dbiasw3[i].w;
+		// FC3 bias
+		//for (int i = 0; i < 12; i++) {
+		//	biasw3[i] -= lrb * dbiasw3[i];
 		//}
+
+		// FC2 weights
+		//for (int i = 0; i < 128; i++) {
+		//	for (int j = 0; j < 128; j++) {
+		//		w2[i][j] -= lr * dw2[i][j];
+		//	}
+		//}
+
+		// FC2 bias
+		for (int i = 0; i < 128; i++) {
+			biasw2[i] -= lrb * dbiasw2[i];
+		}
 
 		auto t3 = chrono::high_resolution_clock::now();
 
@@ -536,82 +555,73 @@ int main()
 		//	}
 		//}
 
-		out += "\nconv1\n";
-		for (int i = 0; i < 32; i++) {
-			for (int j = 0; j < 32; j++) {
-				out += to_string(convL1[i][j][0]);
-				out.push_back(' ');
-			}
-			out.push_back('\n');
-		}
+		//out += "\nconv1\n";
+		//for (int i = 0; i < 32; i++) {
+		//	for (int j = 0; j < 32; j++) {
+		//		out += to_string(convL1[i][j][0]);
+		//		out.push_back(' ');
+		//	}
+		//	out.push_back('\n');
+		//}
 
-		out += "\nconv1\n";
-		for (int i = 0; i < 32; i++) {
-			for (int j = 0; j < 32; j++) {
-				out += to_string(convL1[i][j][31]);
-				out.push_back(' ');
-			}
-			out.push_back('\n');
-		}
+		//out += "\nconv1\n";
+		//for (int i = 0; i < 32; i++) {
+		//	for (int j = 0; j < 32; j++) {
+		//		out += to_string(convL1[i][j][31]);
+		//		out.push_back(' ');
+		//	}
+		//	out.push_back('\n');
+		//}
 
-		out += "\nmax1\n";
-		for (int i = 0; i < 16; i++) {
-			for (int j = 0; j < 16; j++) {
-				out += to_string(maxL1[i][j][0]);
-				out.push_back(' ');
-			}
-			out.push_back('\n');
-		}
+		//out += "\nmax1\n";
+		//for (int i = 0; i < 16; i++) {
+		//	for (int j = 0; j < 16; j++) {
+		//		out += to_string(maxL1[i][j][0]);
+		//		out.push_back(' ');
+		//	}
+		//	out.push_back('\n');
+		//}
 
-		out += "\nmax1\n";
-		for (int i = 0; i < 16; i++) {
-			for (int j = 0; j < 16; j++) {
-				out += to_string(maxL1[i][j][31]);
-				out.push_back(' ');
-			}
-			out.push_back('\n');
-		}
+		//out += "\nmax1\n";
+		//for (int i = 0; i < 16; i++) {
+		//	for (int j = 0; j < 16; j++) {
+		//		out += to_string(maxL1[i][j][31]);
+		//		out.push_back(' ');
+		//	}
+		//	out.push_back('\n');
+		//}
 
-		out += "\nmax1 index\n";
-		for (int i = 0; i < 16; i++) {
-			for (int j = 0; j < 16; j++) {
-				out += to_string(imaxL1[i][j][0]);
-				out.push_back(' ');
-			}
-			out.push_back('\n');
-		}
+		//out += "\nmax1 index\n";
+		//for (int i = 0; i < 16; i++) {
+		//	for (int j = 0; j < 16; j++) {
+		//		out += to_string(imaxL1[i][j][0]);
+		//		out.push_back(' ');
+		//	}
+		//	out.push_back('\n');
+		//}
 
-		out += "\nmax1 index\n";
-		for (int i = 0; i < 16; i++) {
-			for (int j = 0; j < 16; j++) {
-				out += to_string(imaxL1[i][j][31]);
-				out.push_back(' ');
-			}
-			out.push_back('\n');
-		}
+		//out += "\nmax1 index\n";
+		//for (int i = 0; i < 16; i++) {
+		//	for (int j = 0; j < 16; j++) {
+		//		out += to_string(imaxL1[i][j][31]);
+		//		out.push_back(' ');
+		//	}
+		//	out.push_back('\n');
+		//}
 
-		out += "\nconv2\n";
-		for (int i = 0; i < 14; i++) {
-			for (int j = 0; j < 14; j++) {
-				out += to_string(convL2[i][j][0]);
-				out.push_back(' ');
-			}
-			out.push_back('\n');
-		}
+		//out += "\nconv2\n";
+		//for (int i = 0; i < 14; i++) {
+		//	for (int j = 0; j < 14; j++) {
+		//		out += to_string(convL2[i][j][0]);
+		//		out.push_back(' ');
+		//	}
+		//	out.push_back('\n');
+		//}
 
-		out += "\nconv2\n";
-		for (int i = 0; i < 14; i++) {
-			for (int j = 0; j < 14; j++) {
-				out += to_string(convL2[i][j][63]);
-				out.push_back(' ');
-			}
-			out.push_back('\n');
-		}
-
-		//out += "\nmax2\n";
-		//for (int i = 0; i < 7; i++) {
-		//	for (int j = 0; j < 7; j++) {
-		//		out += to_string(maxL2[i][j][0].x);
+		//out += "\nconv2\n";
+		//for (int i = 0; i < 14; i++) {
+		//	for (int j = 0; j < 14; j++) {
+		//		out += to_string(convL2[i][j][63]);
 		//		out.push_back(' ');
 		//	}
 		//	out.push_back('\n');
@@ -620,7 +630,16 @@ int main()
 		//out += "\nmax2\n";
 		//for (int i = 0; i < 7; i++) {
 		//	for (int j = 0; j < 7; j++) {
-		//		out += to_string(maxL2[i][j][15].w);
+		//		out += to_string(maxL2[i][j][0]);
+		//		out.push_back(' ');
+		//	}
+		//	out.push_back('\n');
+		//}
+
+		//out += "\nmax2\n";
+		//for (int i = 0; i < 7; i++) {
+		//	for (int j = 0; j < 7; j++) {
+		//		out += to_string(maxL2[i][j][63]);
 		//		out.push_back(' ');
 		//	}
 		//	out.push_back('\n');
@@ -629,7 +648,7 @@ int main()
 		//out += "\nmax2 index\n";
 		//for (int i = 0; i < 7; i++) {
 		//	for (int j = 0; j < 7; j++) {
-		//		out += to_string(imaxL2[i][j][0].x);
+		//		out += to_string(imaxL2[i][j][0]);
 		//		out.push_back(' ');
 		//	}
 		//	out.push_back('\n');
@@ -638,7 +657,7 @@ int main()
 		//out += "\nmax2 index\n";
 		//for (int i = 0; i < 7; i++) {
 		//	for (int j = 0; j < 7; j++) {
-		//		out += to_string(imaxL2[i][j][15].w);
+		//		out += to_string(imaxL2[i][j][63]);
 		//		out.push_back(' ');
 		//	}
 		//	out.push_back('\n');
@@ -647,7 +666,7 @@ int main()
 		//out += "\nconv3\n";
 		//for (int i = 0; i < 4; i++) {
 		//	for (int j = 0; j < 4; j++) {
-		//		out += to_string(convL3[i][j][0].x);
+		//		out += to_string(convL3[i][j][0]);
 		//		out.push_back(' ');
 		//	}
 		//	out.push_back('\n');
@@ -656,94 +675,78 @@ int main()
 		//out += "\nconv3\n";
 		//for (int i = 0; i < 4; i++) {
 		//	for (int j = 0; j < 4; j++) {
-		//		out += to_string(convL3[i][j][31].w);
+		//		out += to_string(convL3[i][j][127]);
 		//		out.push_back(' ');
 		//	}
 		//	out.push_back('\n');
 		//}
 
 		//out += "\nmax3\n";
-		//out += to_string(maxL3[0].x);
+		//out += to_string(maxL3[0][0][0]);
 		//out.push_back(' ');
-		//out += to_string(maxL3[0].y);
+		//out += to_string(maxL3[0][1][0]);
 		//out.push_back('\n');
-		//out += to_string(maxL3[0].z);
+		//out += to_string(maxL3[1][0][0]);
 		//out.push_back(' ');
-		//out += to_string(maxL3[0].w);
+		//out += to_string(maxL3[1][1][0]);
 		//out.push_back('\n');
 
 		//out += "\nmax3\n";
-		//out += to_string(maxL3[127].x);
+		//out += to_string(maxL3[0][0][127]);
 		//out.push_back(' ');
-		//out += to_string(maxL3[127].y);
+		//out += to_string(maxL3[0][1][127]);
 		//out.push_back('\n');
-		//out += to_string(maxL3[127].z);
+		//out += to_string(maxL3[1][0][127]);
 		//out.push_back(' ');
-		//out += to_string(maxL3[127].w);
-		//out.push_back('\n');
-
-		//out += "\nmax3 index\n";
-		//out += to_string(imaxL3[0].x);
-		//out.push_back(' ');
-		//out += to_string(imaxL3[0].y);
-		//out.push_back('\n');
-		//out += to_string(imaxL3[0].z);
-		//out.push_back(' ');
-		//out += to_string(imaxL3[0].w);
+		//out += to_string(maxL3[1][1][127]);
 		//out.push_back('\n');
 
 		//out += "\nmax3 index\n";
-		//out += to_string(imaxL3[127].x);
+		//out += to_string(imaxL3[0][0][0]);
 		//out.push_back(' ');
-		//out += to_string(imaxL3[127].y);
+		//out += to_string(imaxL3[0][1][0]);
 		//out.push_back('\n');
-		//out += to_string(imaxL3[127].z);
+		//out += to_string(imaxL3[1][0][0]);
 		//out.push_back(' ');
-		//out += to_string(imaxL3[127].w);
+		//out += to_string(imaxL3[1][1][0]);
+		//out.push_back('\n');
+
+		//out += "\nmax3 index\n";
+		//out += to_string(imaxL3[0][0][127]);
+		//out.push_back(' ');
+		//out += to_string(imaxL3[0][1][127]);
+		//out.push_back('\n');
+		//out += to_string(imaxL3[1][0][127]);
+		//out.push_back(' ');
+		//out += to_string(imaxL3[1][1][127]);
 		//out.push_back('\n');
 
 		//out += "\nfc1\n";
-		//for (int i = 0; i < 32; i++) {
-		//	out += to_string(fc1[i].x);
+		//for (int i = 0; i < 128; i++) {
+		//	out += to_string(fc1[i]);
 		//	out.push_back(' ');
-		//	out += to_string(fc1[i].y);
-		//	out.push_back(' ');
-		//	out += to_string(fc1[i].z);
-		//	out.push_back(' ');
-		//	out += to_string(fc1[i].w);
-		//	out.push_back('\n');
 		//}
 
 		//out += "\nfc2\n";
-		//for (int i = 0; i < 32; i++) {
-		//	out += to_string(fc2[i].x);
+		//for (int i = 0; i < 128; i++) {
+		//	out += to_string(fc2a[i]);
 		//	out.push_back(' ');
-		//	out += to_string(fc2[i].y);
-		//	out.push_back(' ');
-		//	out += to_string(fc2[i].z);
-		//	out.push_back(' ');
-		//	out += to_string(fc2[i].w);
-		//	out.push_back('\n');
 		//}
 
-		//out += "\nsoftmax\n";
-		//for (int i = 0; i < 3; i++) {
-		//	out += to_string(softout[i].x);
-		//	out.push_back(' ');
-		//	out += to_string(softout[i].y);
-		//	out.push_back(' ');
-		//	out += to_string(softout[i].z);
-		//	out.push_back(' ');
-		//	out += to_string(softout[i].w);
-		//	out.push_back('\n');
-		//}
-		//out.push_back('\n');
+		out += "\nsoftmax\n";
+		for (int i = 0; i < 12; i++) {
+			out += to_string(softout[i]);
+			out.push_back(' ');
+		}
+		out.push_back('\n');
 
 		out += "\nsoftmax2\n";
 		for (int i = 0; i < 12; i++) {
 			out += to_string(softout2[i]);
 			out.push_back(' ');
 		}
+		out.push_back('\n');
+
 		out += "\ncross entropy error: ";
 		float ce = 0.0f;
 		for (int i = 0; i < 12; i++) {
