@@ -80,6 +80,7 @@ float dbiasw2[128] = { 0.0f };
 float dw1[2][2][128][128] = { 0.0f };
 float dbiasw1[128] = { 0.0f };
 float emaxL3[2][2][128] = { 0.0f };
+float econvL3[4][4][128] = { 0.0f };
 
 int main()
 {
@@ -193,7 +194,7 @@ int main()
 		biasw3[i] = dis0(gen);
 	}
 
-	for (int ll = 0; ll < 50; ll++) {
+	for (int ll = 0; ll < 1; ll++) {
 		// Time the neural net
 		auto t1 = chrono::high_resolution_clock::now();
 
@@ -478,14 +479,14 @@ int main()
 
 		// FC3 bias
 		for (int i = 0; i < 12; i++) {
+			// Cross Entropy derivative with softmax
 			dbiasw3[i] = (softout2[i] - testOut[i]);
 		}
 
-		// FC3 gradient, using Cross Entropy Error Function with Softmax
+		// FC3 gradient
 		for (int i = 0; i < 128; i++) {
 			for (int j = 0; j < 12; j++) {
-				// Cross Entropy derivative with softmax *
-				// output of previous layer connected to current weight i
+				// With respect to the output of previous layer
 				dw3[i][j] = dbiasw3[j] * fc2a[i];
 			}
 		}
@@ -494,6 +495,7 @@ int main()
 		for (int i = 0; i < 128; i++) {
 			dbiasw2[i] = 0.0f;
 			for (int k = 0; k < 12; k++) {
+				// With respect to w3
 				dbiasw2[i] += dbiasw3[k] * w3[i][k];
 			}
 		}
@@ -501,6 +503,7 @@ int main()
 		// FC2 gradient
 		for (int i = 0; i < 128; i++) {
 			for (int j = 0; j < 128; j++) {
+				// With respect to the activation function of fc2 and the output of previous layer
 				dw2[i][j] = dbiasw2[i] * dactFn(fc2s[i]) * fc1a[j];
 			}
 		}
@@ -509,6 +512,7 @@ int main()
 		for (int i = 0; i < 128; i++) {
 			dbiasw1[i] = 0.0f;
 			for (int k = 0; k < 128; k++) {
+				// With respect to activation function of fc2 and w2
 				dbiasw1[i] += dbiasw2[k] * dactFn(fc2s[k]) * w2[k][i];
 			}
 		}
@@ -518,6 +522,7 @@ int main()
 			for (int j = 0; j < 2; j++) {
 				for (int k = 0; k < 128; k++) {
 					for (int l = 0; l < 128; l++) {
+						// With respect to activation function of fc1 and the output of previous layer
 						dw1[i][j][k][l] = dbiasw1[l] * dactFn(fc1s[l]) * maxL3[i][j][k];
 					}
 				}
@@ -528,7 +533,23 @@ int main()
 		for (int i = 0; i < 2; i++) {
 			for (int j = 0; j < 2; j++) {
 				for (int k = 0; k < 128; k++) {
-					emaxL3[i][j][k];
+					emaxL3[i][j][k] = 0.0f;
+					for (int l = 0; l < 128; l++) {
+						// Figure out the delta outputs instead of delta weights
+						emaxL3[i][j][k] += dbiasw1[l] * dactFn(fc1s[l]) * w1[i][j][l][k];
+					}
+				}
+			}
+		}
+
+		// Restructure, 2x2 -> 4x4
+		for (int i = 0; i < 4; i++) {
+			for (int j = 0; j < 4; j++) {
+				for (int k = 0; k < 128; k++) {
+					int i0 = i / 2;
+					int j0 = j / 2;
+					econvL3[i][j][k] = imaxL3[i0][j0][k] == i * 4 + j ?
+						emaxL3[i0][j0][k] : 0.0f;
 				}
 			}
 		}
@@ -558,7 +579,7 @@ int main()
 		//for (int i = 0; i < 128; i++) {
 		//	biasw2[i] -= lrb * dbiasw2[i];
 		//}
-		
+		//
 		//// FC1 weights
 		//for (int i = 0; i < 2; i++) {
 		//	for (int j = 0; j < 2; j++) {
@@ -748,25 +769,43 @@ int main()
 		//out += to_string(maxL3[1][1][127]);
 		//out.push_back('\n');
 
-		//out += "\nmax3 index\n";
-		//out += to_string(imaxL3[0][0][0]);
-		//out.push_back(' ');
-		//out += to_string(imaxL3[0][1][0]);
-		//out.push_back('\n');
-		//out += to_string(imaxL3[1][0][0]);
-		//out.push_back(' ');
-		//out += to_string(imaxL3[1][1][0]);
-		//out.push_back('\n');
+		out += "\nmax3 index\n";
+		out += to_string(imaxL3[0][0][0]);
+		out.push_back(' ');
+		out += to_string(imaxL3[0][1][0]);
+		out.push_back('\n');
+		out += to_string(imaxL3[1][0][0]);
+		out.push_back(' ');
+		out += to_string(imaxL3[1][1][0]);
+		out.push_back('\n');
 
-		//out += "\nmax3 index\n";
-		//out += to_string(imaxL3[0][0][127]);
-		//out.push_back(' ');
-		//out += to_string(imaxL3[0][1][127]);
-		//out.push_back('\n');
-		//out += to_string(imaxL3[1][0][127]);
-		//out.push_back(' ');
-		//out += to_string(imaxL3[1][1][127]);
-		//out.push_back('\n');
+		out += "\nmax3 index\n";
+		out += to_string(imaxL3[0][0][127]);
+		out.push_back(' ');
+		out += to_string(imaxL3[0][1][127]);
+		out.push_back('\n');
+		out += to_string(imaxL3[1][0][127]);
+		out.push_back(' ');
+		out += to_string(imaxL3[1][1][127]);
+		out.push_back('\n');
+
+		// convL3 Errors
+		out += "\nconv3 error\n";
+		for (int i = 0; i < 4; i++) {
+			for (int j = 0; j < 4; j++) {
+				out += to_string(econvL3[i][j][0]);
+				out.push_back(' ');
+			}
+			out.push_back('\n');
+		}
+		out += "\nconv3 error\n";
+		for (int i = 0; i < 4; i++) {
+			for (int j = 0; j < 4; j++) {
+				out += to_string(econvL3[i][j][127]);
+				out.push_back(' ');
+			}
+			out.push_back('\n');
+		}
 
 		//out += "\nfc1\n";
 		//for (int i = 0; i < 128; i++) {
