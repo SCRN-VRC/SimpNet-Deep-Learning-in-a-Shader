@@ -73,14 +73,17 @@ float softout[12] = { 0.0f }; // 1x1x12
 float softout2[12] = { 0.0f }; // 1x1x12
 
 // Backprop
-float dw3[128][12] = { 0.0f };
-float dbiasw3[12] = { 0.0f };
-float dw2[128][128] = { 0.0f };
-float dbiasw2[128] = { 0.0f };
-float dw1[2][2][128][128] = { 0.0f };
-float dbiasw1[128] = { 0.0f };
-float emaxL3[2][2][128] = { 0.0f };
-float econvL3[4][4][128] = { 0.0f };
+float dw3[128][12] = { 0.0f }; // Fully connected output to fc2a
+float dbiasw3[12] = { 0.0f }; // Bias for w3
+float dw2[128][128] = { 0.0f }; // Fully connected fc2a to fc1a
+float dbiasw2[128] = { 0.0f }; // Bias for w2
+float dw1[2][2][128][128] = { 0.0f }; // Fully connected fc1a to L3
+float dbiasw1[128] = { 0.0f }; // Bias for w1
+float emaxL3[2][2][128] = { 0.0f }; // L3 loss input
+float econvL3[4][4][128] = { 0.0f }; // Undo max pool for L3
+float diconvL3[7][7][128] = { 0.0f }; // L3 dialation
+float dkern3[3][3][64][128] = { 0.0f }; // L3 kernel gradient
+float dbias3[128] = { 0.0f }; // L3 kernel bias
 
 int main()
 {
@@ -97,11 +100,11 @@ int main()
 	}
 
 	/*
-		Initialize weights to normal Gaussians with mean zero and 
-		standard deviation 1/sqrt(N_in) with N_in the cardinality of input 
+		Initialize weights to normal Gaussians with mean zero and
+		standard deviation 1/sqrt(N_in) with N_in the cardinality of input
 		connectivity into a next layer node
 	*/
-	normal_distribution<float> dis1(0.0f, 1.f/sqrt(27.f));
+	normal_distribution<float> dis1(0.0f, 1.f / sqrt(27.f));
 	// Random kern1 weights
 	for (int i = 0; i < 3; i++) {
 		for (int j = 0; j < 3; j++) {
@@ -194,7 +197,7 @@ int main()
 		biasw3[i] = dis0(gen);
 	}
 
-	for (int ll = 0; ll < 1; ll++) {
+	for (int ll = 0; ll < 50; ll++) {
 		// Time the neural net
 		auto t1 = chrono::high_resolution_clock::now();
 
@@ -536,7 +539,7 @@ int main()
 					emaxL3[i][j][k] = 0.0f;
 					for (int l = 0; l < 128; l++) {
 						// Figure out the delta outputs instead of delta weights
-						emaxL3[i][j][k] += dbiasw1[l] * dactFn(fc1s[l]) * w1[i][j][l][k];
+						emaxL3[i][j][k] += dbiasw1[l] * dactFn(fc1s[l]) * w1[i][j][k][l];
 					}
 				}
 			}
@@ -545,11 +548,56 @@ int main()
 		// Restructure, 2x2 -> 4x4
 		for (int i = 0; i < 4; i++) {
 			for (int j = 0; j < 4; j++) {
+				int i0 = i / 2;
+				int j0 = j / 2;
 				for (int k = 0; k < 128; k++) {
-					int i0 = i / 2;
-					int j0 = j / 2;
 					econvL3[i][j][k] = imaxL3[i0][j0][k] == i * 4 + j ?
 						emaxL3[i0][j0][k] : 0.0f;
+				}
+			}
+		}
+
+		// Dialate stride=2
+		// https://medium.com/@mayank.utexas/backpropagation-for-convolution-with-strides-fb2f2efc4faa
+		for (int i = 0; i < 7; i++) {
+			for (int j = 0; j < 7; j++) {
+				int i0 = i / 2;
+				int j0 = j / 2;
+				for (int k = 0; k < 128; k++) {
+					diconvL3[i][j][k] = ((i % 2 == 1) || (j % 2 == 1)) ?
+						0.0f : econvL3[i0][j0][k];
+				}
+			}
+		}
+
+		// Kern3 gradient
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 3; j++) {
+				for (int k = 0; k < 64; k++) {
+					for (int l = 0; l < 128; l++) {
+						// Convolution 7x7 error over 9x9 input
+						float s = 0.0f;
+						for (int x = i; x < 7; x++) {
+							for (int y = j; y < 7; y++) {
+								int l2x = x - 1;
+								int l2y = y - 1;
+								// Padding
+								bool b = l2x < 0 || l2y < 0 || l2x > 7 || l2y > 7;
+								s += b ? 0.0f : maxL2[l2x][l2y][k] * diconvL3[x][y][l];
+							}
+						}
+						dkern3[i][j][k][l] = s;
+					}
+				}
+			}
+		}
+
+		// Kern3 bias 
+		for (int i = 0; i < 128; i++) {
+			dbias3[i] = 0.0;
+			for (int j = 0; j < 2; j++) {
+				for (int k = 0; k < 2; k++) {
+					dbias3[i] += emaxL3[j][k][i];
 				}
 			}
 		}
@@ -594,6 +642,22 @@ int main()
 		//// FC1 bias
 		//for (int i = 0; i < 128; i++) {
 		//	biasw1[i] -= lrb * dbiasw1[i];
+		//}
+
+		//// Kern3 weights
+		//for (int i = 0; i < 3; i++) {
+		//	for (int j = 0; j < 3; j++) {
+		//		for (int k = 0; k < 64; k++) {
+		//			for (int l = 0; l < 128; l++) {
+		//				kern3[i][j][k][l] -= lr * dkern3[i][j][k][l];
+		//			}
+		//		}
+		//	}
+		//}
+
+		//// Kern3 bias
+		//for (int i = 0; i < 128; i++) {
+		//	bias3[i] -= lrb * dbias3[i];
 		//}
 
 		auto t3 = chrono::high_resolution_clock::now();
@@ -769,43 +833,61 @@ int main()
 		//out += to_string(maxL3[1][1][127]);
 		//out.push_back('\n');
 
-		out += "\nmax3 index\n";
-		out += to_string(imaxL3[0][0][0]);
-		out.push_back(' ');
-		out += to_string(imaxL3[0][1][0]);
-		out.push_back('\n');
-		out += to_string(imaxL3[1][0][0]);
-		out.push_back(' ');
-		out += to_string(imaxL3[1][1][0]);
-		out.push_back('\n');
+		//out += "\nmax3 index\n";
+		//out += to_string(imaxL3[0][0][0]);
+		//out.push_back(' ');
+		//out += to_string(imaxL3[0][1][0]);
+		//out.push_back('\n');
+		//out += to_string(imaxL3[1][0][0]);
+		//out.push_back(' ');
+		//out += to_string(imaxL3[1][1][0]);
+		//out.push_back('\n');
 
-		out += "\nmax3 index\n";
-		out += to_string(imaxL3[0][0][127]);
-		out.push_back(' ');
-		out += to_string(imaxL3[0][1][127]);
-		out.push_back('\n');
-		out += to_string(imaxL3[1][0][127]);
-		out.push_back(' ');
-		out += to_string(imaxL3[1][1][127]);
-		out.push_back('\n');
+		//out += "\nmax3 index\n";
+		//out += to_string(imaxL3[0][0][127]);
+		//out.push_back(' ');
+		//out += to_string(imaxL3[0][1][127]);
+		//out.push_back('\n');
+		//out += to_string(imaxL3[1][0][127]);
+		//out.push_back(' ');
+		//out += to_string(imaxL3[1][1][127]);
+		//out.push_back('\n');
 
-		// convL3 Errors
-		out += "\nconv3 error\n";
-		for (int i = 0; i < 4; i++) {
-			for (int j = 0; j < 4; j++) {
-				out += to_string(econvL3[i][j][0]);
-				out.push_back(' ');
-			}
-			out.push_back('\n');
-		}
-		out += "\nconv3 error\n";
-		for (int i = 0; i < 4; i++) {
-			for (int j = 0; j < 4; j++) {
-				out += to_string(econvL3[i][j][127]);
-				out.push_back(' ');
-			}
-			out.push_back('\n');
-		}
+		//// convL3 Errors
+		//out += "\nconv3 error\n";
+		//for (int i = 0; i < 4; i++) {
+		//	for (int j = 0; j < 4; j++) {
+		//		out += to_string(econvL3[i][j][0]);
+		//		out.push_back(' ');
+		//	}
+		//	out.push_back('\n');
+		//}
+		//out += "\nconv3 error\n";
+		//for (int i = 0; i < 4; i++) {
+		//	for (int j = 0; j < 4; j++) {
+		//		out += to_string(econvL3[i][j][127]);
+		//		out.push_back(' ');
+		//	}
+		//	out.push_back('\n');
+		//}
+
+		//// convL3 Dialation
+		//out += "\nconv3 dialate\n";
+		//for (int i = 0; i < 7; i++) {
+		//	for (int j = 0; j < 7; j++) {
+		//		out += to_string(diconvL3[i][j][0]);
+		//		out.push_back(' ');
+		//	}
+		//	out.push_back('\n');
+		//}
+		//out += "\nconv3 dialate\n";
+		//for (int i = 0; i < 7; i++) {
+		//	for (int j = 0; j < 7; j++) {
+		//		out += to_string(diconvL3[i][j][127]);
+		//		out.push_back(' ');
+		//	}
+		//	out.push_back('\n');
+		//}
 
 		//out += "\nfc1\n";
 		//for (int i = 0; i < 128; i++) {
