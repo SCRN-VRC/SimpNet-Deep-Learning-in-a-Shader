@@ -30,7 +30,7 @@ inline float dactFn(float x) {
 // Learning rate
 float lr = 0.2f;
 // Bias learning rate
-float lrb = 0.2f;
+float lrb = 0.1f;
 
 float testImg[65][65][3] = { 0.0f };
 float testOut[12] = {
@@ -79,11 +79,20 @@ float dw2[128][128] = { 0.0f }; // Fully connected fc2a to fc1a
 float dbiasw2[128] = { 0.0f }; // Bias for w2
 float dw1[2][2][128][128] = { 0.0f }; // Fully connected fc1a to L3
 float dbiasw1[128] = { 0.0f }; // Bias for w1
+
 float emaxL3[2][2][128] = { 0.0f }; // L3 loss input
+float dbias3[128] = { 0.0f }; // L3 kernel bias
 float econvL3[4][4][128] = { 0.0f }; // Undo max pool for L3
 float diconvL3[7][7][128] = { 0.0f }; // L3 dialation
 float dkern3[3][3][64][128] = { 0.0f }; // L3 kernel gradient
-float dbias3[128] = { 0.0f }; // L3 kernel bias
+
+float emaxL2[7][7][64] = { 0.0f }; // L2 loss input
+float dbias2[64] = { 0.0f }; // L2 kernel bias
+float econvL2[14][14][64] = { 0.0f }; // Undo max pool for L2
+float dkern2[3][3][32][64] = { 0.0f }; // L2 kernel gradient
+
+float emaxL1[16][16][32] = { 0.0f }; // L1 loss input
+float dbias1[32] = { 0.0f }; // L1 kernel bias
 
 int main()
 {
@@ -197,7 +206,7 @@ int main()
 		biasw3[i] = dis0(gen);
 	}
 
-	for (int ll = 0; ll < 50; ll++) {
+	for (int ll = 0; ll < 5; ll++) {
 		// Time the neural net
 		auto t1 = chrono::high_resolution_clock::now();
 
@@ -532,7 +541,7 @@ int main()
 			}
 		}
 
-		// maxL3 error
+		// L3 error
 		for (int i = 0; i < 2; i++) {
 			for (int j = 0; j < 2; j++) {
 				for (int k = 0; k < 128; k++) {
@@ -545,7 +554,17 @@ int main()
 			}
 		}
 
-		// Restructure, 2x2 -> 4x4
+		// Kern3 bias 
+		for (int i = 0; i < 128; i++) {
+			dbias3[i] = 0.0;
+			for (int j = 0; j < 2; j++) {
+				for (int k = 0; k < 2; k++) {
+					dbias3[i] += emaxL3[j][k][i];
+				}
+			}
+		}
+
+		// Restructure L3, 2x2 -> 4x4
 		for (int i = 0; i < 4; i++) {
 			for (int j = 0; j < 4; j++) {
 				int i0 = i / 2;
@@ -557,7 +576,7 @@ int main()
 			}
 		}
 
-		// Dialate stride=2
+		// Dialate L3 stride=2
 		// https://medium.com/@mayank.utexas/backpropagation-for-convolution-with-strides-fb2f2efc4faa
 		for (int i = 0; i < 7; i++) {
 			for (int j = 0; j < 7; j++) {
@@ -575,14 +594,14 @@ int main()
 			for (int j = 0; j < 3; j++) {
 				for (int k = 0; k < 64; k++) {
 					for (int l = 0; l < 128; l++) {
-						// Convolution 7x7 error over 9x9 input
+						// Convolve 7x7 error over 9x9 input
 						float s = 0.0f;
-						for (int x = i; x < 7; x++) {
-							for (int y = j; y < 7; y++) {
-								int l2x = x - 1;
-								int l2y = y - 1;
+						for (int x = 0; x < 7; x++) {
+							for (int y = 0; y < 7; y++) {
+								int l2x = x + i - 1;
+								int l2y = y + j - 1;
 								// Padding
-								bool b = l2x < 0 || l2y < 0 || l2x > 7 || l2y > 7;
+								bool b = l2x < 0 || l2y < 0 || l2x > 6 || l2y > 6;
 								s += b ? 0.0f : maxL2[l2x][l2y][k] * diconvL3[x][y][l];
 							}
 						}
@@ -592,73 +611,148 @@ int main()
 			}
 		}
 
-		// Kern3 bias 
-		for (int i = 0; i < 128; i++) {
-			dbias3[i] = 0.0;
-			for (int j = 0; j < 2; j++) {
-				for (int k = 0; k < 2; k++) {
-					dbias3[i] += emaxL3[j][k][i];
+		// L2 error
+		for (int i = 0; i < 7; i++) {
+			for (int j = 0; j < 7; j++) {
+				int i0 = i, i1 = i - 1, i2 = i + 1;
+				int j0 = j, j1 = j - 1, j2 = j + 1;
+				// Padding
+				bool b0 = i1 < 0 || j1 < 0, b1 = i1 < 0, b2 = i1 < 0 || j2 > 6, b3 = j1 < 0;
+				bool b4 = j2 > 6, b5 = i2 > 6 || j1 < 0, b6 = i2 > 6, b7 = i2 > 6 || j2 > 6;
+				for (int k = 0; k < 64; k++) {
+					float s = 0.0f;
+					// Convolve 7x7 error padded to 9x9 over flipped 3x3 filter
+					for (int l = 0; l < 128; l++) {
+						s += b0 ? 0.0f : diconvL3[i1][j1][l] * kern3[2][2][k][l];
+						s += b1 ? 0.0f : diconvL3[i1][j0][l] * kern3[2][1][k][l];
+						s += b2 ? 0.0f : diconvL3[i1][j2][l] * kern3[2][0][k][l];
+						s += b3 ? 0.0f : diconvL3[i0][j1][l] * kern3[1][2][k][l];
+						s += diconvL3[i0][j0][l] * kern3[1][1][k][l];
+						s += b4 ? 0.0f : diconvL3[i0][j2][l] * kern3[1][0][k][l];
+						s += b5 ? 0.0f : diconvL3[i2][j1][l] * kern3[0][2][k][l];
+						s += b6 ? 0.0f : diconvL3[i2][j0][l] * kern3[0][1][k][l];
+						s += b7 ? 0.0f : diconvL3[i2][j2][l] * kern3[0][0][k][l];
+					}
+					emaxL2[i][j][k] = s;
+				}
+			}
+		}
+
+		// Kern2 bias
+		for (int i = 0; i < 64; i++) {
+			dbias2[i] = 0.0f;
+			for (int j = 0; j < 7; j++) {
+				for (int k = 0; k < 7; k++) {
+					dbias2[i] += emaxL2[j][k][i];
+				}
+			}
+		}
+
+		// Restructure L2, 7x7 -> 14x14
+		for (int i = 0; i < 14; i++) {
+			for (int j = 0; j < 14; j++) {
+				int i0 = i / 2;
+				int j0 = j / 2;
+				for (int k = 0; k < 64; k++) {
+					econvL2[i][j][k] = imaxL2[i0][j0][k] == i * 14 + j ?
+						emaxL2[i0][j0][k] : 0.0f;
+				}
+			}
+		}
+
+		// Kern2 gradient
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 3; j++) {
+				for (int k = 0; k < 32; k++) {
+					for (int l = 0; l < 64; l++) {
+						// Convolve 14x14 error over 16x16 input
+						float s = 0.0f;
+						for (int x = 0; x < 14; x++) {
+							for (int y = 0; y < 14; y++) {
+								int l1x = x + i;
+								int l1y = y + j;
+								s += maxL1[l1x][l1y][k] * econvL2[x][y][l];
+							}
+						}
+						dkern2[i][j][k][l] = s;
+					}
 				}
 			}
 		}
 
 		// Update step
 
-		//// FC3 weights
-		//for (int i = 0; i < 128; i++) {
-		//	for (int j = 0; j < 12; j++) {
-		//		w3[i][j] -= lr * dw3[i][j];
-		//	}
-		//}
+		// FC3 weights
+		for (int i = 0; i < 128; i++) {
+			for (int j = 0; j < 12; j++) {
+				w3[i][j] -= lr * dw3[i][j];
+			}
+		}
 
-		//// FC3 bias
-		//for (int i = 0; i < 12; i++) {
-		//	biasw3[i] -= lrb * dbiasw3[i];
-		//}
+		// FC3 bias
+		for (int i = 0; i < 12; i++) {
+			biasw3[i] -= lrb * dbiasw3[i];
+		}
 
-		//// FC2 weights
-		//for (int i = 0; i < 128; i++) {
-		//	for (int j = 0; j < 128; j++) {
-		//		w2[i][j] -= lr * dw2[i][j];
-		//	}
-		//}
+		// FC2 weights
+		for (int i = 0; i < 128; i++) {
+			for (int j = 0; j < 128; j++) {
+				w2[i][j] -= lr * dw2[i][j];
+			}
+		}
 
-		//// FC2 bias
-		//for (int i = 0; i < 128; i++) {
-		//	biasw2[i] -= lrb * dbiasw2[i];
-		//}
-		//
-		//// FC1 weights
-		//for (int i = 0; i < 2; i++) {
-		//	for (int j = 0; j < 2; j++) {
-		//		for (int k = 0; k < 128; k++) {
-		//			for (int l = 0; l < 128; l++) {
-		//				w1[i][j][k][l] -= lr * dw1[i][j][k][l];
-		//			}
-		//		}
-		//	}
-		//}
+		// FC2 bias
+		for (int i = 0; i < 128; i++) {
+			biasw2[i] -= lrb * dbiasw2[i];
+		}
+		
+		// FC1 weights
+		for (int i = 0; i < 2; i++) {
+			for (int j = 0; j < 2; j++) {
+				for (int k = 0; k < 128; k++) {
+					for (int l = 0; l < 128; l++) {
+						w1[i][j][k][l] -= lr * dw1[i][j][k][l];
+					}
+				}
+			}
+		}
 
-		//// FC1 bias
-		//for (int i = 0; i < 128; i++) {
-		//	biasw1[i] -= lrb * dbiasw1[i];
-		//}
+		// FC1 bias
+		for (int i = 0; i < 128; i++) {
+			biasw1[i] -= lrb * dbiasw1[i];
+		}
 
-		//// Kern3 weights
-		//for (int i = 0; i < 3; i++) {
-		//	for (int j = 0; j < 3; j++) {
-		//		for (int k = 0; k < 64; k++) {
-		//			for (int l = 0; l < 128; l++) {
-		//				kern3[i][j][k][l] -= lr * dkern3[i][j][k][l];
-		//			}
-		//		}
-		//	}
-		//}
+		// Kern3 bias
+		for (int i = 0; i < 128; i++) {
+			bias3[i] -= lrb * dbias3[i];
+		}
 
-		//// Kern3 bias
-		//for (int i = 0; i < 128; i++) {
-		//	bias3[i] -= lrb * dbias3[i];
-		//}
+		// Kern3 weights
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 3; j++) {
+				for (int k = 0; k < 64; k++) {
+					for (int l = 0; l < 128; l++) {
+						kern3[i][j][k][l] -= lr * dkern3[i][j][k][l];
+					}
+				}
+			}
+		}
+
+		// Kern2 bias
+		for (int i = 0; i < 64; i++) {
+			bias2[i] -= lrb * dbias2[i];
+		}
+
+		// Kern2 weights
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 3; j++) {
+				for (int k = 0; k < 32; k++) {
+					for (int l = 0; l < 64; l++) {
+						kern2[i][j][k][l] -= lr * dkern2[i][j][k][l];
+					}
+				}
+			}
+		}
 
 		auto t3 = chrono::high_resolution_clock::now();
 
@@ -795,6 +889,60 @@ int main()
 		//	out.push_back('\n');
 		//}
 
+		//out += "\nl2 error\n";
+		//for (int i = 0; i < 7; i++) {
+		//	for (int j = 0; j < 7; j++) {
+		//		out += to_string(emaxL2[i][j][0]);
+		//		out.push_back(' ');
+		//	}
+		//	out.push_back('\n');
+		//}
+
+		//out += "\nl2 error\n";
+		//for (int i = 0; i < 7; i++) {
+		//	for (int j = 0; j < 7; j++) {
+		//		out += to_string(emaxL2[i][j][63]);
+		//		out.push_back(' ');
+		//	}
+		//	out.push_back('\n');
+		//}
+
+		//out += "\nl2 conv\n";
+		//for (int i = 0; i < 14; i++) {
+		//	for (int j = 0; j < 14; j++) {
+		//		out += to_string(econvL2[i][j][0]);
+		//		out.push_back(' ');
+		//	}
+		//	out.push_back('\n');
+		//}
+
+		//out += "\nl2 conv\n";
+		//for (int i = 0; i < 14; i++) {
+		//	for (int j = 0; j < 14; j++) {
+		//		out += to_string(econvL2[i][j][63]);
+		//		out.push_back(' ');
+		//	}
+		//	out.push_back('\n');
+		//}
+
+		//out += "\nl2 dialate\n";
+		//for (int i = 0; i < 27; i++) {
+		//	for (int j = 0; j < 27; j++) {
+		//		out += to_string(diconvL2[i][j][0]);
+		//		out.push_back(' ');
+		//	}
+		//	out.push_back('\n');
+		//}
+
+		//out += "\nl2 dialate\n";
+		//for (int i = 0; i < 27; i++) {
+		//	for (int j = 0; j < 27; j++) {
+		//		out += to_string(diconvL2[i][j][63]);
+		//		out.push_back(' ');
+		//	}
+		//	out.push_back('\n');
+		//}
+
 		//out += "\nconv3\n";
 		//for (int i = 0; i < 4; i++) {
 		//	for (int j = 0; j < 4; j++) {
@@ -901,17 +1049,18 @@ int main()
 		//	out.push_back(' ');
 		//}
 
-		out += "\nsoftmax\n";
-		for (int i = 0; i < 12; i++) {
-			out += to_string(softout[i]);
-			out.push_back(' ');
-		}
-		out.push_back('\n');
+		//out += "\nsoftmax\n";
+		//for (int i = 0; i < 12; i++) {
+		//	out += to_string(softout[i]);
+		//	out.push_back(' ');
+		//}
+		//out.push_back('\n');
 
 		out += "\nsoftmax2\n";
 		for (int i = 0; i < 12; i++) {
 			out += to_string(softout2[i]);
 			out.push_back(' ');
+			if ((i + 1) % 4 == 0) out.push_back('\n');
 		}
 		out.push_back('\n');
 
