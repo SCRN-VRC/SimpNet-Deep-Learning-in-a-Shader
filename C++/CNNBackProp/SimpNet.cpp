@@ -91,8 +91,12 @@ float dbias2[64] = { 0.0f }; // L2 kernel bias
 float econvL2[14][14][64] = { 0.0f }; // Undo max pool for L2
 float dkern2[3][3][32][64] = { 0.0f }; // L2 kernel gradient
 
+float pconvL2[18][18][64] = { 0.0f }; // Padded L2 to calculate L1
 float emaxL1[16][16][32] = { 0.0f }; // L1 loss input
 float dbias1[32] = { 0.0f }; // L1 kernel bias
+float econvL1[32][32][32] = { 0.0f }; // Undo max pool for L1
+float diconvL1[63][63][32] = { 0.0f }; // L1 dialation
+float dkern1[3][3][3][32] = { 0.0f }; // L1 kernel gradient
 
 int main()
 {
@@ -680,6 +684,91 @@ int main()
 			}
 		}
 
+		// L2 error padded = 2
+		for (int i = 0; i < 18; i++) {
+			for (int j = 0; j < 18; j++) {
+				for (int k = 0; k < 64; k++) {
+					pconvL2[i][j][k] = i < 2 || j < 2 || i > 15 || j > 15 ? 
+						0.0f : econvL2[i - 2][j - 2][k];
+				}
+			}
+		}
+
+		// Kern1 error
+		for (int i = 0; i < 16; i++) {
+			for (int j = 0; j < 16; j++) {
+				for (int k = 0; k < 32; k++) {
+					float s = 0.0f;
+					for (int l = 0; l < 64; l++) {
+						s += pconvL2[i + 0][j + 0][l] * kern2[2][2][k][l];
+						s += pconvL2[i + 0][j + 1][l] * kern2[2][1][k][l];
+						s += pconvL2[i + 0][j + 2][l] * kern2[2][0][k][l];
+						s += pconvL2[i + 1][j + 0][l] * kern2[1][2][k][l];
+						s += pconvL2[i + 1][j + 1][l] * kern2[1][1][k][l];
+						s += pconvL2[i + 1][j + 2][l] * kern2[1][0][k][l];
+						s += pconvL2[i + 2][j + 0][l] * kern2[0][2][k][l];
+						s += pconvL2[i + 2][j + 1][l] * kern2[0][1][k][l];
+						s += pconvL2[i + 2][j + 2][l] * kern2[0][0][k][l];
+					}
+					emaxL1[i][j][k] = s;
+				}
+			}
+		}
+
+		// Kern1 bias
+		for (int i = 0; i < 32; i++) {
+			dbias1[i] = 0.0f;
+			for (int j = 0; j < 16; j++) {
+				for (int k = 0; k < 16; k++) {
+					dbias1[i] += emaxL1[j][k][i];
+				}
+			}
+		}
+
+		// Restructure L1, 16x16 -> 32x32
+		for (int i = 0; i < 32; i++) {
+			for (int j = 0; j < 32; j++) {
+				int i0 = i / 2;
+				int j0 = j / 2;
+				for (int k = 0; k < 32; k++) {
+					econvL1[i][j][k] = imaxL1[i0][j0][k] == i * 32 + j ?
+						emaxL1[i0][j0][k] : 0.0f;
+				}
+			}
+		}
+
+		// L1 dialation of stride=2
+		for (int i = 0; i < 63; i++) {
+			for (int j = 0; j < 63; j++) {
+				int i0 = i / 2;
+				int j0 = j / 2;
+				for (int k = 0; k < 32; k++) {
+					diconvL1[i][j][k] = ((i % 2 == 1) || (j % 2 == 1)) ?
+						0.0f : econvL1[i0][j0][k];
+				}
+			}
+		}
+
+		// Kern1 gradient
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 3; j++) {
+				for (int k = 0; k < 3; k++) {
+					for (int l = 0; l < 32; l++) {
+						// Convolve 63x63 error over 65x65 input
+						float s = 0.0f;
+						for (int x = 0; x < 63; x++) {
+							for (int y = 0; y < 63; y++) {
+								int l1x = x + i;
+								int l1y = y + j;
+								s += testImg[l1x][l1y][k] * diconvL1[x][y][l];
+							}
+						}
+						dkern1[i][j][k][l] = s;
+					}
+				}
+			}
+		}
+
 		// Update step
 
 		// FC3 weights
@@ -749,6 +838,22 @@ int main()
 				for (int k = 0; k < 32; k++) {
 					for (int l = 0; l < 64; l++) {
 						kern2[i][j][k][l] -= lr * dkern2[i][j][k][l];
+					}
+				}
+			}
+		}
+
+		// Kern1 bias
+		for (int i = 0; i < 32; i++) {
+			bias1[i] -= lrb * dbias1[i];
+		}
+
+		// Kern1 weights
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 3; j++) {
+				for (int k = 0; k < 3; k++) {
+					for (int l = 0; l < 32; l++) {
+						kern1[i][j][k][l] -= lr * dkern1[i][j][k][l];
 					}
 				}
 			}
@@ -925,19 +1030,10 @@ int main()
 		//	out.push_back('\n');
 		//}
 
-		//out += "\nl2 dialate\n";
-		//for (int i = 0; i < 27; i++) {
-		//	for (int j = 0; j < 27; j++) {
-		//		out += to_string(diconvL2[i][j][0]);
-		//		out.push_back(' ');
-		//	}
-		//	out.push_back('\n');
-		//}
-
-		//out += "\nl2 dialate\n";
-		//for (int i = 0; i < 27; i++) {
-		//	for (int j = 0; j < 27; j++) {
-		//		out += to_string(diconvL2[i][j][63]);
+		//out += "\nl2 pad 2\n";
+		//for (int i = 0; i < 18; i++) {
+		//	for (int j = 0; j < 18; j++) {
+		//		out += to_string(pconvL2[i][j][0]);
 		//		out.push_back(' ');
 		//	}
 		//	out.push_back('\n');
