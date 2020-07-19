@@ -482,3 +482,5 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+SimpNet/Assets/Editor/SaveRenderTextureToFile.cs
+SimpNet/Assets/ShaderDebugging.cs
