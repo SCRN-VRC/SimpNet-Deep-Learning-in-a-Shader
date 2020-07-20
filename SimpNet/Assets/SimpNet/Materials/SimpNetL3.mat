@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: SimpNetCalc
-  m_Shader: {fileID: 4800000, guid: de883443d26e66c409931a2b48174604, type: 3}
+  m_Name: SimpNetL3
+  m_Shader: {fileID: 4800000, guid: b61a0d4902e8d19498e688f43b049b55, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -44,7 +44,11 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _FrameBuffer:
-        m_Texture: {fileID: 8600000, guid: 8a3ee8dfdafdf7d419ac39e521f139d6, type: 2}
+        m_Texture: {fileID: 8600000, guid: af223fbe89423d942a221b4d02d6117e, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Layer1:
+        m_Texture: {fileID: 8600000, guid: f6fb3f90c4ebcaa4983699e708fc1690, type: 2}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:

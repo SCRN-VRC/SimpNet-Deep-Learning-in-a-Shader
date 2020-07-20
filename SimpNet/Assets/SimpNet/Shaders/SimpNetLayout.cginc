@@ -8,25 +8,25 @@
 // Layer 1
 // x, y : origin
 // z, w : width, height
-#define txKern1Area             int4(0, 0, 3, 288)
-#define txBias1Area             int4(0, 288, 1, 32)
-#define txConv1Area             int4(3, 0, 64, 512)
-#define txMax1Area              int4(67, 0, 16, 512)
-#define txiMax1Area             int4(83, 0, 16, 512)
+#define txKern1Area             int4(193, 0, 36, 24)      // 3x3x3 x 4x8
+#define txBias1Area             int4(192, 0, 1, 32)       // 1x32
+#define txConv1Area             int4(0, 0, 128, 256)      // 32x32 x 4x8
+#define txMax1Area              int4(128, 0, 32, 256)     // 16x16 x 2x16
+#define txiMax1Area             int4(160, 0, 32, 256)     // 16x16 x 2x16
 
 // Layer 2
-#define txKern2Area             int4(99, 0, 96, 192)
-#define txBias2Area             int4(195, 0, 1, 64)
-#define txConv2Area             int4(99, 192, 112, 112)
-#define txMax2Area              int4(211, 0, 7, 448)
-#define txiMax2Area             int4(218, 0, 7, 448)
+#define txKern2Area             int4(0, 0, 96, 192)       // 3x3 x 32x64
+#define txBias2Area             int4(0, 192, 1, 64)       // 1x32
+#define txConv2Area             int4(96, 0, 112, 112)     // 14x14 x 8x8
+#define txMax2Area              int4(96, 112, 56, 56)     // 7x7 x 8x8
+#define txiMax2Area             int4(152, 112, 56, 56)    // 7x7 x 8x8
 
 // Layer 3
-#define txKern3Area             int4(225, 0, 192, 384)
-#define txBias3Area             int4(225, 384, 1, 128)
-#define txConv3Area             int4(417, 0, 4, 512)
-#define txMax3Area              int4(421, 0, 2, 256)
-#define txiMax3Area             int4(423, 0, 2, 256)
+#define txKern3Area             int4(0, 0, 192, 384)
+#define txBias3Area             int4(0, 0, 1, 128)
+#define txConv3Area             int4(0, 0, 4, 512)
+#define txMax3Area              int4(0, 0, 2, 256)
+#define txiMax3Area             int4(0, 0, 2, 256)
 
 // Layer 4
 #define txW1Area                int4(425, 0, 256, 256)
@@ -45,6 +45,11 @@
 #define txW3BiasArea            int4(369, 384, 1, 12)
 #define txSoftout1              int4(370, 384, 1, 12)
 #define txSoftout2              int4(371, 384, 1, 12)
+
+/*
+    Back Propagation
+*/
+
 
 inline bool insideArea (in int4 area, int2 px)
 {
