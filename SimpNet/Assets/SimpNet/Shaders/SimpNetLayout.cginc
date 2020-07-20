@@ -79,6 +79,10 @@
 #define txDiConv1Area           int4(0, 0, 252, 504)      // 63x63 x 4x8
 #define txDKern1Area            int4(460, 0, 36, 24)      // 3x3x3 x 4x8
 
+/*
+    Functions
+*/
+
 inline bool insideArea (in int4 area, int2 px)
 {
     [flatten]
@@ -90,15 +94,30 @@ inline bool insideArea (in int4 area, int2 px)
     return false;
 }
 
-inline float LoadValue (in Texture2D<float> tex, in int2 re)
-{
-    return tex.Load(int3(re, 0));
-}
-
 inline void StoreValue (in int2 txPos, in float value, inout float col,
     in int2 fragPos)
 {
     col = all(fragPos == txPos) ? value : col;
+}
+
+inline float actFn(float x)
+{
+    // ELU
+    return x >= 0.0f ? x : (0.15f * (exp(x) - 1.0f));
+}
+
+inline float dactFn(float x)
+{
+    // ELU
+    return x >= 0.0f ? 1.0f : exp(x) * 0.15f;
+}
+
+inline float rand(float p)
+{
+    p = frac(p * .1031);
+    p *= p + 33.33;
+    p *= p + p;
+    return (frac(p) - 0.5) * 2.0;
 }
 
 #endif

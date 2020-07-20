@@ -2,7 +2,8 @@
 {
     Properties
     {
-        _Layer1 ("Layer 3", 2D) = "black" {}
+        _Layer3 ("Layer 3", 2D) = "black" {}
+        _L4Gradients ("Layer 4 Gradients", 2D) = "black" {}
         _FrameBuffer ("Layer 4 Buffer", 2D) = "black" {}
     }
     SubShader
@@ -19,8 +20,11 @@
             #pragma fragment pixel_shader
             #pragma target 5.0
 
-            Texture2D<float3> _CamIn;
+            Texture2D<float3> _Layer3;
+            Texture2D<float3> _L4Gradients;
             Texture2D<float3> _FrameBuffer;
+            float4 _Layer3_TexelSize;
+            float4 _L4Gradients_TexelSize;
             float4 _FrameBuffer_TexelSize;
 
             float3 pixel_shader (v2f_customrendertexture IN) : SV_TARGET
