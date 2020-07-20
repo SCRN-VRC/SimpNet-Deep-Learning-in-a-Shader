@@ -1,5 +1,5 @@
-﻿#ifndef _SIMPNET_INC
-#define _SIMPNET_INC
+﻿#ifndef _SIMPNETLAYOUT
+#define _SIMPNETLAYOUT
 
 /*
     Forward Propagation
@@ -50,6 +50,34 @@
     Back Propagation
 */
 
+// Layer 6, 5, 4
+#define txDW3Area               int4(128, 256, 12, 128)   // 12x128
+#define txDBW3Area              int4(142, 256, 1, 12)     // 1x12
+#define txDW2Area               int4(0, 256, 128, 128)    // 128x128
+#define txDBW2Area              int4(140, 256, 1, 128)    // 1x128
+#define txDW1Area               int4(0, 0, 256, 256)      // 256x256
+#define txDBW1Area              int4(141, 256, 1, 128)    // 1x128
+
+// Layer 3
+#define txEMax3Area             int4(196, 112, 2, 256)    // 2x256
+#define txDB3Area               int4(4, 384, 1, 128)      // 1x128
+#define txEConv3Area            int4(0, 0, 4, 512)        // 4x4 x 1x128
+#define txDiConv3Area           int4(196, 0, 56, 112)     // 7x7 x 8x16
+#define txDKern3Area            int4(4, 0, 192, 384)      // 3x3 x 64x128
+
+// Layer 2
+#define txEMax2Area             int4(96, 112, 56, 56)     // 7x7 x 8x8
+#define txDB2Area               int4(208, 0, 1, 64)       // 1x64
+#define txEConv2Area            int4(96, 0, 112, 112)     // 14x14 x 8x8
+#define txDKern2Area            int4(0, 0, 96, 192)       // 3x3 x 32x64
+
+// Layer 1
+#define txPConv2Area            int4(252, 0, 144, 144)    // 18x18 x 8x8
+#define txEMax1Area             int4(396, 0, 64, 128)     // 16x16 x 4x8
+#define txDB1Area               int4(460, 24, 1, 32)      // 1x32
+#define txEConv1Area            int4(252, 144, 128, 256)  // 32x32 x 4x8
+#define txDiConv1Area           int4(0, 0, 252, 504)      // 63x63 x 4x8
+#define txDKern1Area            int4(460, 0, 36, 24)      // 3x3x3 x 4x8
 
 inline bool insideArea (in int4 area, int2 px)
 {
