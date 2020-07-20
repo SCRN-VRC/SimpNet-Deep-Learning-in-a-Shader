@@ -16,35 +16,35 @@
 
 // Layer 2
 #define txKern2Area             int4(0, 0, 96, 192)       // 3x3 x 32x64
-#define txBias2Area             int4(0, 192, 1, 64)       // 1x32
+#define txBias2Area             int4(0, 192, 1, 64)       // 1x64
 #define txConv2Area             int4(96, 0, 112, 112)     // 14x14 x 8x8
 #define txMax2Area              int4(96, 112, 56, 56)     // 7x7 x 8x8
 #define txiMax2Area             int4(152, 112, 56, 56)    // 7x7 x 8x8
 
 // Layer 3
-#define txKern3Area             int4(0, 0, 192, 384)
-#define txBias3Area             int4(0, 0, 1, 128)
-#define txConv3Area             int4(0, 0, 4, 512)
-#define txMax3Area              int4(0, 0, 2, 256)
-#define txiMax3Area             int4(0, 0, 2, 256)
+#define txKern3Area             int4(6, 0, 192, 384)      // 3x3 x 64x128
+#define txBias3Area             int4(198, 0, 1, 128)      // 1x128
+#define txConv3Area             int4(0, 0, 4, 512)        // 4x4 x 1x128
+#define txMax3Area              int4(4, 0, 2, 256)        // 2x2 x 1x128
+#define txiMax3Area             int4(4, 256, 2, 256)      // 2x2 x 1x128
 
 // Layer 4
-#define txW1Area                int4(425, 0, 256, 256)
-#define txW1BiasArea            int4(421, 256, 1, 128)
-#define txFC1s                  int4(422, 256, 1, 128)
-#define txFC1a                  int4(423, 256, 1, 128)
+#define txW1Area                int4(0, 0, 256, 256)      // 2x2 x 128x128
+#define txW1BiasArea            int4(0, 256, 1, 128)      // 1x128
+#define txFC1s                  int4(1, 256, 1, 128)      // 1x128
+#define txFC1a                  int4(2, 256, 1, 128)      // 1x128
 
 // Layer 5
-#define txW2Area                int4(226, 384, 128, 128)
-#define txW2BiasArea            int4(354, 384, 1, 128)
-#define txFC2s                  int4(355, 384, 1, 128)
-#define txFC2a                  int4(356, 384, 1, 128)
+#define txW2Area                int4(0, 0, 128, 128)      // 128x128
+#define txW2BiasArea            int4(0, 128, 1, 128)      // 1x128
+#define txFC2s                  int4(1, 128, 1, 128)      // 1x128
+#define txFC2a                  int4(2, 128, 1, 128)      // 1x128
 
 // Layer 6
-#define txW3Area                int4(357, 384, 12, 128)
-#define txW3BiasArea            int4(369, 384, 1, 12)
-#define txSoftout1              int4(370, 384, 1, 12)
-#define txSoftout2              int4(371, 384, 1, 12)
+#define txW3Area                int4(0, 0, 24, 64)        // 12x128 x 2x0.5
+#define txW3BiasArea            int4(24, 0, 1, 12)        // 1x12
+#define txSoftout1              int4(25, 0, 1, 12)        // 1x12
+#define txSoftout2              int4(26, 0, 1, 12)        // 1x12
 
 /*
     Back Propagation

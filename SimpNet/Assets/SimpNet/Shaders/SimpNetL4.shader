@@ -1,16 +1,16 @@
-﻿Shader "SimpNet/SimpNetL3"
+﻿Shader "SimpNet/SimpNetL4"
 {
     Properties
     {
-        _Layer1 ("Layer 2", 2D) = "black" {}
-        _FrameBuffer ("Layer 3 Buffer", 2D) = "black" {}
+        _Layer1 ("Layer 3", 2D) = "black" {}
+        _FrameBuffer ("Layer 4 Buffer", 2D) = "black" {}
     }
     SubShader
     {
         
         Pass
         {
-            Name "SimpNet Layer 3"
+            Name "SimpNet Layer 4"
 
             CGPROGRAM
             #include "UnityCustomRenderTexture.cginc"
@@ -30,26 +30,23 @@
                 col = _Time.y < 1.0 ? 0..xxx : col;
 
                 [branch]
-                if (insideArea(txKern3Area, px))
+                if (insideArea(txW1Area, px))
                 {
                     col.r = 1.0;
                 }
-                else if (insideArea(txBias3Area, px))
+                else if (insideArea(txW1BiasArea, px))
                 {
                     col.r = 0.9;
                 }
-                else if (insideArea(txConv3Area, px))
+                else if (insideArea(txFC1s, px))
                 {
                     col.r = 0.8;
                 }
-                else if (insideArea(txMax3Area, px))
+                else if (insideArea(txFC1a, px))
                 {
                     col.r = 0.7;
                 }
-                else if (insideArea(txiMax3Area, px))
-                {
-                    col.r = 0.6;
-                }
+
                 return col;
             }
             ENDCG
