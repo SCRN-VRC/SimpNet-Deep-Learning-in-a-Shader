@@ -21,13 +21,17 @@
             #pragma fragment pixel_shader
             #pragma target 5.0
 
-            RWStructuredBuffer<float4> buffer : register(u1);
+            //RWStructuredBuffer<float4> buffer : register(u1);
             Texture2D<float3> _CamIn;
             Texture2D<float3> _L1Gradients;
             Texture2D<float3> _FrameBuffer;
             float4 _CamIn_TexelSize;
             float4 _L1Gradients_TexelSize;
             float4 _FrameBuffer_TexelSize;
+
+            float testImage(int i, int j) {
+                return i / 65.0 * ((65 - j) / 65.0);
+            }
 
             float3 pixel_shader (v2f_customrendertexture IN) : SV_TARGET
             {
@@ -60,7 +64,6 @@
 
                         // Debugging
                         px -= txBias1Area.xy;
-                        int k = px.y % 32;
                         col.r = px.y / 32.0 - 0.5;
                     }
                 }
@@ -77,15 +80,26 @@
                     float sum = 0.0;
                     [unroll]
                     for (int l = 0; l < 3; l++) {
-                        sum += _CamIn.Load(int3(j0, i0, 0))[l] * getKern1(_FrameBuffer, int4(0, 0, l, k));
-                        sum += _CamIn.Load(int3(j0, i1, 0))[l] * getKern1(_FrameBuffer, int4(0, 1, l, k));
-                        sum += _CamIn.Load(int3(j0, i2, 0))[l] * getKern1(_FrameBuffer, int4(0, 2, l, k));
-                        sum += _CamIn.Load(int3(j1, i0, 0))[l] * getKern1(_FrameBuffer, int4(1, 0, l, k));
-                        sum += _CamIn.Load(int3(j1, i1, 0))[l] * getKern1(_FrameBuffer, int4(1, 1, l, k));
-                        sum += _CamIn.Load(int3(j1, i2, 0))[l] * getKern1(_FrameBuffer, int4(1, 2, l, k));
-                        sum += _CamIn.Load(int3(j2, i0, 0))[l] * getKern1(_FrameBuffer, int4(2, 0, l, k));
-                        sum += _CamIn.Load(int3(j2, i1, 0))[l] * getKern1(_FrameBuffer, int4(2, 1, l, k));
-                        sum += _CamIn.Load(int3(j2, i2, 0))[l] * getKern1(_FrameBuffer, int4(2, 2, l, k));
+                        // sum += _CamIn.Load(int3(j0, i0, 0))[l] * getKern1(_FrameBuffer, int4(0, 0, l, k));
+                        // sum += _CamIn.Load(int3(j0, i1, 0))[l] * getKern1(_FrameBuffer, int4(0, 1, l, k));
+                        // sum += _CamIn.Load(int3(j0, i2, 0))[l] * getKern1(_FrameBuffer, int4(0, 2, l, k));
+                        // sum += _CamIn.Load(int3(j1, i0, 0))[l] * getKern1(_FrameBuffer, int4(1, 0, l, k));
+                        // sum += _CamIn.Load(int3(j1, i1, 0))[l] * getKern1(_FrameBuffer, int4(1, 1, l, k));
+                        // sum += _CamIn.Load(int3(j1, i2, 0))[l] * getKern1(_FrameBuffer, int4(1, 2, l, k));
+                        // sum += _CamIn.Load(int3(j2, i0, 0))[l] * getKern1(_FrameBuffer, int4(2, 0, l, k));
+                        // sum += _CamIn.Load(int3(j2, i1, 0))[l] * getKern1(_FrameBuffer, int4(2, 1, l, k));
+                        // sum += _CamIn.Load(int3(j2, i2, 0))[l] * getKern1(_FrameBuffer, int4(2, 2, l, k));
+                        
+                        sum += testImage(i0, j0) * getKern1(_FrameBuffer, int4(0, 0, l, k));
+                        sum += testImage(i0, j1) * getKern1(_FrameBuffer, int4(0, 1, l, k));
+                        sum += testImage(i0, j2) * getKern1(_FrameBuffer, int4(0, 2, l, k));
+                        sum += testImage(i1, j0) * getKern1(_FrameBuffer, int4(1, 0, l, k));
+                        sum += testImage(i1, j1) * getKern1(_FrameBuffer, int4(1, 1, l, k));
+                        sum += testImage(i1, j2) * getKern1(_FrameBuffer, int4(1, 2, l, k));
+                        sum += testImage(i2, j0) * getKern1(_FrameBuffer, int4(2, 0, l, k));
+                        sum += testImage(i2, j1) * getKern1(_FrameBuffer, int4(2, 1, l, k));
+                        sum += testImage(i2, j2) * getKern1(_FrameBuffer, int4(2, 2, l, k));
+                    
                     }
                     
                     sum += _FrameBuffer.Load(int3(txBias1Area.xy + int2(0, k), 0));
@@ -122,12 +136,12 @@
                     col.r = i0 * 32 + j0;
                     
                     m = max(m, bu = getConv1(_FrameBuffer, int3(j0, i1, k)));
-                    col.r = (m == bu) ? (i0 * 32 + j1) : col.r;
-                    
-                    m = max(m, bu = getConv1(_FrameBuffer, int3(j1, i0, k)));
                     col.r = (m == bu) ? (i1 * 32 + j0) : col.r;
                     
-                    m = max(m, getConv1(_FrameBuffer, int3(j1, i1, k)));
+                    m = max(m, bu = getConv1(_FrameBuffer, int3(j1, i0, k)));
+                    col.r = (m == bu) ? (i0 * 32 + j1) : col.r;
+                    
+                    m = max(m, bu = getConv1(_FrameBuffer, int3(j1, i1, k)));
                     col.r = (m == bu) ? (i1 * 32 + j1) : col.r;
                 }
                 return col;

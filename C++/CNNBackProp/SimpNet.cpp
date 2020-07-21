@@ -148,41 +148,69 @@ int main()
 	//}
 
 	for (int i = 0; i < 32; i++) {
-		bias1[i] = i / 32.0f - 0.5;
+		bias1[i] = i / 32.0f - 0.5f;
 	}
 
-	normal_distribution<float> dis2(0.0f, 1.f / sqrt(288.f));
-	// Random kern2 weights
+	//normal_distribution<float> dis2(0.0f, 1.f / sqrt(288.f));
+	//// Random kern2 weights
+	//for (int i = 0; i < 3; i++) {
+	//	for (int j = 0; j < 3; j++) {
+	//		for (int k = 0; k < 32; k++) {
+	//			for (int l = 0; l < 64; l++) {
+	//				kern2[i][j][k][l] = dis2(gen);
+	//			}
+	//		}
+	//	}
+	//}
+
 	for (int i = 0; i < 3; i++) {
 		for (int j = 0; j < 3; j++) {
 			for (int k = 0; k < 32; k++) {
 				for (int l = 0; l < 64; l++) {
-					kern2[i][j][k][l] = dis2(gen);
+					kern2[i][j][k][l] = (i + j + k + l) / 1000.f;
 				}
 			}
 		}
 	}
 
-	// Bias for kern2
+	//// Bias for kern2
+	//for (int i = 0; i < 64; i++) {
+	//	bias2[i] = dis0(gen);
+	//}
+
 	for (int i = 0; i < 64; i++) {
-		bias2[i] = dis0(gen);
+		bias2[i] = 1.0f - (i / 64.0f) - 0.5f;
 	}
 
-	normal_distribution<float> dis3(0.0f, 1.f / sqrt(576.f));
-	// Random kern3 weights
+	//normal_distribution<float> dis3(0.0f, 1.f / sqrt(576.f));
+	//// Random kern3 weights
+	//for (int i = 0; i < 3; i++) {
+	//	for (int j = 0; j < 3; j++) {
+	//		for (int k = 0; k < 64; k++) {
+	//			for (int l = 0; l < 128; l++) {
+	//				kern3[i][j][k][l] = dis3(gen);
+	//			}
+	//		}
+	//	}
+	//}
+
 	for (int i = 0; i < 3; i++) {
 		for (int j = 0; j < 3; j++) {
 			for (int k = 0; k < 64; k++) {
 				for (int l = 0; l < 128; l++) {
-					kern3[i][j][k][l] = dis3(gen);
+					kern3[i][j][k][l] = (i + j) / float(k + l + 1.0);
 				}
 			}
 		}
 	}
 
-	// Bias for kern3
+	//// Bias for kern3
+	//for (int i = 0; i < 128; i++) {
+	//	bias3[i] = dis0(gen);
+	//}
+
 	for (int i = 0; i < 128; i++) {
-		bias3[i] = dis0(gen);
+		bias3[i] = i / 128.0f - 0.5f;
 	}
 
 	normal_distribution<float> dis4(0.0f, 1.f / sqrt(512.f));
@@ -258,14 +286,6 @@ int main()
 
 					// Activation
 					convL1[i][j][k] = actFn(convL1[i][j][k]);
-					if (i == 1 && j == 15 && k == 3)
-					{
-						out += to_string(convL1[i][j][k]);
-						out += " ";
-						out += to_string(bias1[k]);
-						out += " ";
-						out += to_string(testImg[i2][j2][2]);
-					}
 				}
 			}
 		}
@@ -399,13 +419,12 @@ int main()
 							(bi1 ? 0.0f : maxL2[i1][j0][l] * kern3[0][1][l][k]) +
 							(b03 ? 0.0f : maxL2[i1][j2][l] * kern3[0][2][l][k]) +
 							(bj1 ? 0.0f : maxL2[i0][j1][l] * kern3[1][0][l][k]) +
-							maxL2[i0][j0][l] * kern3[1][1][l * 4][k] +
+							maxL2[i0][j0][l] * kern3[1][1][l][k] +
 							(bj2 ? 0.0f : maxL2[i0][j2][l] * kern3[1][2][l][k]) +
 							(b04 ? 0.0f : maxL2[i2][j1][l] * kern3[2][0][l][k]) +
 							(bi2 ? 0.0f : maxL2[i2][j0][l] * kern3[2][1][l][k]) +
 							(b05 ? 0.0f : maxL2[i2][j2][l] * kern3[2][2][l][k]);
 					}
-
 					// Bias
 					convL3[i][j][k] += bias3[k];
 
@@ -449,6 +468,12 @@ int main()
 					m = fmaxf(m, convL3[i1][j1][k]);
 					imaxL3[i][j][k] = (m == convL3[i1][j1][k]) ?
 						(i1 * 4 + j1) : imaxL3[i][j][k];
+					if (i == 1 && j == 0 && k == 127)
+					{
+						out += to_string(imaxL3[i][j][k]);
+						out += " ";
+						out += to_string(m);
+					}
 				}
 			}
 		}
