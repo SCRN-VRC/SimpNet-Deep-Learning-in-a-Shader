@@ -100,15 +100,18 @@ float dkern1[3][3][3][32] = { 0.0f }; // L1 kernel gradient
 
 int main()
 {
+
+	string out;
+
 	default_random_engine gen;
 	normal_distribution<float> dis0(-0.5f, 0.5f);
 
 	// Setup input
 	for (int i = 0; i < 65; i++) {
 		for (int j = 0; j < 65; j++) {
-			testImg[i][j][0] = (i + 1) / 32.0f;
-			testImg[i][j][1] = (65 - j + 1) / 32.0f;
-			testImg[i][j][2] = ((i % 2) == ((j + 1) % 2)) ? 1.0f : 0.0f;
+			testImg[i][j][0] = i / 65.0f * ((65 - j) / 65.0f);
+			testImg[i][j][1] = i / 65.0f * ((65 - j) / 65.0f);
+			testImg[i][j][2] = i / 65.0f * ((65 - j) / 65.0f);
 		}
 	}
 
@@ -117,21 +120,35 @@ int main()
 		standard deviation 1/sqrt(N_in) with N_in the cardinality of input
 		connectivity into a next layer node
 	*/
-	normal_distribution<float> dis1(0.0f, 1.f / sqrt(27.f));
-	// Random kern1 weights
+	//normal_distribution<float> dis1(0.0f, 1.f / sqrt(27.f));
+	//// Random kern1 weights
+	//for (int i = 0; i < 3; i++) {
+	//	for (int j = 0; j < 3; j++) {
+	//		for (int k = 0; k < 3; k++) {
+	//			for (int l = 0; l < 32; l++) {
+	//				kern1[i][j][k][l] = dis1(gen);
+	//			}
+	//		}
+	//	}
+	//}
+
 	for (int i = 0; i < 3; i++) {
 		for (int j = 0; j < 3; j++) {
 			for (int k = 0; k < 3; k++) {
 				for (int l = 0; l < 32; l++) {
-					kern1[i][j][k][l] = dis1(gen);
+					kern1[i][j][k][l] = i * j * k / (l + 1.0f);
 				}
 			}
 		}
 	}
 
-	// Bias for kern1
+	//// Bias for kern1
+	//for (int i = 0; i < 32; i++) {
+	//	bias1[i] = dis0(gen);
+	//}
+
 	for (int i = 0; i < 32; i++) {
-		bias1[i] = dis0(gen);
+		bias1[i] = i / 32.0f - 0.5;
 	}
 
 	normal_distribution<float> dis2(0.0f, 1.f / sqrt(288.f));
@@ -210,7 +227,7 @@ int main()
 		biasw3[i] = dis0(gen);
 	}
 
-	for (int ll = 0; ll < 5; ll++) {
+	for (int ll = 0; ll < 1; ll++) {
 		// Time the neural net
 		auto t1 = chrono::high_resolution_clock::now();
 
@@ -236,12 +253,19 @@ int main()
 							testImg[i2][j1][l] * kern1[2][1][l][k] +
 							testImg[i2][j2][l] * kern1[2][2][l][k];
 					}
-
 					// Bias
 					convL1[i][j][k] += bias1[k];
 
 					// Activation
 					convL1[i][j][k] = actFn(convL1[i][j][k]);
+					if (i == 1 && j == 15 && k == 3)
+					{
+						out += to_string(convL1[i][j][k]);
+						out += " ";
+						out += to_string(bias1[k]);
+						out += " ";
+						out += to_string(testImg[i2][j2][2]);
+					}
 				}
 			}
 		}
@@ -863,7 +887,6 @@ int main()
 
 		// Print debugging
 
-		string out;
 		//out += "kern1 weights\n";
 		//for (int i = 0; i < 3; i++) {
 		//	for (int j = 0; j < 3; j++) {

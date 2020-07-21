@@ -8,7 +8,7 @@
 // Layer 1
 // x, y : origin
 // z, w : width, height
-#define txKern1Area             int4(193, 0, 36, 24)      // 3x3x3 x 4x8
+#define txKern1Area             int4(193, 0, 24, 36)      // 3x3x3 x 8x4
 #define txBias1Area             int4(192, 0, 1, 32)       // 1x32
 #define txConv1Area             int4(0, 0, 128, 256)      // 32x32 x 4x8
 #define txMax1Area              int4(128, 0, 32, 256)     // 16x16 x 2x16
