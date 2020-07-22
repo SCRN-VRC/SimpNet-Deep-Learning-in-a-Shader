@@ -620,7 +620,6 @@ int main()
 				}
 			}
 		}
-		out += to_string(dw1[0][1][87][122] * 1000000);
 
 		// L3 error
 		for (int i = 0; i < 2; i++) {
@@ -666,6 +665,14 @@ int main()
 				for (int k = 0; k < 128; k++) {
 					diconvL3[i][j][k] = ((i % 2 == 1) || (j % 2 == 1)) ?
 						0.0f : econvL3[i0][j0][k];
+					//if (diconvL3[i][j][k] * 1000000.0 != 0.f) {
+					//	out += to_string(i);
+					//	out += " ";
+					//	out += to_string(j);
+					//	out += " ";
+					//	out += to_string(k);
+					//	out += "\n";
+					//}
 				}
 			}
 		}
@@ -691,6 +698,7 @@ int main()
 				}
 			}
 		}
+		out += to_string(dkern3[0][1][55][110] * 1000000.0);
 
 		// L2 error
 		for (int i = 0; i < 7; i++) {

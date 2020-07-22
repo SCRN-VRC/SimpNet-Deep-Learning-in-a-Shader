@@ -77,13 +77,13 @@
                             }
                         }
                     }
-                    sum += _FrameBuffer.Load(int3(txW1BiasArea.xy + int2(0, i), 0));
+                    sum += _FrameBuffer.Load(int3(txW1BiasArea.xy + int2(0, i), 0)).x;
                     col.r = sum;
                 }
                 else if (insideArea(txFC1a, px))
                 {
                     px -= txFC1a.xy;
-                    col.r = actFn(_FrameBuffer.Load(int3(txFC1s.xy + int2(0, px.y), 0)));
+                    col.r = actFn(_FrameBuffer.Load(int3(txFC1s.xy + int2(0, px.y), 0)).x);
                 }
 
                 return col;

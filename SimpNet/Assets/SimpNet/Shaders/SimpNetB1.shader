@@ -24,7 +24,7 @@
             #pragma fragment pixel_shader
             #pragma target 5.0
 
-            RWStructuredBuffer<float4> buffer : register(u1);
+            //RWStructuredBuffer<float4> buffer : register(u1);
             Texture2D<float3> _Layer6;
             Texture2D<float3> _Layer5;
             Texture2D<float3> _Layer4;
@@ -99,11 +99,6 @@
                     col.r = _FrameBuffer.Load(int3(txDBW1Area.xy + int2(0, l), 0)).x *
                         dactFn(_Layer4.Load(int3(txFC1s.xy + int2(0, l), 0)).x) *
                         getMax3(_Layer3, int3(j, i, k));
-
-                    if (i == 0 && j == 1 && k == 87 && l == 122)
-                    {
-                        buffer[0] = float4(col.r * 1000000, 0, 0, 0);
-                    }
                 }
 
                 return col;

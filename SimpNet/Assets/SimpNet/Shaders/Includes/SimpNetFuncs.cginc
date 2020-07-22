@@ -3,6 +3,8 @@
 
 #include "Includes/SimpNetLayout.cginc"
 
+#define eps 0.00001
+
 inline float actFn(float x)
 {
     // ELU
@@ -101,6 +103,38 @@ float getW3(Texture2D<float3> tex, int2 i)
     pos.x = i.x + (i.y / 64) * 12;
     pos.y = i.y % 64;
     return tex.Load(int3(txW3Area.xy + pos, 0)).x;
+}
+
+float getEMax3(Texture2D<float3> tex, int3 i)
+{
+    int2 pos;
+    pos.x = i.x;
+    pos.y = i.y + i.z * 2;
+    return tex.Load(int3(txEMax3Area.xy + pos, 0)).x;
+}
+
+float getIMax3(Texture2D<float3> tex, int3 i)
+{
+    int2 pos;
+    pos.x = i.x;
+    pos.y = i.y + i.z * 2;
+    return tex.Load(int3(txiMax3Area.xy + pos, 0)).x;
+}
+
+float getEConv3(Texture2D<float3> tex, int3 i)
+{
+    int2 pos;
+    pos.x = i.x;
+    pos.y = i.y + i.z * 4;
+    return tex.Load(int3(txEConv3Area.xy + pos, 0)).x;
+}
+
+float getDiConv3(Texture2D<float3> tex, int3 i)
+{
+    int2 pos;
+    pos.x = i.x + (i.z % 8) * 7;
+    pos.y = i.y + (i.z / 8) * 7;
+    return tex.Load(int3(txDiConv3Area.xy + pos, 0)).x;
 }
 
 #endif

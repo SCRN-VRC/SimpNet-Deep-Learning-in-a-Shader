@@ -59,7 +59,7 @@
 #define txDW1Area               int4(0, 0, 256, 256)      // 2x2 x 128x128
 
 // Layer 3
-#define txEMax3Area             int4(196, 112, 2, 256)    // 2x256
+#define txEMax3Area             int4(196, 112, 2, 256)    // 2x2 x 1x128
 #define txDB3Area               int4(4, 384, 1, 128)      // 1x128
 #define txEConv3Area            int4(0, 0, 4, 512)        // 4x4 x 1x128
 #define txDiConv3Area           int4(196, 0, 56, 112)     // 7x7 x 8x16
