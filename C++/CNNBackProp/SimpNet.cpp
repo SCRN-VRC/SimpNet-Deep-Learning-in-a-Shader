@@ -598,10 +598,6 @@ int main()
 				// With respect to the activation function of fc2 and the output of previous layer
 				dw2[i][j] = dbiasw2[i] * dactFn(fc2s[i]) * fc1a[j];
 			}
-			if (i == 0)
-			{
-				out += to_string(dw2[i][78] * 100);
-			}
 		}
 
 		// FC1 bias
@@ -624,6 +620,7 @@ int main()
 				}
 			}
 		}
+		out += to_string(dw1[0][1][87][122] * 1000000);
 
 		// L3 error
 		for (int i = 0; i < 2; i++) {
