@@ -51,12 +51,12 @@
 */
 
 // Layer 6, 5, 4
-#define txDW3Area               int4(128, 256, 12, 128)   // 12x128
 #define txDBW3Area              int4(142, 256, 1, 12)     // 1x12
-#define txDW2Area               int4(0, 256, 128, 128)    // 128x128
+#define txDW3Area               int4(128, 256, 12, 128)   // 12x128
 #define txDBW2Area              int4(140, 256, 1, 128)    // 1x128
-#define txDW1Area               int4(0, 0, 256, 256)      // 256x256
+#define txDW2Area               int4(0, 256, 128, 128)    // 128x128
 #define txDBW1Area              int4(141, 256, 1, 128)    // 1x128
+#define txDW1Area               int4(0, 0, 256, 256)      // 256x256
 
 // Layer 3
 #define txEMax3Area             int4(196, 112, 2, 256)    // 2x256
@@ -83,7 +83,7 @@
     Functions
 */
 
-inline bool insideArea (in int4 area, int2 px)
+inline bool insideArea(in int4 area, int2 px)
 {
     [flatten]
     if (px.x >= area.x && px.x < (area.x + area.z) &&
@@ -94,22 +94,10 @@ inline bool insideArea (in int4 area, int2 px)
     return false;
 }
 
-inline void StoreValue (in int2 txPos, in float value, inout float col,
+inline void StoreValue(in int2 txPos, in float value, inout float col,
     in int2 fragPos)
 {
     col = all(fragPos == txPos) ? value : col;
-}
-
-inline float actFn(float x)
-{
-    // ELU
-    return x >= 0.0f ? x : (0.15f * (exp(x) - 1.0f));
-}
-
-inline float dactFn(float x)
-{
-    // ELU
-    return x >= 0.0f ? 1.0f : exp(x) * 0.15f;
 }
 
 inline float rand(float p)

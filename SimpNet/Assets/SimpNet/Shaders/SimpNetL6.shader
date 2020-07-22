@@ -3,7 +3,7 @@
     Properties
     {
         _Layer5 ("Layer 5", 2D) = "black" {}
-        _L5Gradients ("Layer 6 Gradients", 2D) = "black" {}
+        _L6Gradients ("Layer 6 Gradients", 2D) = "black" {}
         _FrameBuffer ("Layer 6 Buffer", 2D) = "black" {}
     }
     SubShader

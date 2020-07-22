@@ -563,10 +563,6 @@ int main()
 				s += exp(softout[j]);
 			}
 			softout2[i] = exp(softout[i]) / s;
-			if (i == 0)
-			{
-				out += to_string(softout2[i]);
-			}
 		}
 
 		auto t2 = chrono::high_resolution_clock::now();
@@ -601,6 +597,10 @@ int main()
 			for (int j = 0; j < 128; j++) {
 				// With respect to the activation function of fc2 and the output of previous layer
 				dw2[i][j] = dbiasw2[i] * dactFn(fc2s[i]) * fc1a[j];
+			}
+			if (i == 0)
+			{
+				out += to_string(dw2[i][78] * 100);
 			}
 		}
 

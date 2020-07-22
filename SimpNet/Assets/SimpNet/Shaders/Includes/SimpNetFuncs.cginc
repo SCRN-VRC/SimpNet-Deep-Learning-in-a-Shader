@@ -3,6 +3,18 @@
 
 #include "Includes/SimpNetLayout.cginc"
 
+inline float actFn(float x)
+{
+    // ELU
+    return x >= 0.0f ? x : (0.15f * (exp(x) - 1.0f));
+}
+
+inline float dactFn(float x)
+{
+    // ELU
+    return x >= 0.0f ? 1.0f : exp(x) * 0.15f;
+}
+
 float getKern1(Texture2D<float3> tex, int4 i)
 {
     int2 pos;
