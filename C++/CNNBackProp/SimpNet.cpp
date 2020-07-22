@@ -665,14 +665,6 @@ int main()
 				for (int k = 0; k < 128; k++) {
 					diconvL3[i][j][k] = ((i % 2 == 1) || (j % 2 == 1)) ?
 						0.0f : econvL3[i0][j0][k];
-					//if (diconvL3[i][j][k] * 1000000.0 != 0.f) {
-					//	out += to_string(i);
-					//	out += " ";
-					//	out += to_string(j);
-					//	out += " ";
-					//	out += to_string(k);
-					//	out += "\n";
-					//}
 				}
 			}
 		}
@@ -698,7 +690,6 @@ int main()
 				}
 			}
 		}
-		out += to_string(dkern3[0][1][55][110] * 1000000.0);
 
 		// L2 error
 		for (int i = 0; i < 7; i++) {
@@ -712,15 +703,15 @@ int main()
 					float s = 0.0f;
 					// Convolve 7x7 error padded to 9x9 over flipped 3x3 filter
 					for (int l = 0; l < 128; l++) {
-						s += b0 ? 0.0f : diconvL3[i1][j1][l] * kern3[2][2][k][l];
-						s += b1 ? 0.0f : diconvL3[i1][j0][l] * kern3[2][1][k][l];
-						s += b2 ? 0.0f : diconvL3[i1][j2][l] * kern3[2][0][k][l];
-						s += b3 ? 0.0f : diconvL3[i0][j1][l] * kern3[1][2][k][l];
+						s += (b0 ? 0.0f : diconvL3[i1][j1][l] * kern3[2][2][k][l]);
+						s += (b1 ? 0.0f : diconvL3[i1][j0][l] * kern3[2][1][k][l]);
+						s += (b2 ? 0.0f : diconvL3[i1][j2][l] * kern3[2][0][k][l]);
+						s += (b3 ? 0.0f : diconvL3[i0][j1][l] * kern3[1][2][k][l]);
 						s += diconvL3[i0][j0][l] * kern3[1][1][k][l];
-						s += b4 ? 0.0f : diconvL3[i0][j2][l] * kern3[1][0][k][l];
-						s += b5 ? 0.0f : diconvL3[i2][j1][l] * kern3[0][2][k][l];
-						s += b6 ? 0.0f : diconvL3[i2][j0][l] * kern3[0][1][k][l];
-						s += b7 ? 0.0f : diconvL3[i2][j2][l] * kern3[0][0][k][l];
+						s += (b4 ? 0.0f : diconvL3[i0][j2][l] * kern3[1][0][k][l]);
+						s += (b5 ? 0.0f : diconvL3[i2][j1][l] * kern3[0][2][k][l]);
+						s += (b6 ? 0.0f : diconvL3[i2][j0][l] * kern3[0][1][k][l]);
+						s += (b7 ? 0.0f : diconvL3[i2][j2][l] * kern3[0][0][k][l]);
 					}
 					emaxL2[i][j][k] = s;
 				}
@@ -745,6 +736,14 @@ int main()
 				for (int k = 0; k < 64; k++) {
 					econvL2[i][j][k] = imaxL2[i0][j0][k] == i * 14 + j ?
 						emaxL2[i0][j0][k] : 0.0f;
+					//if (econvL2[i][j][k] * 1000000.0 != 0.f) {
+					//	out += to_string(i);
+					//	out += " ";
+					//	out += to_string(j);
+					//	out += " ";
+					//	out += to_string(k);
+					//	out += "\n";
+					//}
 				}
 			}
 		}
@@ -768,6 +767,7 @@ int main()
 				}
 			}
 		}
+		out += to_string(dkern2[0][2][5][3] * 1000000.0);
 
 		// L2 error padded = 2
 		for (int i = 0; i < 18; i++) {

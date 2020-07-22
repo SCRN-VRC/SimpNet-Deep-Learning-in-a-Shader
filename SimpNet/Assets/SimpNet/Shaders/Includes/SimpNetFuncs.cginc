@@ -137,4 +137,29 @@ float getDiConv3(Texture2D<float3> tex, int3 i)
     return tex.Load(int3(txDiConv3Area.xy + pos, 0)).x;
 }
 
+float getEMax2(Texture2D<float3> tex, int3 i)
+{
+    int2 pos;
+    pos.x = i.x + (i.z % 8) * 7;
+    pos.y = i.y + (i.z / 8) * 7;
+    return tex.Load(int3(txEMax2Area.xy + pos, 0)).x;
+}
+
+float getIMax2(Texture2D<float3> tex, int3 i)
+{
+    int2 pos;
+    pos.x = i.x + (i.z % 8) * 7;
+    pos.y = i.y + (i.z / 8) * 7;
+    return tex.Load(int3(txiMax2Area.xy + pos, 0)).x;
+}
+
+float getEConv2(Texture2D<float3> tex, int3 i)
+{
+    int2 pos;
+    pos.x = i.x + (i.z % 8) * 14;
+    pos.y = i.y + (i.z / 8) * 14;
+    return tex.Load(int3(txEConv2Area.xy + pos, 0)).x;
+}
+
+
 #endif

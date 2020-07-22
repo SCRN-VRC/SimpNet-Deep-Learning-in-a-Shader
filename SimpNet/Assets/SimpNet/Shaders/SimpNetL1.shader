@@ -25,8 +25,6 @@
             Texture2D<float3> _CamIn;
             Texture2D<float3> _L1Gradients;
             Texture2D<float3> _FrameBuffer;
-            float4 _CamIn_TexelSize;
-            float4 _L1Gradients_TexelSize;
             float4 _FrameBuffer_TexelSize;
 
             float testImage(int i, int j) {
@@ -78,7 +76,6 @@
                     int j0 = j * 2, j1 = j0 + 1, j2 = j0 + 2;
 
                     float sum = 0.0;
-                    [unroll]
                     for (int l = 0; l < 3; l++) {
                         // sum += _CamIn.Load(int3(j0, i0, 0))[l] * getKern1(_FrameBuffer, int4(0, 0, l, k));
                         // sum += _CamIn.Load(int3(j0, i1, 0))[l] * getKern1(_FrameBuffer, int4(0, 1, l, k));
@@ -102,7 +99,7 @@
                     
                     }
                     
-                    sum += _FrameBuffer.Load(int3(txBias1Area.xy + int2(0, k), 0));
+                    sum += _FrameBuffer.Load(int3(txBias1Area.xy + int2(0, k), 0)).x;
                     col.r = actFn(sum);
                 }
                 else if (insideArea(txMax1Area, px))

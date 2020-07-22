@@ -71,7 +71,6 @@
                     float sum = 0.0;
                     for (int k = 0; k < 2; k++) {
                         for (int l = 0; l < 2; l++) {
-                            [loop]
                             for (int j = 0; j < 128; j++) {
                                 sum += getMax3(_Layer3, int3(l, k, j)) * getW1(_FrameBuffer, int4(k, l, j, i));
                             }

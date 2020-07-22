@@ -77,7 +77,6 @@
                     bool b02 = bi1 || bj1, b03 = bi1 || bj2, b04 = bi2 || bj1, b05 = bi2 || bj2;
 
                     float sum = 0.0;
-                    [loop]
                     for (int l = 0; l < 64; l++) {
                         sum +=
                             (b02 ? 0.0 : getMax2(_Layer2, int3(j1, i1, l)) * getKern3(_FrameBuffer, int4(0, 0, l, k))) +
@@ -90,7 +89,7 @@
                             (bi2 ? 0.0 : getMax2(_Layer2, int3(j0, i2, l)) * getKern3(_FrameBuffer, int4(2, 1, l, k))) +
                             (b05 ? 0.0 : getMax2(_Layer2, int3(j2, i2, l)) * getKern3(_FrameBuffer, int4(2, 2, l, k)));
                     }
-                    sum += _FrameBuffer.Load(int3(txBias3Area.xy + int2(0, k), 0));
+                    sum += _FrameBuffer.Load(int3(txBias3Area.xy + int2(0, k), 0)).x;
                     col.r = actFn(sum);
                 }
                 else if (insideArea(txMax3Area, px))

@@ -68,7 +68,6 @@
                     int i = px.y;
 
                     float sum = 0.0;
-                    [loop]
                     for (int j = 0; j < 128; j++) {
                         sum += _Layer4.Load(int3(txFC1a.xy + int2(0, j), 0)).x *
                             _FrameBuffer.Load(int3(txW2Area.xy + int2(i, j), 0)).x;

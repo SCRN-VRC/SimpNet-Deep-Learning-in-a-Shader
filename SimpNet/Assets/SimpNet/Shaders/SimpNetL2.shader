@@ -73,7 +73,6 @@
                     int j0 = j, j1 = j + 1, j2 = j + 2;
 
                     float sum = 0.0;
-                    [loop]
                     for (int l = 0; l < 32; l++) {
                         sum += getMax1(_Layer1, int3(j0, i0, l)) * getKern2(_FrameBuffer, int4(0, 0, l, k));
                         sum += getMax1(_Layer1, int3(j0, i1, l)) * getKern2(_FrameBuffer, int4(0, 1, l, k));
@@ -86,7 +85,7 @@
                         sum += getMax1(_Layer1, int3(j2, i2, l)) * getKern2(_FrameBuffer, int4(2, 2, l, k));
                     }
 
-                    sum += _FrameBuffer.Load(int3(txBias2Area.xy + int2(0, k), 0));
+                    sum += _FrameBuffer.Load(int3(txBias2Area.xy + int2(0, k), 0)).x;
                     col.r = actFn(sum);
                 }
                 else if (insideArea(txMax2Area, px))
