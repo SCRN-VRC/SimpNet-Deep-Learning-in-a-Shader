@@ -77,7 +77,7 @@
 #define txDB1Area               int4(460, 24, 1, 32)      // 1x32
 #define txEConv1Area            int4(252, 144, 128, 256)  // 32x32 x 4x8
 #define txDiConv1Area           int4(0, 0, 252, 504)      // 63x63 x 4x8
-#define txDKern1Area            int4(460, 0, 36, 24)      // 3x3x3 x 4x8
+#define txDKern1Area            int4(460, 0, 24, 36)      // 3x3x3 x 8x4
 
 /*
     Functions

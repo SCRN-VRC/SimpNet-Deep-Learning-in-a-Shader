@@ -2,7 +2,7 @@
 {
     Properties
     {
-        _Layer1 ("Backprop 3", 2D) = "black" {}
+        _BackProp3 ("Backprop 3", 2D) = "black" {}
         _FrameBuffer ("Backprop 4 Buffer", 2D) = "black" {}
     }
     SubShader
@@ -20,7 +20,8 @@
             #pragma fragment pixel_shader
             #pragma target 5.0
 
-            Texture2D<float3> _CamIn;
+            RWStructuredBuffer<float4> buffer : register(u1);
+            Texture2D<float3> _BackProp3;
             Texture2D<float3> _FrameBuffer;
             float4 _FrameBuffer_TexelSize;
 
@@ -28,11 +29,11 @@
             {
                 int2 px = _FrameBuffer_TexelSize.zw * IN.globalTexcoord.xy;
                 float3 col = _FrameBuffer.Load(int3(px, 0));
-                col = _Time.y < 1.0 ? 0..xxx : col;
 
                 [branch]
                 if (insideArea(txPConv2Area, px))
                 {
+                    px -= txPConv2Area.xy;
                     col.r = 1.0;
                 }
                 else if (insideArea(txEMax1Area, px))

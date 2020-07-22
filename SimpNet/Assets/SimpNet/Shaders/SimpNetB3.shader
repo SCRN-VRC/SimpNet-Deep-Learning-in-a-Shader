@@ -23,7 +23,7 @@
             #pragma fragment pixel_shader
             #pragma target 5.0
 
-            RWStructuredBuffer<float4> buffer : register(u1);
+            //RWStructuredBuffer<float4> buffer : register(u1);
             Texture2D<float3> _BackProp2;
             Texture2D<float3> _Layer3;
             Texture2D<float3> _Layer2;
@@ -104,10 +104,6 @@
                         }
                     }
                     col.r = sum;
-                    if (i == 0 && j == 2 && k == 5 && l == 3)
-                    {
-                        buffer[0] = float4(col.r * 1000000.0, 0, 0, 0);
-                    }
                 }
 
                 return col;
