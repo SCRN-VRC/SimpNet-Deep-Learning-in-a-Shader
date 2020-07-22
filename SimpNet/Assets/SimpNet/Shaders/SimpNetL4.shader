@@ -15,11 +15,13 @@
 
             CGPROGRAM
             #include "UnityCustomRenderTexture.cginc"
-            #include "SimpNetLayout.cginc"
+            #include "Includes/SimpNetLayout.cginc"
+            #include "Includes/SimpNetFuncs.cginc"
             #pragma vertex CustomRenderTextureVertexShader
             #pragma fragment pixel_shader
             #pragma target 5.0
 
+            //RWStructuredBuffer<float4> buffer : register(u1);
             Texture2D<float3> _Layer3;
             Texture2D<float3> _L4Gradients;
             Texture2D<float3> _FrameBuffer;
@@ -31,24 +33,57 @@
             {
                 int2 px = _FrameBuffer_TexelSize.zw * IN.globalTexcoord.xy;
                 float3 col = _FrameBuffer.Load(int3(px, 0));
-                col = _Time.y < 1.0 ? 0..xxx : col;
 
                 [branch]
                 if (insideArea(txW1Area, px))
                 {
-                    col.r = 1.0;
+                    if (_Time.y <= 1.0)
+                    {
+                        // col.r = px.y * _FrameBuffer_TexelSize.z + px.x;
+                        // col.r = rand(col.r) * 0.001953125;
+                        
+                        // Debugging
+                        px -= txW1Area.xy;
+                        int i = px.y % 2;
+                        int j = px.x % 2;
+                        int k = (px.y / 2);
+                        int l = (px.x / 2);
+                        col.r = (i * (j + i)) * k / float(l * k + 1);
+                    }
                 }
                 else if (insideArea(txW1BiasArea, px))
                 {
-                    col.r = 0.9;
+                    if (_Time.y <= 1.0)
+                    {
+                        // col.r = px.y * _FrameBuffer_TexelSize.z + px.x;
+                        // col.r = rand(col.r) * 0.5;
+
+                        // Debugging
+                        px -= txW1BiasArea.xy;
+                        col.r = (px.y % 8) / 8.0;
+                    }
                 }
                 else if (insideArea(txFC1s, px))
                 {
-                    col.r = 0.8;
+                    px -= txFC1s.xy;
+                    int i = px.y;
+
+                    float sum = 0.0;
+                    for (int k = 0; k < 2; k++) {
+                        for (int l = 0; l < 2; l++) {
+                            [loop]
+                            for (int j = 0; j < 128; j++) {
+                                sum += getMax3(_Layer3, int3(l, k, j)) * getW1(_FrameBuffer, int4(k, l, j, i));
+                            }
+                        }
+                    }
+                    sum += _FrameBuffer.Load(int3(txW1BiasArea.xy + int2(0, i), 0));
+                    col.r = sum;
                 }
                 else if (insideArea(txFC1a, px))
                 {
-                    col.r = 0.7;
+                    px -= txFC1a.xy;
+                    col.r = actFn(_FrameBuffer.Load(int3(txFC1s.xy + int2(0, px.y), 0)));
                 }
 
                 return col;

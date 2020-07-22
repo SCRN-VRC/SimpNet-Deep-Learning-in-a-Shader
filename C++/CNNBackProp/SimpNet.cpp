@@ -213,46 +213,80 @@ int main()
 		bias3[i] = i / 128.0f - 0.5f;
 	}
 
-	normal_distribution<float> dis4(0.0f, 1.f / sqrt(512.f));
-	// FC1 random weights
+	//normal_distribution<float> dis4(0.0f, 1.f / sqrt(512.f));
+	//// FC1 random weights
+	//for (int i = 0; i < 2; i++) {
+	//	for (int j = 0; j < 2; j++) {
+	//		for (int k = 0; k < 128; k++) {
+	//			for (int l = 0; l < 128; l++) {
+	//				w1[i][j][k][l] = dis4(gen);
+	//			}
+	//		}
+	//	}
+	//}
+
 	for (int i = 0; i < 2; i++) {
 		for (int j = 0; j < 2; j++) {
 			for (int k = 0; k < 128; k++) {
 				for (int l = 0; l < 128; l++) {
-					w1[i][j][k][l] = dis4(gen);
+					w1[i][j][k][l] = (i * (j + i)) * k / float(l * k + 1);
 				}
 			}
 		}
 	}
 
-	// Bias for FC1
+	//// Bias for FC1
+	//for (int i = 0; i < 128; i++) {
+	//	biasw1[i] = dis0(gen);
+	//}
+
 	for (int i = 0; i < 128; i++) {
-		biasw1[i] = dis0(gen);
+		biasw1[i] = i % 8 / 8.0f;
 	}
 
-	normal_distribution<float> dis5(0.0f, 1.f / sqrt(128.f));
-	// FC2 random weights
+	//normal_distribution<float> dis5(0.0f, 1.f / sqrt(128.f));
+	//// FC2 random weights
+	//for (int i = 0; i < 128; i++) {
+	//	for (int j = 0; j < 128; j++) {
+	//		w2[i][j] = dis5(gen);
+	//	}
+	//}
+
 	for (int i = 0; i < 128; i++) {
 		for (int j = 0; j < 128; j++) {
-			w2[i][j] = dis5(gen);
+			w2[i][j] = (i + j) / float(128*128);
 		}
 	}
 
-	// Bias for FC2
+	//// Bias for FC2
+	//for (int i = 0; i < 128; i++) {
+	//	biasw2[i] = dis0(gen);
+	//}
+
 	for (int i = 0; i < 128; i++) {
-		biasw2[i] = dis0(gen);
+		biasw2[i] = 1.0f / (i + 1.0f);
 	}
 
-	// FC3 random weights
+	//// FC3 random weights
+	//for (int i = 0; i < 128; i++) {
+	//	for (int j = 0; j < 12; j++) {
+	//		w3[i][j] = dis5(gen);
+	//	}
+	//}
+
 	for (int i = 0; i < 128; i++) {
 		for (int j = 0; j < 12; j++) {
-			w3[i][j] = dis5(gen);
+			w3[i][j] = (i + j) / (100000000.0);
 		}
 	}
 
-	// Bias for FC3
+	//// Bias for FC3
+	//for (int i = 0; i < 12; i++) {
+	//	biasw3[i] = dis0(gen);
+	//}
+
 	for (int i = 0; i < 12; i++) {
-		biasw3[i] = dis0(gen);
+		biasw3[i] = 1.0f - i / 12.0f;
 	}
 
 	for (int ll = 0; ll < 1; ll++) {
@@ -468,12 +502,6 @@ int main()
 					m = fmaxf(m, convL3[i1][j1][k]);
 					imaxL3[i][j][k] = (m == convL3[i1][j1][k]) ?
 						(i1 * 4 + j1) : imaxL3[i][j][k];
-					if (i == 1 && j == 0 && k == 127)
-					{
-						out += to_string(imaxL3[i][j][k]);
-						out += " ";
-						out += to_string(m);
-					}
 				}
 			}
 		}
@@ -489,7 +517,6 @@ int main()
 					}
 				}
 			}
-
 			// Bias
 			fc1s[i] += biasw1[i];
 		}
@@ -536,6 +563,10 @@ int main()
 				s += exp(softout[j]);
 			}
 			softout2[i] = exp(softout[i]) / s;
+			if (i == 0)
+			{
+				out += to_string(softout2[i]);
+			}
 		}
 
 		auto t2 = chrono::high_resolution_clock::now();

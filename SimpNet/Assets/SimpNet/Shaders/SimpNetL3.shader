@@ -21,7 +21,7 @@
             #pragma fragment pixel_shader
             #pragma target 5.0
 
-            RWStructuredBuffer<float4> buffer : register(u1);
+            //RWStructuredBuffer<float4> buffer : register(u1);
             Texture2D<float3> _Layer2;
             Texture2D<float3> _L3Gradients;
             Texture2D<float3> _FrameBuffer;
@@ -129,10 +129,6 @@
                     
                     m = max(m, bu = getConv3(_FrameBuffer, int3(j1, i1, k)));
                     col.r = (m == bu) ? (i1 * 4 + j1) : col.r;
-
-                    if (i == 1 && j == 0 && k == 127) {
-                        buffer[0] = float4(col.r, m, 0, 0);
-                    }
                 }
                 return col;
             }

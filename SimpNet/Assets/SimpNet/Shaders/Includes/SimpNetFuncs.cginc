@@ -67,4 +67,28 @@ float getConv3(Texture2D<float3> tex, int3 i)
     return tex.Load(int3(txConv3Area.xy + pos, 0)).x;
 }
 
+float getMax3(Texture2D<float3> tex, int3 i)
+{
+    int2 pos;
+    pos.x = i.x;
+    pos.y = i.y + i.z * 2;
+    return tex.Load(int3(txMax3Area.xy + pos, 0)).x;
+}
+
+float getW1(Texture2D<float3> tex, int4 i)
+{
+    int2 pos;
+    pos.y = i.x + i.z * 2;
+    pos.x = i.y + i.w * 2;
+    return tex.Load(int3(txW1Area.xy + pos, 0)).x;
+}
+
+float getW3(Texture2D<float3> tex, int2 i)
+{
+    int2 pos;
+    pos.x = i.x + (i.y / 64) * 12;
+    pos.y = i.y % 64;
+    return tex.Load(int3(txW3Area.xy + pos, 0)).x;
+}
+
 #endif

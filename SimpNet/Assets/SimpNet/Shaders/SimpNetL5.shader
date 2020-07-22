@@ -15,11 +15,13 @@
 
             CGPROGRAM
             #include "UnityCustomRenderTexture.cginc"
-            #include "SimpNetLayout.cginc"
+            #include "Includes/SimpNetLayout.cginc"
+            #include "Includes/SimpNetFuncs.cginc"
             #pragma vertex CustomRenderTextureVertexShader
             #pragma fragment pixel_shader
             #pragma target 5.0
 
+            //RWStructuredBuffer<float4> buffer : register(u1);
             Texture2D<float3> _Layer4;
             Texture2D<float3> _L5Gradients;
             Texture2D<float3> _FrameBuffer;
@@ -36,19 +38,48 @@
                 [branch]
                 if (insideArea(txW2Area, px))
                 {
-                    col.r = 1.0;
+                    if (_Time.y <= 1.0)
+                    {
+                        // col.r = px.y * _FrameBuffer_TexelSize.z + px.x;
+                        // col.r = rand(col.r) * 0.0078125;
+                        
+                        // Debugging
+                        px -= txW2Area.xy;
+                        int i = px.y;
+                        int j = px.x;
+                        col.r = (i + j) / (128.0 * 128.0);
+                    }
                 }
                 else if (insideArea(txW2BiasArea, px))
                 {
-                    col.r = 0.9;
+                    if (_Time.y <= 1.0)
+                    {
+                        // col.r = px.y * _FrameBuffer_TexelSize.z + px.x;
+                        // col.r = rand(col.r) * 0.5;
+
+                        // Debugging
+                        px -= txW2BiasArea.xy;
+                        col.r = 1.0 / (px.y + 1.0);
+                    }
                 }
                 else if (insideArea(txFC2s, px))
                 {
-                    col.r = 0.8;
+                    px -= txFC2s.xy;
+                    int i = px.y;
+
+                    float sum = 0.0;
+                    [loop]
+                    for (int j = 0; j < 128; j++) {
+                        sum += _Layer4.Load(int3(txFC1a.xy + int2(0, j), 0)).x *
+                            _FrameBuffer.Load(int3(txW2Area.xy + int2(i, j), 0)).x;
+                    }
+                    sum += _FrameBuffer.Load(int3(txW2BiasArea.xy + int2(0, i), 0)).x;
+                    col.r = sum;
                 }
                 else if (insideArea(txFC2a, px))
                 {
-                    col.r = 0.7;
+                    px -= txFC2a.xy;
+                    col.r = actFn(_FrameBuffer.Load(int3(txFC2s.xy + int2(0, px.y), 0)).x);
                 }
 
                 return col;

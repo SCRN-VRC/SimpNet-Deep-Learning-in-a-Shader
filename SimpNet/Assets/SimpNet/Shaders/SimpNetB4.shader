@@ -14,7 +14,8 @@
 
             CGPROGRAM
             #include "UnityCustomRenderTexture.cginc"
-            #include "SimpNetLayout.cginc"
+            #include "Includes/SimpNetLayout.cginc"
+            #include "Includes/SimpNetFuncs.cginc"
             #pragma vertex CustomRenderTextureVertexShader
             #pragma fragment pixel_shader
             #pragma target 5.0
