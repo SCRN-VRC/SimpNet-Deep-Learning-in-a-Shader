@@ -161,5 +161,44 @@ float getEConv2(Texture2D<float3> tex, int3 i)
     return tex.Load(int3(txEConv2Area.xy + pos, 0)).x;
 }
 
+float getPConv2(Texture2D<float3> tex, int3 i)
+{
+    int2 pos;
+    pos.x = i.x + (i.z % 8) * 18;
+    pos.y = i.y + (i.z / 8) * 18;
+    return tex.Load(int3(txPConv2Area.xy + pos, 0)).x;
+}
+
+float getEMax1(Texture2D<float3> tex, int3 i)
+{
+    int2 pos;
+    pos.x = i.x + (i.z % 4) * 16;
+    pos.y = i.y + (i.z / 4) * 16;
+    return tex.Load(int3(txEMax1Area.xy + pos, 0)).x;
+}
+
+float getIMax1(Texture2D<float3> tex, int3 i)
+{
+    int2 pos;
+    pos.x = i.x + (i.z % 2) * 16;
+    pos.y = i.y + (i.z / 2) * 16;
+    return tex.Load(int3(txiMax1Area.xy + pos, 0)).x;
+}
+
+float getEConv1(Texture2D<float3> tex, int3 i)
+{
+    int2 pos;
+    pos.x = i.x + (i.z % 4) * 32;
+    pos.y = i.y + (i.z / 4) * 32;
+    return tex.Load(int3(txEConv1Area.xy + pos, 0)).x;
+}
+
+float getDiConv1(Texture2D<float3> tex, int3 i)
+{
+    int2 pos;
+    pos.x = i.x + (i.z % 4) * 63;
+    pos.y = i.y + (i.z / 4) * 63;
+    return tex.Load(int3(txDiConv1Area.xy + pos, 0)).x;
+}
 
 #endif
