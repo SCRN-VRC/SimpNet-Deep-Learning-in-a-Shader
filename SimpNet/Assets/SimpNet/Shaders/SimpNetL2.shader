@@ -21,21 +21,21 @@
             #pragma fragment pixel_shader
             #pragma target 5.0
 
-            //RWStructuredBuffer<float4> buffer : register(u1);
+            RWStructuredBuffer<float4> buffer : register(u1);
             Texture2D<float3> _Layer1;
             Texture2D<float3> _L2Gradients;
             Texture2D<float3> _FrameBuffer;
             float4 _Layer1_TexelSize;
-            float4 _L2Gradients_TexelSize;
             float4 _FrameBuffer_TexelSize;
 
             float3 pixel_shader (v2f_customrendertexture IN) : SV_TARGET
             {
                 int2 px = _FrameBuffer_TexelSize.zw * IN.globalTexcoord.xy;
                 float3 col = _FrameBuffer.Load(int3(px, 0));
-
+                int ct = int(_FrameBuffer.Load(int3(_FrameBuffer_TexelSize.zw - 1, 0)).x);
+                
                 [branch]
-                if (insideArea(txKern2Area, px))
+                if (ct == 0 && insideArea(txKern2Area, px))
                 {
                     if (_Time.y <= 1.0)
                     {
@@ -51,7 +51,7 @@
                         col.r = (i + j + k + l) / 1000.0;
                     }
                 }
-                else if (insideArea(txBias2Area, px))
+                else if (ct == 0 && insideArea(txBias2Area, px))
                 {
                     if (_Time.y <= 1.0)
                     {
@@ -63,7 +63,7 @@
                         col.r = 1.0 - (px.y / 64.0) - 0.5;
                     }
                 }
-                else if (insideArea(txConv2Area, px))
+                else if (ct == 1 && insideArea(txConv2Area, px))
                 {
                     px -= txConv2Area.xy;
                     int i = px.y % 14;
@@ -88,7 +88,7 @@
                     sum += _FrameBuffer.Load(int3(txBias2Area.xy + int2(0, k), 0)).x;
                     col.r = actFn(sum);
                 }
-                else if (insideArea(txMax2Area, px))
+                else if (ct == 2 && insideArea(txMax2Area, px))
                 {
                     px -= txMax2Area.xy;
                     int i = px.y % 7;
@@ -103,7 +103,7 @@
                     m = max(m, getConv2(_FrameBuffer, int3(j1, i1, k)));
                     col.r = m;
                 }
-                else if (insideArea(txiMax2Area, px))
+                else if (ct == 3 && insideArea(txiMax2Area, px))
                 {
                     px -= txiMax2Area.xy;
                     int i = px.y % 7;
@@ -125,6 +125,9 @@
                     m = max(m, bu = getConv2(_FrameBuffer, int3(j1, i1, k)));
                     col.r = (m == bu) ? (i1 * 14 + j1) : col.r;
                 }
+
+                ct = min(ct + 1, 4);
+                StoreValue(_FrameBuffer_TexelSize.zw - 1, ct, col.r, px);
                 return col;
             }
             ENDCG

@@ -110,8 +110,8 @@ int main()
 	for (int i = 0; i < 65; i++) {
 		for (int j = 0; j < 65; j++) {
 			testImg[i][j][0] = i / 65.0f * ((65 - j) / 65.0f);
-			testImg[i][j][1] = i / 65.0f * ((65 - j) / 65.0f);
-			testImg[i][j][2] = i / 65.0f * ((65 - j) / 65.0f);
+			testImg[i][j][1] = (i / 65.0f * ((65 - j) / 65.0f)) + 0.2;
+			testImg[i][j][2] = (i / 65.0f * ((65 - j) / 65.0f)) + 0.4;
 		}
 	}
 
@@ -467,6 +467,7 @@ int main()
 				}
 			}
 		}
+		out += to_string(kern3[1][2][5][34] * 1000);
 
 		// Max pooling layer 3, size=2x2, stride=2
 		for (int k = 0; k < 128; k++) {
@@ -851,7 +852,7 @@ int main()
 				}
 			}
 		}
-		out += to_string(dkern1[2][1][0][2] * 1000000.0);
+
 		// Update step
 
 		// FC3 weights

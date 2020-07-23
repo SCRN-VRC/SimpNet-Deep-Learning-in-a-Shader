@@ -35,9 +35,10 @@
             {
                 int2 px = _FrameBuffer_TexelSize.zw * IN.globalTexcoord.xy;
                 float3 col = _FrameBuffer.Load(int3(px, 0));
+                int ct = int(_FrameBuffer.Load(int3(_FrameBuffer_TexelSize.zw - 1, 0)).x);
 
                 [branch]
-                if (insideArea(txEMax3Area, px))
+                if (ct == 0 && insideArea(txEMax3Area, px))
                 {
                     px -= txEMax3Area.xy;
                     int i = px.y % 2;
@@ -52,7 +53,7 @@
                     }
                     col.r = sum;
                 }
-                else if (insideArea(txDB3Area, px))
+                else if (ct == 1 && insideArea(txDB3Area, px))
                 {
                     px -= txDB3Area.xy;
                     int i = px.y;
@@ -65,7 +66,7 @@
                     }
                     col.r = sum;
                 }
-                else if (insideArea(txEConv3Area, px))
+                else if (ct == 2 && insideArea(txEConv3Area, px))
                 {
                     px -= txEConv3Area.xy;
                     int i = px.y % 4;
@@ -76,7 +77,7 @@
                     col.r = abs(getIMax3(_Layer3, int3(j0, i0, k)) - float(i * 4 + j)) < eps ?
                         getEMax3(_FrameBuffer, int3(j0, i0, k)) : 0.0;
                 }
-                else if (insideArea(txDiConv3Area, px))
+                else if (ct == 3 && insideArea(txDiConv3Area, px))
                 {
                     px -= txDiConv3Area.xy;
                     int i = px.y % 7;
@@ -86,7 +87,7 @@
                     
                     col.r = ((i % 2 == 1) || (j % 2 == 1)) ? 0.0 : getEConv3(_FrameBuffer, int3(j0, i0, k));
                 }
-                else if (insideArea(txDKern3Area, px))
+                else if (ct == 4 && insideArea(txDKern3Area, px))
                 {
                     px -= txDKern3Area.xy;
                     int i = px.y % 3;
@@ -107,6 +108,8 @@
                     col.r = sum;
                 }
 
+                ct = min(ct + 1, 5);
+                StoreValue(_FrameBuffer_TexelSize.zw - 1, ct, col.r, px);
                 return col;
             }
             ENDCG

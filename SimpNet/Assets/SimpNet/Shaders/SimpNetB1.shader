@@ -37,15 +37,16 @@
             {
                 int2 px = _FrameBuffer_TexelSize.zw * IN.globalTexcoord.xy;
                 float3 col = _FrameBuffer.Load(int3(px, 0));
+                int ct = int(_FrameBuffer.Load(int3(_FrameBuffer_TexelSize.zw - 1, 0)).x);
 
                 [branch]
-                if (insideArea(txDBW3Area, px))
+                if (ct == 0 && insideArea(txDBW3Area, px))
                 {
                     px -= txDBW3Area.xy;
                     int i = px.y;
                     col.r = _Layer6.Load(int3(txSoftout2.xy + int2(0, i), 0)).x - (i == _TargetClass ? 1.0 : 0.0);
                 }
-                else if (insideArea(txDW3Area, px))
+                else if (ct == 1 && insideArea(txDW3Area, px))
                 {
                     px -= txDW3Area.xy;
                     int i = px.y;
@@ -53,7 +54,7 @@
                     col.r = _FrameBuffer.Load(int3(txDBW3Area.xy + int2(0, j), 0)).x *
                         _Layer5.Load(int3(txFC2a.xy + int2(0, i), 0)).x;
                 }
-                else if (insideArea(txDBW2Area, px))
+                else if (ct == 2 && insideArea(txDBW2Area, px))
                 {
                     px -= txDW2Area.xy;
                     int i = px.y;
@@ -65,7 +66,7 @@
                     }
                     col.r = sum;
                 }
-                else if (insideArea(txDW2Area, px))
+                else if (ct == 3 && insideArea(txDW2Area, px))
                 {
                     px -= txDW2Area.xy;
                     int i = px.y;
@@ -75,7 +76,7 @@
                         dactFn(_Layer5.Load(int3(txFC2s.xy + int2(0, i), 0)).x) *
                         _Layer4.Load(int3(txFC1a.xy + int2(0, j), 0)).x;
                 }
-                else if (insideArea(txDBW1Area, px))
+                else if (ct == 4 && insideArea(txDBW1Area, px))
                 {
                     px -= txDBW1Area.xy;
                     int i = px.y;
@@ -88,7 +89,7 @@
                     }
                     col.r = sum;
                 }
-                else if (insideArea(txDW1Area, px))
+                else if (ct == 5 && insideArea(txDW1Area, px))
                 {
                     px -= txDW1Area.xy;
                     int i = px.y % 2;
@@ -100,7 +101,9 @@
                         dactFn(_Layer4.Load(int3(txFC1s.xy + int2(0, l), 0)).x) *
                         getMax3(_Layer3, int3(j, i, k));
                 }
-
+                
+                ct = min(ct + 1, 6);
+                StoreValue(_FrameBuffer_TexelSize.zw - 1, ct, col.r, px);
                 return col;
             }
             ENDCG

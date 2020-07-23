@@ -33,10 +33,10 @@
             {
                 int2 px = _FrameBuffer_TexelSize.zw * IN.globalTexcoord.xy;
                 float3 col = _FrameBuffer.Load(int3(px, 0));
-                col = _Time.y < 1.0 ? 0..xxx : col;
+                int ct = int(_FrameBuffer.Load(int3(_FrameBuffer_TexelSize.zw - 1, 0)).x);
 
                 [branch]
-                if (insideArea(txW2Area, px))
+                if (ct == 0 && insideArea(txW2Area, px))
                 {
                     if (_Time.y <= 1.0)
                     {
@@ -50,7 +50,7 @@
                         col.r = (i + j) / (128.0 * 128.0);
                     }
                 }
-                else if (insideArea(txW2BiasArea, px))
+                else if (ct == 0 && insideArea(txW2BiasArea, px))
                 {
                     if (_Time.y <= 1.0)
                     {
@@ -62,7 +62,7 @@
                         col.r = 1.0 / (px.y + 1.0);
                     }
                 }
-                else if (insideArea(txFC2s, px))
+                else if (ct == 1 && insideArea(txFC2s, px))
                 {
                     px -= txFC2s.xy;
                     int i = px.y;
@@ -75,12 +75,14 @@
                     sum += _FrameBuffer.Load(int3(txW2BiasArea.xy + int2(0, i), 0)).x;
                     col.r = sum;
                 }
-                else if (insideArea(txFC2a, px))
+                else if (ct == 2 && insideArea(txFC2a, px))
                 {
                     px -= txFC2a.xy;
                     col.r = actFn(_FrameBuffer.Load(int3(txFC2s.xy + int2(0, px.y), 0)).x);
                 }
 
+                ct = min(ct + 1, 3);
+                StoreValue(_FrameBuffer_TexelSize.zw - 1, ct, col.r, px);
                 return col;
             }
             ENDCG

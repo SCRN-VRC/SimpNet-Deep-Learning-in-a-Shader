@@ -80,6 +80,22 @@
 #define txDKern1Area            int4(460, 0, 24, 36)      // 3x3x3 x 8x4
 
 /*
+    Layer Counter
+    To make sure the layers are ran in order
+*/
+
+#define L1_MAX_CT       4
+#define L2_MAX_CT       4
+#define L3_MAX_CT       4
+#define L4_MAX_CT       3
+#define L5_MAX_CT       3
+#define L6_MAX_CT       3
+#define B1_MAX_CT       6
+#define B2_MAX_CT       5
+#define B3_MAX_CT       4
+#define B4_MAX_CT       6
+
+/*
     Functions
 */
 

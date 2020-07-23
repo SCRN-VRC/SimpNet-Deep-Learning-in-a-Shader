@@ -4,6 +4,8 @@
 #include "Includes/SimpNetLayout.cginc"
 
 #define eps 0.00001
+#define lr 0.2
+#define lrb 0.1
 
 inline float actFn(float x)
 {
@@ -15,6 +17,10 @@ inline float dactFn(float x)
 {
     // ELU
     return x >= 0.0f ? 1.0f : exp(x) * 0.15f;
+}
+
+float testImage(int i, int j, int k) {
+    return (i / 65.0 * ((65 - j) / 65.0)) + 0.2 * k;
 }
 
 float getKern1(Texture2D<float3> tex, int4 i)

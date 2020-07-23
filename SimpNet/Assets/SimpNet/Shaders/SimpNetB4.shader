@@ -31,17 +31,14 @@
             Texture2D<float3> _FrameBuffer;
             float4 _FrameBuffer_TexelSize;
 
-            float testImage(int i, int j) {
-                return i / 65.0 * ((65 - j) / 65.0);
-            }
-
             float3 pixel_shader (v2f_customrendertexture IN) : SV_TARGET
             {
                 int2 px = _FrameBuffer_TexelSize.zw * IN.globalTexcoord.xy;
                 float3 col = _FrameBuffer.Load(int3(px, 0));
+                int ct = int(_FrameBuffer.Load(int3(_FrameBuffer_TexelSize.zw - 1, 0)).x);
 
                 [branch]
-                if (insideArea(txPConv2Area, px))
+                if (ct == 0 && insideArea(txPConv2Area, px))
                 {
                     px -= txPConv2Area.xy;
                     int i = px.y % 18;
@@ -50,7 +47,7 @@
 
                     col.r = i < 2 || j < 2 || i > 15 || j > 15 ? 0.0 : getEConv2(_BackProp3, int3(j - 2, i - 2, k));
                 }
-                else if (insideArea(txEMax1Area, px))
+                else if (ct == 1 && insideArea(txEMax1Area, px))
                 {
                     px -= txEMax1Area.xy;
                     int i = px.y % 16;
@@ -71,7 +68,7 @@
                     }
                     col.r = sum;
                 }
-                else if (insideArea(txDB1Area, px))
+                else if (ct == 2 && insideArea(txDB1Area, px))
                 {
                     px -= txDB1Area.xy;
                     int i = px.y;
@@ -84,7 +81,7 @@
                     }
                     col.r = sum;
                 }
-                else if (insideArea(txEConv1Area, px))
+                else if (ct == 3 && insideArea(txEConv1Area, px))
                 {
                     px -= txEConv1Area;
                     int i = px.y % 32;
@@ -95,7 +92,7 @@
                     col.r = abs(getIMax1(_Layer1, int3(j0, i0, k)) - float(i * 32 + j)) < eps ?
                         getEMax1(_FrameBuffer, int3(j0, i0, k)) : 0.0;
                 }
-                else if (insideArea(txDiConv1Area, px))
+                else if (ct == 4 && insideArea(txDiConv1Area, px))
                 {
                     px -= txDiConv1Area.xy;
                     int i = px.y % 63;
@@ -105,7 +102,7 @@
 
                     col.r = ((i % 2 == 1) || (j % 2 == 1)) ? 0.0 : getEConv1(_FrameBuffer, int3(j0, i0, k));
                 }
-                else if (insideArea(txDKern1Area, px))
+                else if (ct == 5 && insideArea(txDKern1Area, px))
                 {
                     px -= txDKern1Area.xy;
                     int i = px.y % 3;
@@ -118,12 +115,14 @@
                         for (int y = 0; y < 63; y++) {
                             int l1x = x + i;
                             int l1y = y + j;
-                            sum += testImage(l1x, l1y) * getDiConv1(_FrameBuffer, int3(y, x, l));
+                            sum += testImage(l1x, l1y, k) * getDiConv1(_FrameBuffer, int3(y, x, l));
                         }
                     }
                     col.r = sum;
                 }
 
+                ct = min(ct + 1, 6);
+                StoreValue(_FrameBuffer_TexelSize.zw - 1, ct, col.r, px);
                 return col;
             }
             ENDCG

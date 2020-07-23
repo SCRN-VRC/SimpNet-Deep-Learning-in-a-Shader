@@ -35,9 +35,10 @@
             {
                 int2 px = _FrameBuffer_TexelSize.zw * IN.globalTexcoord.xy;
                 float3 col = _FrameBuffer.Load(int3(px, 0));
+                int ct = int(_FrameBuffer.Load(int3(_FrameBuffer_TexelSize.zw - 1, 0)).x);
 
                 [branch]
-                if (insideArea(txEMax2Area, px))
+                if (ct == 0 && insideArea(txEMax2Area, px))
                 {
                     px -= txEMax2Area.xy;
                     int i = px.y % 7;
@@ -63,7 +64,7 @@
                     }
                     col.r = sum;
                 }
-                else if (insideArea(txDB2Area, px))
+                else if (ct == 1 && insideArea(txDB2Area, px))
                 {
                     px -= txDB2Area.xy;
                     int i = px.y;
@@ -76,7 +77,7 @@
                     }
                     col.r = sum;
                 }
-                else if (insideArea(txEConv2Area, px))
+                else if (ct == 2 && insideArea(txEConv2Area, px))
                 {
                     px -= txEConv2Area.xy;
                     int i = px.y % 14;
@@ -87,7 +88,7 @@
                     col.r = abs(getIMax2(_Layer2, int3(j0, i0, k)) - float(i * 14 + j)) < eps ?
                         getEMax2(_FrameBuffer, int3(j0, i0, k)) : 0.0;
                 }
-                else if (insideArea(txDKern2Area, px))
+                else if (ct == 3 && insideArea(txDKern2Area, px))
                 {
                     px -= txDKern2Area.xy;
                     int i = px.y % 3;
@@ -106,6 +107,8 @@
                     col.r = sum;
                 }
 
+                ct = min(ct + 1, 4);
+                StoreValue(_FrameBuffer_TexelSize.zw - 1, ct, col.r, px);
                 return col;
             }
             ENDCG
