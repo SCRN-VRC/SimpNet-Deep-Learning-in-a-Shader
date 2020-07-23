@@ -8,7 +8,6 @@
     }
     SubShader
     {
-        
         Pass
         {
             Name "SimpNet Layer 4"
@@ -21,22 +20,22 @@
             #pragma fragment pixel_shader
             #pragma target 5.0
 
-            //RWStructuredBuffer<float4> buffer : register(u1);
-            Texture2D<float3> _Layer3;
-            Texture2D<float3> _L4Gradients;
-            Texture2D<float3> _FrameBuffer;
-            float4 _Layer3_TexelSize;
-            float4 _L4Gradients_TexelSize;
+            RWStructuredBuffer<float4> buffer : register(u1);
+            Texture2D<float> _Layer3;
+            Texture2D<float> _L4Gradients;
+            Texture2D<float> _FrameBuffer;
             float4 _FrameBuffer_TexelSize;
 
             float3 pixel_shader (v2f_customrendertexture IN) : SV_TARGET
             {
                 int2 px = _FrameBuffer_TexelSize.zw * IN.globalTexcoord.xy;
-                float3 col = _FrameBuffer.Load(int3(px, 0));
+                float col = _FrameBuffer.Load(int3(px, 0));
+
                 int ct = int(_FrameBuffer.Load(int3(_FrameBuffer_TexelSize.zw - 1, 0)).x);
+                //buffer[0].w = ct;
 
                 [branch]
-                if (ct == 0 && insideArea(txW1Area, px))
+                if (ct == 1 && insideArea(txW1Area, px))
                 {
                     if (_Time.y <= 1.0)
                     {
@@ -52,7 +51,7 @@
                         col.r = (i * (j + i)) * k / float(l * k + 1);
                     }
                 }
-                else if (ct == 0 && insideArea(txW1BiasArea, px))
+                else if (ct == 1 && insideArea(txW1BiasArea, px))
                 {
                     if (_Time.y <= 1.0)
                     {
@@ -64,7 +63,7 @@
                         col.r = (px.y % 8) / 8.0;
                     }
                 }
-                else if (ct == 1 && insideArea(txFC1s, px))
+                else if (ct == 2 && insideArea(txFC1s, px))
                 {
                     px -= txFC1s.xy;
                     int i = px.y;
@@ -80,14 +79,14 @@
                     sum += _FrameBuffer.Load(int3(txW1BiasArea.xy + int2(0, i), 0)).x;
                     col.r = sum;
                 }
-                else if (ct == 2 && insideArea(txFC1a, px))
+                else if (ct == 3 && insideArea(txFC1a, px))
                 {
                     px -= txFC1a.xy;
                     col.r = actFn(_FrameBuffer.Load(int3(txFC1s.xy + int2(0, px.y), 0)).x);
                 }
 
-                ct = min(ct + 1, 3);
-                StoreValue(_FrameBuffer_TexelSize.zw - 1, ct, col.r, px);
+                ct = (ct + 1) % L4_MAX_CT;
+                StoreValue(_FrameBuffer_TexelSize.zw - 1, ct, col, px);
                 return col;
             }
             ENDCG

@@ -8,7 +8,6 @@
     }
     SubShader
     {
-        
         Pass
         {
             Name "SimpNet Layer 3"
@@ -22,21 +21,21 @@
             #pragma target 5.0
 
             RWStructuredBuffer<float4> buffer : register(u1);
-            Texture2D<float3> _Layer2;
-            Texture2D<float3> _L3Gradients;
-            Texture2D<float3> _FrameBuffer;
-            float4 _Layer2_TexelSize;
-            float4 _L3Gradients_TexelSize;
+            Texture2D<float> _Layer2;
+            Texture2D<float> _L3Gradients;
+            Texture2D<float> _FrameBuffer;
             float4 _FrameBuffer_TexelSize;
 
             float3 pixel_shader (v2f_customrendertexture IN) : SV_TARGET
             {
                 int2 px = _FrameBuffer_TexelSize.zw * IN.globalTexcoord.xy;
-                float3 col = _FrameBuffer.Load(int3(px, 0));
+                float col = _FrameBuffer.Load(int3(px, 0));
+
                 int ct = int(_FrameBuffer.Load(int3(_FrameBuffer_TexelSize.zw - 1, 0)).x);
+                //buffer[0].z = ct;
 
                 [branch]
-                if (ct == 0 && insideArea(txKern3Area, px))
+                if (ct == 1 && insideArea(txKern3Area, px))
                 {
                     if (_Time.y <= 1.0)
                     {
@@ -52,7 +51,7 @@
                         col.r = (i + j) / float(k + l + 1.0);
                     }
                 }
-                else if (ct == 0 && insideArea(txBias3Area, px))
+                else if (ct == 1 && insideArea(txBias3Area, px))
                 {
                     if (_Time.y <= 1.0)
                     {
@@ -64,7 +63,7 @@
                         col.r = (px.y / 128.0) - 0.5;
                     }
                 }
-                else if (ct == 1 && insideArea(txConv3Area, px))
+                else if (ct == 2 && insideArea(txConv3Area, px))
                 {
                     px -= txConv3Area.xy;
                     int i = px.y % 4;
@@ -93,7 +92,7 @@
                     sum += _FrameBuffer.Load(int3(txBias3Area.xy + int2(0, k), 0)).x;
                     col.r = actFn(sum);
                 }
-                else if (ct == 2 && insideArea(txMax3Area, px))
+                else if (ct == 3 && insideArea(txMax3Area, px))
                 {
                     px -= txMax3Area.xy;
                     int i = px.y % 2;
@@ -108,7 +107,7 @@
                     m = max(m, getConv3(_FrameBuffer, int3(j1, i1, k)));
                     col.r = m;
                 }
-                else if (ct == 3 && insideArea(txiMax3Area, px))
+                else if (ct == 4 && insideArea(txiMax3Area, px))
                 {
                     px -= txiMax3Area.xy;
                     int i = px.y % 2;
@@ -131,8 +130,8 @@
                     col.r = (m == bu) ? (i1 * 4 + j1) : col.r;
                 }
 
-                ct = min(ct + 1, 4);
-                StoreValue(_FrameBuffer_TexelSize.zw - 1, ct, col.r, px);
+                ct = (ct + 1) % L3_MAX_CT;
+                StoreValue(_FrameBuffer_TexelSize.zw - 1, ct, col, px);
                 return col;
             }
             ENDCG

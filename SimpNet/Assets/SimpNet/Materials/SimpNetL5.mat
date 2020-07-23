@@ -19,6 +19,10 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
+    - _ControlIn:
+        m_Texture: {fileID: 8400000, guid: fdf9070fe1e84ed48a82dfdd80242b35, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _FrameBuffer:
         m_Texture: {fileID: 8600000, guid: 6ce40a7239c7e6745921157e78834247, type: 2}
         m_Scale: {x: 1, y: 1}

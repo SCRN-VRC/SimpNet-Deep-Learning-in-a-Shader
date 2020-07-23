@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: SimpNetB3
-  m_Shader: {fileID: 4800000, guid: d29b8464749193044a1addce446b4a31, type: 3}
+  m_Name: SimpNet
+  m_Shader: {fileID: 4800000, guid: e27fd4b8538b803438762a6cbda48310, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -19,8 +19,8 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
-    - _BackProp2:
-        m_Texture: {fileID: 8600000, guid: 8b5406cb4d4c0a749befe5a282b70250, type: 2}
+    - _Buffer:
+        m_Texture: {fileID: 8400000, guid: 793cead095d8c5c45a03267969f92b0a, type: 2}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BumpMap:
@@ -29,10 +29,6 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _CamIn:
         m_Texture: {fileID: 8400000, guid: a8ebb024ca7713049b2250589b1659f0, type: 2}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _ControlIn:
-        m_Texture: {fileID: 8400000, guid: fdf9070fe1e84ed48a82dfdd80242b35, type: 2}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _DetailAlbedoMap:
@@ -49,22 +45,6 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _EmissionMap:
         m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _FrameBuffer:
-        m_Texture: {fileID: 8600000, guid: ade316e804a157d45b084159a1567b8e, type: 2}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _Layer1:
-        m_Texture: {fileID: 8600000, guid: 8a3ee8dfdafdf7d419ac39e521f139d6, type: 2}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _Layer2:
-        m_Texture: {fileID: 8600000, guid: f6fb3f90c4ebcaa4983699e708fc1690, type: 2}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _Layer3:
-        m_Texture: {fileID: 8600000, guid: af223fbe89423d942a221b4d02d6117e, type: 2}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
@@ -91,6 +71,7 @@ Material:
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
+    - _MaxDist: 0.02
     - _Metallic: 0
     - _Mode: 0
     - _OcclusionStrength: 1

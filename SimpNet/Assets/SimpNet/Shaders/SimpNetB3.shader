@@ -2,6 +2,7 @@
 {
     Properties
     {
+        _ControlIn ("Controller Input", 2D) = "black" {}
         _BackProp2 ("Backprop 2", 2D) = "black" {}
         _Layer3 ("Layer 3", 2D) = "black" {}
         _Layer2 ("Layer 2", 2D) = "black" {}
@@ -24,21 +25,24 @@
             #pragma target 5.0
 
             //RWStructuredBuffer<float4> buffer : register(u1);
-            Texture2D<float3> _BackProp2;
-            Texture2D<float3> _Layer3;
-            Texture2D<float3> _Layer2;
-            Texture2D<float3> _Layer1;
-            Texture2D<float3> _FrameBuffer;
+            Texture2D<float4> _ControlIn;
+            Texture2D<float> _BackProp2;
+            Texture2D<float> _Layer3;
+            Texture2D<float> _Layer2;
+            Texture2D<float> _Layer1;
+            Texture2D<float> _FrameBuffer;
             float4 _FrameBuffer_TexelSize;
 
             float3 pixel_shader (v2f_customrendertexture IN) : SV_TARGET
             {
                 int2 px = _FrameBuffer_TexelSize.zw * IN.globalTexcoord.xy;
                 float3 col = _FrameBuffer.Load(int3(px, 0));
-                int ct = int(_FrameBuffer.Load(int3(_FrameBuffer_TexelSize.zw - 1, 0)).x);
+
+                
+                int ct = 0;
 
                 [branch]
-                if (ct == 0 && insideArea(txEMax2Area, px))
+                if (ct == 33 && insideArea(txEMax2Area, px))
                 {
                     px -= txEMax2Area.xy;
                     int i = px.y % 7;
@@ -64,7 +68,7 @@
                     }
                     col.r = sum;
                 }
-                else if (ct == 1 && insideArea(txDB2Area, px))
+                else if (ct == 34 && insideArea(txDB2Area, px))
                 {
                     px -= txDB2Area.xy;
                     int i = px.y;
@@ -77,7 +81,7 @@
                     }
                     col.r = sum;
                 }
-                else if (ct == 2 && insideArea(txEConv2Area, px))
+                else if (ct == 35 && insideArea(txEConv2Area, px))
                 {
                     px -= txEConv2Area.xy;
                     int i = px.y % 14;
@@ -88,7 +92,7 @@
                     col.r = abs(getIMax2(_Layer2, int3(j0, i0, k)) - float(i * 14 + j)) < eps ?
                         getEMax2(_FrameBuffer, int3(j0, i0, k)) : 0.0;
                 }
-                else if (ct == 3 && insideArea(txDKern2Area, px))
+                else if (ct == 36 && insideArea(txDKern2Area, px))
                 {
                     px -= txDKern2Area.xy;
                     int i = px.y % 3;
@@ -107,8 +111,6 @@
                     col.r = sum;
                 }
 
-                ct = min(ct + 1, 4);
-                StoreValue(_FrameBuffer_TexelSize.zw - 1, ct, col.r, px);
                 return col;
             }
             ENDCG

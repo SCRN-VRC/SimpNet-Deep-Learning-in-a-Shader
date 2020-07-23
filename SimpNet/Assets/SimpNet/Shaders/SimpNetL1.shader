@@ -2,14 +2,12 @@
 {
     Properties
     {
-        _CamIn ("Camera Input", 2D) = "black" {}
+        _CamIn ("Cam Input", 2D) = "black" {}
         _L1Gradients ("Layer 1 Gradients", 2D) = "black" {}
         _FrameBuffer ("Layer 1 Buffer", 2D) = "black" {}
-        [Toggle]_Reset ("Reset", Int) = 0
     }
     SubShader
     {
-        
         Pass
         {
             Name "SimpNet Layer 1"
@@ -23,20 +21,21 @@
             #pragma target 5.0
 
             RWStructuredBuffer<float4> buffer : register(u1);
-            Texture2D<float3> _CamIn;
-            Texture2D<float3> _L1Gradients;
-            Texture2D<float3> _FrameBuffer;
+            Texture2D<float4> _CamIn;
+            Texture2D<float> _L1Gradients;
+            Texture2D<float> _FrameBuffer;
             float4 _FrameBuffer_TexelSize;
-            int _Reset;
 
             float3 pixel_shader (v2f_customrendertexture IN) : SV_TARGET
             {
                 int2 px = _FrameBuffer_TexelSize.zw * IN.globalTexcoord.xy;
-                float3 col = _FrameBuffer.Load(int3(px, 0));
+                float col = _FrameBuffer.Load(int3(px, 0)).x;
+                
                 int ct = int(_FrameBuffer.Load(int3(_FrameBuffer_TexelSize.zw - 1, 0)).x);
+                //buffer[0].x = ct;
 
                 [branch]
-                if (ct == 0 && insideArea(txKern1Area, px))
+                if (ct == 1 && insideArea(txKern1Area, px))
                 {
                     px -= txKern1Area.xy;
                     int i = px.y % 3;
@@ -52,12 +51,8 @@
                         col.r = i * j * k / (l + 1.0);
                     }
                     float o = col.r - lr * _L1Gradients.Load(int3(txDKern1Area.xy + px, 0)).r;
-                    // if (i == 2 && j == 0 && k == 1 && l == 20)
-                    // {
-                    //     buffer[0] = float4(o * 10000, 0, 0, 0);
-                    // }
                 }
-                else if (ct == 0 && insideArea(txBias1Area, px))
+                else if (ct == 1 && insideArea(txBias1Area, px))
                 {
                     px -= txBias1Area.xy;
                     if (_Time.y <= 1.0)
@@ -69,7 +64,7 @@
                         col.r = px.y / 32.0 - 0.5;
                     }
                 }
-                else if (ct == 1 && insideArea(txConv1Area, px))
+                else if (ct == 2 && insideArea(txConv1Area, px))
                 {
                     px -= txConv1Area.xy;
 
@@ -105,7 +100,7 @@
                     sum += _FrameBuffer.Load(int3(txBias1Area.xy + int2(0, k), 0)).x;
                     col.r = actFn(sum);
                 }
-                else if (ct == 2 && insideArea(txMax1Area, px))
+                else if (ct == 3 && insideArea(txMax1Area, px))
                 {
                     px -= txMax1Area.xy;
 
@@ -121,7 +116,7 @@
                     m = max(m, getConv1(_FrameBuffer, int3(j1, i1, k)));
                     col.r = m;
                 }
-                else if (ct == 3 && insideArea(txiMax1Area, px))
+                else if (ct == 4 && insideArea(txiMax1Area, px))
                 {
                     px -= txiMax1Area.xy;
 
@@ -145,8 +140,8 @@
                     col.r = (m == bu) ? (i1 * 32 + j1) : col.r;
                 }
 
-                ct = min(ct + 1, 4);
-                StoreValue(_FrameBuffer_TexelSize.zw - 1, ct, col.r, px);
+                ct = (ct + 1) % L1_MAX_CT;
+                StoreValue(_FrameBuffer_TexelSize.zw - 1, ct, col, px);
                 return col;
             }
             ENDCG

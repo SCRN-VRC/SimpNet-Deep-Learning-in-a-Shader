@@ -16,7 +16,7 @@ CustomRenderTexture:
   m_Height: 64
   m_AntiAliasing: 1
   m_DepthFormat: 0
-  m_ColorFormat: 11
+  m_ColorFormat: 14
   m_MipMap: 0
   m_GenerateMips: 1
   m_SRGB: 0
@@ -37,7 +37,7 @@ CustomRenderTexture:
   m_InitMaterial: {fileID: 0}
   m_InitColor: {r: 0, g: 0, b: 0, a: 1}
   m_InitTexture: {fileID: 0}
-  m_UpdateMode: 1
+  m_UpdateMode: 0
   m_InitializationMode: 0
   m_UpdateZoneSpace: 0
   m_CurrentUpdateZoneSpace: 0

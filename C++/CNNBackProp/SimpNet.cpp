@@ -467,7 +467,6 @@ int main()
 				}
 			}
 		}
-		out += to_string(kern3[1][2][5][34] * 1000);
 
 		// Max pooling layer 3, size=2x2, stride=2
 		for (int k = 0; k < 128; k++) {
@@ -575,7 +574,7 @@ int main()
 			// Cross Entropy derivative with softmax
 			dbiasw3[i] = (softout2[i] - testOut[i]);
 		}
-
+		out += to_string(dbiasw3[7]);
 		// FC3 gradient
 		for (int i = 0; i < 128; i++) {
 			for (int j = 0; j < 12; j++) {

@@ -2,6 +2,7 @@
 {
     Properties
     {
+        _ControlIn ("Controller Input", 2D) = "black" {}
         _BackProp3 ("Backprop 3", 2D) = "black" {}
         _Layer2 ("Layer 2", 2D) = "black" {}
         _Layer1 ("Layer 1", 2D) = "black" {}
@@ -24,21 +25,24 @@
             #pragma target 5.0
 
             //RWStructuredBuffer<float4> buffer : register(u1);
-            Texture2D<float3> _BackProp3;
-            Texture2D<float3> _Layer2;
-            Texture2D<float3> _Layer1;
-            Texture2D<float3> _CamIn;
-            Texture2D<float3> _FrameBuffer;
+            Texture2D<float4> _ControlIn;
+            Texture2D<float> _BackProp3;
+            Texture2D<float> _Layer2;
+            Texture2D<float> _Layer1;
+            Texture2D<float> _CamIn;
+            Texture2D<float> _FrameBuffer;
             float4 _FrameBuffer_TexelSize;
 
             float3 pixel_shader (v2f_customrendertexture IN) : SV_TARGET
             {
                 int2 px = _FrameBuffer_TexelSize.zw * IN.globalTexcoord.xy;
                 float3 col = _FrameBuffer.Load(int3(px, 0));
-                int ct = int(_FrameBuffer.Load(int3(_FrameBuffer_TexelSize.zw - 1, 0)).x);
+
+                
+                int ct = 0;
 
                 [branch]
-                if (ct == 0 && insideArea(txPConv2Area, px))
+                if (ct == 37 && insideArea(txPConv2Area, px))
                 {
                     px -= txPConv2Area.xy;
                     int i = px.y % 18;
@@ -47,7 +51,7 @@
 
                     col.r = i < 2 || j < 2 || i > 15 || j > 15 ? 0.0 : getEConv2(_BackProp3, int3(j - 2, i - 2, k));
                 }
-                else if (ct == 1 && insideArea(txEMax1Area, px))
+                else if (ct == 38 && insideArea(txEMax1Area, px))
                 {
                     px -= txEMax1Area.xy;
                     int i = px.y % 16;
@@ -68,7 +72,7 @@
                     }
                     col.r = sum;
                 }
-                else if (ct == 2 && insideArea(txDB1Area, px))
+                else if (ct == 39 && insideArea(txDB1Area, px))
                 {
                     px -= txDB1Area.xy;
                     int i = px.y;
@@ -81,7 +85,7 @@
                     }
                     col.r = sum;
                 }
-                else if (ct == 3 && insideArea(txEConv1Area, px))
+                else if (ct == 40 && insideArea(txEConv1Area, px))
                 {
                     px -= txEConv1Area;
                     int i = px.y % 32;
@@ -92,7 +96,7 @@
                     col.r = abs(getIMax1(_Layer1, int3(j0, i0, k)) - float(i * 32 + j)) < eps ?
                         getEMax1(_FrameBuffer, int3(j0, i0, k)) : 0.0;
                 }
-                else if (ct == 4 && insideArea(txDiConv1Area, px))
+                else if (ct == 41 && insideArea(txDiConv1Area, px))
                 {
                     px -= txDiConv1Area.xy;
                     int i = px.y % 63;
@@ -102,7 +106,7 @@
 
                     col.r = ((i % 2 == 1) || (j % 2 == 1)) ? 0.0 : getEConv1(_FrameBuffer, int3(j0, i0, k));
                 }
-                else if (ct == 5 && insideArea(txDKern1Area, px))
+                else if (ct == 42 && insideArea(txDKern1Area, px))
                 {
                     px -= txDKern1Area.xy;
                     int i = px.y % 3;
@@ -121,8 +125,6 @@
                     col.r = sum;
                 }
 
-                ct = min(ct + 1, 6);
-                StoreValue(_FrameBuffer_TexelSize.zw - 1, ct, col.r, px);
                 return col;
             }
             ENDCG

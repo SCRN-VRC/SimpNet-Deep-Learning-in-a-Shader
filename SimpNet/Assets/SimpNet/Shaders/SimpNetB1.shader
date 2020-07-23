@@ -11,7 +11,6 @@
     }
     SubShader
     {
-        
         Pass
         {
             Name "SimpNet Backprop 1"
@@ -24,29 +23,31 @@
             #pragma fragment pixel_shader
             #pragma target 5.0
 
-            //RWStructuredBuffer<float4> buffer : register(u1);
-            Texture2D<float3> _Layer6;
-            Texture2D<float3> _Layer5;
-            Texture2D<float3> _Layer4;
-            Texture2D<float3> _Layer3;
-            Texture2D<float3> _FrameBuffer;
+            RWStructuredBuffer<float4> buffer : register(u1);
+            Texture2D<float> _Layer6;
+            Texture2D<float> _Layer5;
+            Texture2D<float> _Layer4;
+            Texture2D<float> _Layer3;
+            Texture2D<float> _FrameBuffer;
             float4 _FrameBuffer_TexelSize;
             int _TargetClass;
 
             float3 pixel_shader (v2f_customrendertexture IN) : SV_TARGET
             {
                 int2 px = _FrameBuffer_TexelSize.zw * IN.globalTexcoord.xy;
-                float3 col = _FrameBuffer.Load(int3(px, 0));
+                float col = _FrameBuffer.Load(int3(px, 0));
+
                 int ct = int(_FrameBuffer.Load(int3(_FrameBuffer_TexelSize.zw - 1, 0)).x);
+                buffer[0].x = ct;
 
                 [branch]
-                if (ct == 0 && insideArea(txDBW3Area, px))
+                if (ct == 1 && insideArea(txDBW3Area, px))
                 {
                     px -= txDBW3Area.xy;
                     int i = px.y;
                     col.r = _Layer6.Load(int3(txSoftout2.xy + int2(0, i), 0)).x - (i == _TargetClass ? 1.0 : 0.0);
                 }
-                else if (ct == 1 && insideArea(txDW3Area, px))
+                else if (ct == 2 && insideArea(txDW3Area, px))
                 {
                     px -= txDW3Area.xy;
                     int i = px.y;
@@ -54,7 +55,7 @@
                     col.r = _FrameBuffer.Load(int3(txDBW3Area.xy + int2(0, j), 0)).x *
                         _Layer5.Load(int3(txFC2a.xy + int2(0, i), 0)).x;
                 }
-                else if (ct == 2 && insideArea(txDBW2Area, px))
+                else if (ct == 3 && insideArea(txDBW2Area, px))
                 {
                     px -= txDW2Area.xy;
                     int i = px.y;
@@ -66,7 +67,7 @@
                     }
                     col.r = sum;
                 }
-                else if (ct == 3 && insideArea(txDW2Area, px))
+                else if (ct == 4 && insideArea(txDW2Area, px))
                 {
                     px -= txDW2Area.xy;
                     int i = px.y;
@@ -76,7 +77,7 @@
                         dactFn(_Layer5.Load(int3(txFC2s.xy + int2(0, i), 0)).x) *
                         _Layer4.Load(int3(txFC1a.xy + int2(0, j), 0)).x;
                 }
-                else if (ct == 4 && insideArea(txDBW1Area, px))
+                else if (ct == 5 && insideArea(txDBW1Area, px))
                 {
                     px -= txDBW1Area.xy;
                     int i = px.y;
@@ -89,7 +90,7 @@
                     }
                     col.r = sum;
                 }
-                else if (ct == 5 && insideArea(txDW1Area, px))
+                else if (ct == 0 && insideArea(txDW1Area, px))
                 {
                     px -= txDW1Area.xy;
                     int i = px.y % 2;
@@ -101,9 +102,9 @@
                         dactFn(_Layer4.Load(int3(txFC1s.xy + int2(0, l), 0)).x) *
                         getMax3(_Layer3, int3(j, i, k));
                 }
-                
-                ct = min(ct + 1, 6);
-                StoreValue(_FrameBuffer_TexelSize.zw - 1, ct, col.r, px);
+
+                ct = (ct + 1) % B1_MAX_CT;
+                StoreValue(_FrameBuffer_TexelSize.zw - 1, ct, col, px);
                 return col;
             }
             ENDCG
