@@ -5,6 +5,7 @@
         _CamIn ("Cam Input", 2D) = "black" {}
         _Buffer ("Buffer", 2D) = "black" {}
         _TargetClass ("Target Class #", Int) = 0
+        _Reset ("Reset Weights", Int) = 0
         _Stop ("Stop Propagation", Int) = 0
         _Train ("Train Network", Float) = 0
         _LearnRate ("Learning Rate for Weights", Float) = 0.2
@@ -33,7 +34,7 @@
             #include "Includes/SimpNetLayout.cginc"
             #include "Includes/SimpNetFuncs.cginc"
 
-            RWStructuredBuffer<float4> buffer : register(u1);
+            //RWStructuredBuffer<float4> buffer : register(u1);
             Texture2D<float4> _CamIn;
             Texture2D<float> _Buffer;
             float4 _Buffer_TexelSize;
@@ -43,6 +44,7 @@
             float _LearnRateBias;
             int _TargetClass;
             int _Stop;
+            int _Reset;
 
             struct appdata
             {
@@ -90,7 +92,6 @@
 
                 float4 lcTrain = LoadValue(_Buffer, txLCTrain);
                 int lc = _Stop > 0 ? 0 : floor(lcTrain.x);
-                buffer[0].x = lc;
 
                 [branch]
                 if (insideArea(txL1, px))
@@ -100,17 +101,17 @@
                     if (lc == 1 && insideArea(txKern1Area, px))
                     {
                         px -= txKern1Area.xy;
-                        if (_Time.y < 1.0)
+                        if (_Time.y < 1.0 || _Reset > 0)
                         {
-                            // col.r = px.y * _Buffer_TexelSize.z + px.x;
-                            // col.r = rand(col.r) * 0.037;
+                            col.r = px.y * _Buffer_TexelSize.z + px.x;
+                            col.r = rand(col.r) * 0.037;
                             
-                            // Debugging
-                            int i = px.y % 3;
-                            int j = px.x % 3;
-                            int k = (px.y / 3) % 3;
-                            int l = (px.x / 3) + (px.y / 9) * 8;
-                            col.r = i * j * k / (l + 1.0);
+                            // // Debugging
+                            // int i = px.y % 3;
+                            // int j = px.x % 3;
+                            // int k = (px.y / 3) % 3;
+                            // int l = (px.x / 3) + (px.y / 9) * 8;
+                            // col.r = i * j * k / (l + 1.0);
                         }
                         float d = _Buffer.Load(int3(txB4.xy + txDKern1Area.xy + px, 0)).x;
                         col.r -= _Train * _LearnRate * d;
@@ -118,13 +119,13 @@
                     else if (lc == 1 && insideArea(txBias1Area, px))
                     {
                         px -= txBias1Area.xy;
-                        if (_Time.y < 1.0)
+                        if (_Time.y < 1.0 || _Reset > 0)
                         {
-                            // col.r = px.y * _Buffer_TexelSize.z + px.x;
-                            // col.r = rand(col.r) * 0.5;
+                            col.r = px.y * _Buffer_TexelSize.z + px.x;
+                            col.r = rand(col.r) * 0.001;
 
-                            // Debugging
-                            col.r = px.y / 32.0 - 0.5;
+                            // // Debugging
+                            // col.r = px.y / 32.0 - 0.5;
                         }
                         float d = _Buffer.Load(int3(txB4.xy + txDB1Area.xy + px, 0)).x;
                         col.r -= _Train * _LearnRateBias * d;
@@ -141,25 +142,25 @@
 
                         float sum = 0.0;
                         for (int l = 0; l < 3; l++) {
-                            // sum += _CamIn.Load(int3(j0, i0, 0))[l] * getKern1(_Buffer, int4(0, 0, l, k));
-                            // sum += _CamIn.Load(int3(j0, i1, 0))[l] * getKern1(_Buffer, int4(0, 1, l, k));
-                            // sum += _CamIn.Load(int3(j0, i2, 0))[l] * getKern1(_Buffer, int4(0, 2, l, k));
-                            // sum += _CamIn.Load(int3(j1, i0, 0))[l] * getKern1(_Buffer, int4(1, 0, l, k));
-                            // sum += _CamIn.Load(int3(j1, i1, 0))[l] * getKern1(_Buffer, int4(1, 1, l, k));
-                            // sum += _CamIn.Load(int3(j1, i2, 0))[l] * getKern1(_Buffer, int4(1, 2, l, k));
-                            // sum += _CamIn.Load(int3(j2, i0, 0))[l] * getKern1(_Buffer, int4(2, 0, l, k));
-                            // sum += _CamIn.Load(int3(j2, i1, 0))[l] * getKern1(_Buffer, int4(2, 1, l, k));
-                            // sum += _CamIn.Load(int3(j2, i2, 0))[l] * getKern1(_Buffer, int4(2, 2, l, k));
+                            sum += _CamIn.Load(int3(j0, i0, 0))[l] * getKern1(_Buffer, int4(0, 0, l, k));
+                            sum += _CamIn.Load(int3(j0, i1, 0))[l] * getKern1(_Buffer, int4(0, 1, l, k));
+                            sum += _CamIn.Load(int3(j0, i2, 0))[l] * getKern1(_Buffer, int4(0, 2, l, k));
+                            sum += _CamIn.Load(int3(j1, i0, 0))[l] * getKern1(_Buffer, int4(1, 0, l, k));
+                            sum += _CamIn.Load(int3(j1, i1, 0))[l] * getKern1(_Buffer, int4(1, 1, l, k));
+                            sum += _CamIn.Load(int3(j1, i2, 0))[l] * getKern1(_Buffer, int4(1, 2, l, k));
+                            sum += _CamIn.Load(int3(j2, i0, 0))[l] * getKern1(_Buffer, int4(2, 0, l, k));
+                            sum += _CamIn.Load(int3(j2, i1, 0))[l] * getKern1(_Buffer, int4(2, 1, l, k));
+                            sum += _CamIn.Load(int3(j2, i2, 0))[l] * getKern1(_Buffer, int4(2, 2, l, k));
                             
-                            sum += testImage(i0, j0, l) * getKern1(_Buffer, int4(0, 0, l, k));
-                            sum += testImage(i0, j1, l) * getKern1(_Buffer, int4(0, 1, l, k));
-                            sum += testImage(i0, j2, l) * getKern1(_Buffer, int4(0, 2, l, k));
-                            sum += testImage(i1, j0, l) * getKern1(_Buffer, int4(1, 0, l, k));
-                            sum += testImage(i1, j1, l) * getKern1(_Buffer, int4(1, 1, l, k));
-                            sum += testImage(i1, j2, l) * getKern1(_Buffer, int4(1, 2, l, k));
-                            sum += testImage(i2, j0, l) * getKern1(_Buffer, int4(2, 0, l, k));
-                            sum += testImage(i2, j1, l) * getKern1(_Buffer, int4(2, 1, l, k));
-                            sum += testImage(i2, j2, l) * getKern1(_Buffer, int4(2, 2, l, k));
+                            // sum += testImage(i0, j0, l) * getKern1(_Buffer, int4(0, 0, l, k));
+                            // sum += testImage(i0, j1, l) * getKern1(_Buffer, int4(0, 1, l, k));
+                            // sum += testImage(i0, j2, l) * getKern1(_Buffer, int4(0, 2, l, k));
+                            // sum += testImage(i1, j0, l) * getKern1(_Buffer, int4(1, 0, l, k));
+                            // sum += testImage(i1, j1, l) * getKern1(_Buffer, int4(1, 1, l, k));
+                            // sum += testImage(i1, j2, l) * getKern1(_Buffer, int4(1, 2, l, k));
+                            // sum += testImage(i2, j0, l) * getKern1(_Buffer, int4(2, 0, l, k));
+                            // sum += testImage(i2, j1, l) * getKern1(_Buffer, int4(2, 1, l, k));
+                            // sum += testImage(i2, j2, l) * getKern1(_Buffer, int4(2, 2, l, k));
                         
                         }
                         sum += _Buffer.Load(int3(txL1.xy + txBias1Area.xy + int2(0, k), 0)).x;
@@ -212,17 +213,17 @@
                     if (lc == 5 && insideArea(txKern2Area, px))
                     {
                         px -= txKern2Area.xy;
-                        if (_Time.y < 1.0)
+                        if (_Time.y < 1.0 || _Reset > 0)
                         {
-                            // col.r = px.y * _Buffer_TexelSize.z + px.x;
-                            // col.r = rand(col.r) * 0.003472;
+                            col.r = px.y * _Buffer_TexelSize.z + px.x;
+                            col.r = rand(col.r) * 0.003472;
                             
-                            // Debugging
-                            int i = px.y % 3;
-                            int j = px.x % 3;
-                            int k = (px.x / 3);
-                            int l = (px.y / 3);
-                            col.r = (i + j + k + l) / 1000.0;
+                            // // Debugging
+                            // int i = px.y % 3;
+                            // int j = px.x % 3;
+                            // int k = (px.x / 3);
+                            // int l = (px.y / 3);
+                            // col.r = (i + j + k + l) / 1000.0;
                         }
                         float d = _Buffer.Load(int3(txB3.xy + txDKern2Area.xy + px, 0)).x;
                         col.r -= _Train * _LearnRate * d;
@@ -230,13 +231,13 @@
                     else if (lc == 5 && insideArea(txBias2Area, px))
                     {
                         px -= txBias2Area.xy;
-                        if (_Time.y < 1.0)
+                        if (_Time.y < 1.0 || _Reset > 0)
                         {
-                            // col.r = px.y * _Buffer_TexelSize.z + px.x;
-                            // col.r = rand(col.r) * 0.5;
+                            col.r = px.y * _Buffer_TexelSize.z + px.x;
+                            col.r = rand(col.r) * 0.001;
 
-                            // Debugging
-                            col.r = 1.0 - (px.y / 64.0) - 0.5;
+                            // // Debugging
+                            // col.r = 1.0 - (px.y / 64.0) - 0.5;
                         }
                         float d = _Buffer.Load(int3(txB3.xy + txDB2Area.xy + px, 0)).x;
                         col.r -= _Train * _LearnRateBias * d;
@@ -311,17 +312,17 @@
                     if (lc == 9 && insideArea(txKern3Area, px))
                     {
                         px -= txKern3Area.xy;
-                        if (_Time.y < 1.0)
+                        if (_Time.y < 1.0 || _Reset > 0)
                         {
-                            // col.r = px.y * _Buffer_TexelSize.z + px.x;
-                            // col.r = rand(col.r) * 0.0017361;
+                            col.r = px.y * _Buffer_TexelSize.z + px.x;
+                            col.r = rand(col.r) * 0.0017361;
                             
-                            // Debugging
-                            int i = px.y % 3;
-                            int j = px.x % 3;
-                            int k = (px.x / 3);
-                            int l = (px.y / 3);
-                            col.r = (i + j) / float(k + l + 1.0);
+                            // // Debugging
+                            // int i = px.y % 3;
+                            // int j = px.x % 3;
+                            // int k = (px.x / 3);
+                            // int l = (px.y / 3);
+                            // col.r = (i + j) / float(k + l + 1.0);
                         }
 
                         float d = _Buffer.Load(int3(txB2.xy + txDKern3Area.xy + px, 0)).x;
@@ -330,13 +331,13 @@
                     else if (lc == 9 && insideArea(txBias3Area, px))
                     {
                         px -= txBias3Area.xy;
-                        if (_Time.y < 1.0)
+                        if (_Time.y < 1.0 || _Reset > 0)
                         {
-                            // col.r = px.y * _Buffer_TexelSize.z + px.x;
-                            // col.r = rand(col.r) * 0.5;
+                            col.r = px.y * _Buffer_TexelSize.z + px.x;
+                            col.r = rand(col.r) * 0.001;
 
-                            // Debugging
-                            col.r = (px.y / 128.0) - 0.5;
+                            // // Debugging
+                            // col.r = (px.y / 128.0) - 0.5;
                         }
 
                         float d = _Buffer.Load(int3(txB2.xy + txDB3Area.xy + px, 0)).x;
@@ -416,17 +417,17 @@
                     if (lc == 13 && insideArea(txW1Area, px))
                     {
                         px -= txW1Area.xy;
-                        if (_Time.y < 1.0)
+                        if (_Time.y < 1.0 || _Reset > 0)
                         {
-                            // col.r = px.y * _Buffer_TexelSize.z + px.x;
-                            // col.r = rand(col.r) * 0.001953125;
+                            col.r = px.y * _Buffer_TexelSize.z + px.x;
+                            col.r = rand(col.r) * 0.001953125;
                             
-                            // Debugging
-                            int i = px.y % 2;
-                            int j = px.x % 2;
-                            int k = (px.y / 2);
-                            int l = (px.x / 2);
-                            col.r = (i * (j + i)) * k / float(l * k + 1);
+                            // // Debugging
+                            // int i = px.y % 2;
+                            // int j = px.x % 2;
+                            // int k = (px.y / 2);
+                            // int l = (px.x / 2);
+                            // col.r = (i * (j + i)) * k / float(l * k + 1);
                         }
 
                         float d = _Buffer.Load(int3(txB1.xy + txDW1Area.xy + px, 0)).x;
@@ -435,13 +436,13 @@
                     else if (lc == 13 && insideArea(txW1BiasArea, px))
                     {
                         px -= txW1BiasArea.xy;
-                        if (_Time.y < 1.0)
+                        if (_Time.y < 1.0 || _Reset > 0)
                         {
-                            // col.r = px.y * _Buffer_TexelSize.z + px.x;
-                            // col.r = rand(col.r) * 0.5;
+                            col.r = px.y * _Buffer_TexelSize.z + px.x;
+                            col.r = rand(col.r) * 0.001;
 
-                            // Debugging
-                            col.r = (px.y % 8) / 8.0;
+                            // // Debugging
+                            // col.r = (px.y % 8) / 8.0;
                         }
                         float d = _Buffer.Load(int3(txB1.xy + txDBW1Area.xy + px, 0)).x;
                         col.r -= _Train * _LearnRateBias * d;
@@ -476,15 +477,15 @@
                     if (lc == 16 && insideArea(txW2Area, px))
                     {
                         px -= txW2Area.xy;
-                        if (_Time.y < 1.0)
+                        if (_Time.y < 1.0 || _Reset > 0)
                         {
-                            // col.r = px.y * _Buffer_TexelSize.z + px.x;
-                            // col.r = rand(col.r) * 0.0078125;
+                            col.r = px.y * _Buffer_TexelSize.z + px.x;
+                            col.r = rand(col.r) * 0.0078125;
                             
-                            // Debugging
-                            int i = px.y;
-                            int j = px.x;
-                            col.r = (i + j) / (128.0 * 128.0);
+                            // // Debugging
+                            // int i = px.y;
+                            // int j = px.x;
+                            // col.r = (i + j) / (128.0 * 128.0);
                         }
 
                         float d = _Buffer.Load(int3(txB1.xy + txDW2Area.xy + px, 0)).x;
@@ -493,13 +494,13 @@
                     else if (lc == 16 && insideArea(txW2BiasArea, px))
                     {
                         px -= txW2BiasArea.xy;
-                        if (_Time.y < 1.0)
+                        if (_Time.y < 1.0 || _Reset > 0)
                         {
-                            // col.r = px.y * _Buffer_TexelSize.z + px.x;
-                            // col.r = rand(col.r) * 0.5;
+                            col.r = px.y * _Buffer_TexelSize.z + px.x;
+                            col.r = rand(col.r) * 0.001;
 
-                            // Debugging
-                            col.r = 1.0 / (px.y + 1.0);
+                            // // Debugging
+                            // col.r = 1.0 / (px.y + 1.0);
                         }
 
                         float d = _Buffer.Load(int3(txB1.xy + txDBW2Area.xy + px, 0)).x;
@@ -532,15 +533,15 @@
                     if (lc == 19 && insideArea(txW3Area, px))
                     {
                         px -= txW3Area.xy;
-                        if (_Time.y < 1.0)
+                        if (_Time.y < 1.0 || _Reset > 0)
                         {
-                            // col.r = px.y * _Buffer_TexelSize.z + px.x;
-                            // col.r = rand(col.r) * 0.0078125;
+                            col.r = px.y * _Buffer_TexelSize.z + px.x;
+                            col.r = rand(col.r) * 0.0078125;
                             
-                            // Debugging
-                            int i = px.y + (px.x / 12) * 64;
-                            int j = px.x % 12;
-                            col.r = (i + j) / 100000000.0;
+                            // // Debugging
+                            // int i = px.y + (px.x / 12) * 64;
+                            // int j = px.x % 12;
+                            // col.r = (i + j) / 100000000.0;
                         }
 
                         float d = _Buffer.Load(int3(txB1.xy + txDW3Area.xy + px, 0)).x;
@@ -549,13 +550,13 @@
                     else if (lc == 19 && insideArea(txW3BiasArea, px))
                     {
                         px -= txW3BiasArea.xy;
-                        if (_Time.y < 1.0)
+                        if (_Time.y < 1.0 || _Reset > 0)
                         {
-                            // col.r = px.y * _Buffer_TexelSize.z + px.x;
-                            // col.r = rand(col.r) * 0.5;
+                            col.r = px.y * _Buffer_TexelSize.z + px.x;
+                            col.r = rand(col.r) * 0.001;
 
-                            // Debugging
-                            col.r = 1.0 - (px.y / 12.0);
+                            // // Debugging
+                            // col.r = 1.0 - (px.y / 12.0);
                         }
 
                         float d = _Buffer.Load(int3(txB1.xy + txDBW3Area.xy + px, 0)).x;
@@ -883,7 +884,8 @@
                             for (int y = 0; y < 63; y++) {
                                 int l1x = x + i;
                                 int l1y = y + j;
-                                sum += testImage(l1x, l1y, k) * getDiConv1(_Buffer, int3(y, x, l));
+                                // sum += testImage(l1x, l1y, k) * getDiConv1(_Buffer, int3(y, x, l));
+                                sum += _CamIn.Load(int3(l1y, l1x, 0))[k] * getDiConv1(_Buffer, int3(y, x, l));
                             }
                         }
                         col.r = sum;

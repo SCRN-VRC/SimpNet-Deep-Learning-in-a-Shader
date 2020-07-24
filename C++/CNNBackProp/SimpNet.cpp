@@ -28,9 +28,9 @@ inline float dactFn(float x) {
 }
 
 // Learning rate
-float lr = 0.2f;
+float lr = 0.02f;
 // Bias learning rate
-float lrb = 0.1f;
+float lrb = 0.01f;
 
 float testImg[65][65][3] = { 0.0f };
 float testOut[12] = {
@@ -120,176 +120,176 @@ int main()
 		standard deviation 1/sqrt(N_in) with N_in the cardinality of input
 		connectivity into a next layer node
 	*/
-	//normal_distribution<float> dis1(0.0f, 1.f / sqrt(27.f));
-	//// Random kern1 weights
-	//for (int i = 0; i < 3; i++) {
-	//	for (int j = 0; j < 3; j++) {
-	//		for (int k = 0; k < 3; k++) {
-	//			for (int l = 0; l < 32; l++) {
-	//				kern1[i][j][k][l] = dis1(gen);
-	//			}
-	//		}
-	//	}
-	//}
-
+	normal_distribution<float> dis1(0.0f, 1.f / sqrt(27.f));
+	// Random kern1 weights
 	for (int i = 0; i < 3; i++) {
 		for (int j = 0; j < 3; j++) {
 			for (int k = 0; k < 3; k++) {
 				for (int l = 0; l < 32; l++) {
-					kern1[i][j][k][l] = i * j * k / (l + 1.0f);
+					kern1[i][j][k][l] = dis1(gen);
 				}
 			}
 		}
 	}
 
-	//// Bias for kern1
-	//for (int i = 0; i < 32; i++) {
-	//	bias1[i] = dis0(gen);
-	//}
-
-	for (int i = 0; i < 32; i++) {
-		bias1[i] = i / 32.0f - 0.5f;
-	}
-
-	//normal_distribution<float> dis2(0.0f, 1.f / sqrt(288.f));
-	//// Random kern2 weights
 	//for (int i = 0; i < 3; i++) {
 	//	for (int j = 0; j < 3; j++) {
-	//		for (int k = 0; k < 32; k++) {
-	//			for (int l = 0; l < 64; l++) {
-	//				kern2[i][j][k][l] = dis2(gen);
+	//		for (int k = 0; k < 3; k++) {
+	//			for (int l = 0; l < 32; l++) {
+	//				kern1[i][j][k][l] = i * j * k / (l + 1.0f);
 	//			}
 	//		}
 	//	}
 	//}
 
+	// Bias for kern1
+	for (int i = 0; i < 32; i++) {
+		bias1[i] = dis0(gen);
+	}
+
+	//for (int i = 0; i < 32; i++) {
+	//	bias1[i] = i / 32.0f - 0.5f;
+	//}
+
+	normal_distribution<float> dis2(0.0f, 1.f / sqrt(288.f));
+	// Random kern2 weights
 	for (int i = 0; i < 3; i++) {
 		for (int j = 0; j < 3; j++) {
 			for (int k = 0; k < 32; k++) {
 				for (int l = 0; l < 64; l++) {
-					kern2[i][j][k][l] = (i + j + k + l) / 1000.f;
+					kern2[i][j][k][l] = dis2(gen);
 				}
 			}
 		}
 	}
 
-	//// Bias for kern2
-	//for (int i = 0; i < 64; i++) {
-	//	bias2[i] = dis0(gen);
-	//}
-
-	for (int i = 0; i < 64; i++) {
-		bias2[i] = 1.0f - (i / 64.0f) - 0.5f;
-	}
-
-	//normal_distribution<float> dis3(0.0f, 1.f / sqrt(576.f));
-	//// Random kern3 weights
 	//for (int i = 0; i < 3; i++) {
 	//	for (int j = 0; j < 3; j++) {
-	//		for (int k = 0; k < 64; k++) {
-	//			for (int l = 0; l < 128; l++) {
-	//				kern3[i][j][k][l] = dis3(gen);
+	//		for (int k = 0; k < 32; k++) {
+	//			for (int l = 0; l < 64; l++) {
+	//				kern2[i][j][k][l] = (i + j + k + l) / 1000.f;
 	//			}
 	//		}
 	//	}
 	//}
 
+	// Bias for kern2
+	for (int i = 0; i < 64; i++) {
+		bias2[i] = dis0(gen);
+	}
+
+	//for (int i = 0; i < 64; i++) {
+	//	bias2[i] = 1.0f - (i / 64.0f) - 0.5f;
+	//}
+
+	normal_distribution<float> dis3(0.0f, 1.f / sqrt(576.f));
+	// Random kern3 weights
 	for (int i = 0; i < 3; i++) {
 		for (int j = 0; j < 3; j++) {
 			for (int k = 0; k < 64; k++) {
 				for (int l = 0; l < 128; l++) {
-					kern3[i][j][k][l] = (i + j) / float(k + l + 1.0);
+					kern3[i][j][k][l] = dis3(gen);
 				}
 			}
 		}
 	}
 
-	//// Bias for kern3
-	//for (int i = 0; i < 128; i++) {
-	//	bias3[i] = dis0(gen);
-	//}
-
-	for (int i = 0; i < 128; i++) {
-		bias3[i] = i / 128.0f - 0.5f;
-	}
-
-	//normal_distribution<float> dis4(0.0f, 1.f / sqrt(512.f));
-	//// FC1 random weights
-	//for (int i = 0; i < 2; i++) {
-	//	for (int j = 0; j < 2; j++) {
-	//		for (int k = 0; k < 128; k++) {
+	//for (int i = 0; i < 3; i++) {
+	//	for (int j = 0; j < 3; j++) {
+	//		for (int k = 0; k < 64; k++) {
 	//			for (int l = 0; l < 128; l++) {
-	//				w1[i][j][k][l] = dis4(gen);
+	//				kern3[i][j][k][l] = (i + j) / float(k + l + 1.0);
 	//			}
 	//		}
 	//	}
 	//}
 
+	// Bias for kern3
+	for (int i = 0; i < 128; i++) {
+		bias3[i] = dis0(gen);
+	}
+
+	//for (int i = 0; i < 128; i++) {
+	//	bias3[i] = i / 128.0f - 0.5f;
+	//}
+
+	normal_distribution<float> dis4(0.0f, 1.f / sqrt(512.f));
+	// FC1 random weights
 	for (int i = 0; i < 2; i++) {
 		for (int j = 0; j < 2; j++) {
 			for (int k = 0; k < 128; k++) {
 				for (int l = 0; l < 128; l++) {
-					w1[i][j][k][l] = (i * (j + i)) * k / float(l * k + 1);
+					w1[i][j][k][l] = dis4(gen);
 				}
 			}
 		}
 	}
 
-	//// Bias for FC1
-	//for (int i = 0; i < 128; i++) {
-	//	biasw1[i] = dis0(gen);
-	//}
-
-	for (int i = 0; i < 128; i++) {
-		biasw1[i] = i % 8 / 8.0f;
-	}
-
-	//normal_distribution<float> dis5(0.0f, 1.f / sqrt(128.f));
-	//// FC2 random weights
-	//for (int i = 0; i < 128; i++) {
-	//	for (int j = 0; j < 128; j++) {
-	//		w2[i][j] = dis5(gen);
+	//for (int i = 0; i < 2; i++) {
+	//	for (int j = 0; j < 2; j++) {
+	//		for (int k = 0; k < 128; k++) {
+	//			for (int l = 0; l < 128; l++) {
+	//				w1[i][j][k][l] = (i * (j + i)) * k / float(l * k + 1);
+	//			}
+	//		}
 	//	}
 	//}
 
+	// Bias for FC1
+	for (int i = 0; i < 128; i++) {
+		biasw1[i] = dis0(gen);
+	}
+
+	//for (int i = 0; i < 128; i++) {
+	//	biasw1[i] = i % 8 / 8.0f;
+	//}
+
+	normal_distribution<float> dis5(0.0f, 1.f / sqrt(128.f));
+	// FC2 random weights
 	for (int i = 0; i < 128; i++) {
 		for (int j = 0; j < 128; j++) {
-			w2[i][j] = (i + j) / float(128*128);
+			w2[i][j] = dis5(gen);
 		}
 	}
 
-	//// Bias for FC2
 	//for (int i = 0; i < 128; i++) {
-	//	biasw2[i] = dis0(gen);
-	//}
-
-	for (int i = 0; i < 128; i++) {
-		biasw2[i] = 1.0f / (i + 1.0f);
-	}
-
-	//// FC3 random weights
-	//for (int i = 0; i < 128; i++) {
-	//	for (int j = 0; j < 12; j++) {
-	//		w3[i][j] = dis5(gen);
+	//	for (int j = 0; j < 128; j++) {
+	//		w2[i][j] = (i + j) / float(128*128);
 	//	}
 	//}
 
+	// Bias for FC2
+	for (int i = 0; i < 128; i++) {
+		biasw2[i] = dis0(gen);
+	}
+
+	//for (int i = 0; i < 128; i++) {
+	//	biasw2[i] = 1.0f / (i + 1.0f);
+	//}
+
+	// FC3 random weights
 	for (int i = 0; i < 128; i++) {
 		for (int j = 0; j < 12; j++) {
-			w3[i][j] = (i + j) / (100000000.0);
+			w3[i][j] = dis5(gen);
 		}
 	}
 
-	//// Bias for FC3
-	//for (int i = 0; i < 12; i++) {
-	//	biasw3[i] = dis0(gen);
+	//for (int i = 0; i < 128; i++) {
+	//	for (int j = 0; j < 12; j++) {
+	//		w3[i][j] = (i + j) / (100000000.0);
+	//	}
 	//}
 
+	// Bias for FC3
 	for (int i = 0; i < 12; i++) {
-		biasw3[i] = 1.0f - i / 12.0f;
+		biasw3[i] = dis0(gen);
 	}
 
-	for (int ll = 0; ll < 1; ll++) {
+	//for (int i = 0; i < 12; i++) {
+	//	biasw3[i] = 1.0f - i / 12.0f;
+	//}
+
+	for (int ll = 0; ll < 50; ll++) {
 		// Time the neural net
 		auto t1 = chrono::high_resolution_clock::now();
 
@@ -869,12 +869,12 @@ int main()
 				w3[i][j] -= lr * dw3[i][j];
 			}
 		}
-		out += to_string(biasw3[11] * 1000);
+
 		// FC3 bias
 		for (int i = 0; i < 12; i++) {
 			biasw3[i] -= lrb * dbiasw3[i];
 		}
-		out += to_string(biasw3[11] * 1000);
+
 		// FC2 weights
 		for (int i = 0; i < 128; i++) {
 			for (int j = 0; j < 128; j++) {
