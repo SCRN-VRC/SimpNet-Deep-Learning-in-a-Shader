@@ -860,7 +860,7 @@ int main()
 				}
 			}
 		}
-		out += to_string(dkern1[0][2][1][15] * 1000);
+
 		// Update step
 
 		// FC3 weights
@@ -869,12 +869,12 @@ int main()
 				w3[i][j] -= lr * dw3[i][j];
 			}
 		}
-
+		out += to_string(biasw3[11] * 1000);
 		// FC3 bias
 		for (int i = 0; i < 12; i++) {
 			biasw3[i] -= lrb * dbiasw3[i];
 		}
-
+		out += to_string(biasw3[11] * 1000);
 		// FC2 weights
 		for (int i = 0; i < 128; i++) {
 			for (int j = 0; j < 128; j++) {
@@ -886,7 +886,7 @@ int main()
 		for (int i = 0; i < 128; i++) {
 			biasw2[i] -= lrb * dbiasw2[i];
 		}
-		
+
 		// FC1 weights
 		for (int i = 0; i < 2; i++) {
 			for (int j = 0; j < 2; j++) {

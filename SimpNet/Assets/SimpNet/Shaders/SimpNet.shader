@@ -5,6 +5,10 @@
         _CamIn ("Cam Input", 2D) = "black" {}
         _Buffer ("Buffer", 2D) = "black" {}
         _TargetClass ("Target Class #", Int) = 0
+        _Stop ("Stop Propagation", Int) = 0
+        _Train ("Train Network", Float) = 0
+        _LearnRate ("Learning Rate for Weights", Float) = 0.2
+        _LearnRateBias ("Learning Rate for Bias", Float) = 0.1
         _MaxDist ("Max Distance", Float) = 0.02
     }
     SubShader
@@ -34,7 +38,11 @@
             Texture2D<float> _Buffer;
             float4 _Buffer_TexelSize;
             float _MaxDist;
+            float _Train;
+            float _LearnRate;
+            float _LearnRateBias;
             int _TargetClass;
+            int _Stop;
 
             struct appdata
             {
@@ -81,7 +89,7 @@
                 else timer.x = 0.0;
 
                 float4 lcTrain = LoadValue(_Buffer, txLCTrain);
-                int lc = floor(lcTrain.x);
+                int lc = _Stop > 0 ? 0 : floor(lcTrain.x);
                 buffer[0].x = lc;
 
                 [branch]
@@ -92,23 +100,20 @@
                     if (lc == 1 && insideArea(txKern1Area, px))
                     {
                         px -= txKern1Area.xy;
-                        int i = px.y % 3;
-                        int j = px.x % 3;
-                        int k = (px.y / 3) % 3;
-                        int l = (px.x / 3) + (px.y / 9) * 8;
                         if (_Time.y < 1.0)
                         {
                             // col.r = px.y * _Buffer_TexelSize.z + px.x;
                             // col.r = rand(col.r) * 0.037;
                             
                             // Debugging
+                            int i = px.y % 3;
+                            int j = px.x % 3;
+                            int k = (px.y / 3) % 3;
+                            int l = (px.x / 3) + (px.y / 9) * 8;
                             col.r = i * j * k / (l + 1.0);
                         }
-                        float o = lr * _Buffer.Load(int3(txB4.xy + txDKern1Area.xy + px, 0)).x;
-                        // 0.326494
-                        if (i == 2 && j == 0 && k == 1 && l == 5) {
-                            buffer[0].yzw = float3(col.r, o, col.r - o) * 1000;
-                        }
+                        float d = _Buffer.Load(int3(txB4.xy + txDKern1Area.xy + px, 0)).x;
+                        col.r -= _Train * _LearnRate * d;
                     }
                     else if (lc == 1 && insideArea(txBias1Area, px))
                     {
@@ -121,6 +126,8 @@
                             // Debugging
                             col.r = px.y / 32.0 - 0.5;
                         }
+                        float d = _Buffer.Load(int3(txB4.xy + txDB1Area.xy + px, 0)).x;
+                        col.r -= _Train * _LearnRateBias * d;
                     }
                     else if (lc == 2 && insideArea(txConv1Area, px))
                     {
@@ -204,31 +211,35 @@
                     [branch]
                     if (lc == 5 && insideArea(txKern2Area, px))
                     {
+                        px -= txKern2Area.xy;
                         if (_Time.y < 1.0)
                         {
                             // col.r = px.y * _Buffer_TexelSize.z + px.x;
                             // col.r = rand(col.r) * 0.003472;
                             
                             // Debugging
-                            px -= txKern2Area.xy;
                             int i = px.y % 3;
                             int j = px.x % 3;
-                            int k = (px.y / 3);
-                            int l = (px.x / 3);
+                            int k = (px.x / 3);
+                            int l = (px.y / 3);
                             col.r = (i + j + k + l) / 1000.0;
                         }
+                        float d = _Buffer.Load(int3(txB3.xy + txDKern2Area.xy + px, 0)).x;
+                        col.r -= _Train * _LearnRate * d;
                     }
                     else if (lc == 5 && insideArea(txBias2Area, px))
                     {
+                        px -= txBias2Area.xy;
                         if (_Time.y < 1.0)
                         {
                             // col.r = px.y * _Buffer_TexelSize.z + px.x;
                             // col.r = rand(col.r) * 0.5;
 
                             // Debugging
-                            px -= txBias2Area.xy;
                             col.r = 1.0 - (px.y / 64.0) - 0.5;
                         }
+                        float d = _Buffer.Load(int3(txB3.xy + txDB2Area.xy + px, 0)).x;
+                        col.r -= _Train * _LearnRateBias * d;
                     }
                     else if (lc == 6 && insideArea(txConv2Area, px))
                     {
@@ -299,31 +310,37 @@
                     [branch]
                     if (lc == 9 && insideArea(txKern3Area, px))
                     {
+                        px -= txKern3Area.xy;
                         if (_Time.y < 1.0)
                         {
                             // col.r = px.y * _Buffer_TexelSize.z + px.x;
                             // col.r = rand(col.r) * 0.0017361;
                             
                             // Debugging
-                            px -= txKern3Area.xy;
                             int i = px.y % 3;
                             int j = px.x % 3;
-                            int k = (px.y / 3);
-                            int l = (px.x / 3);
+                            int k = (px.x / 3);
+                            int l = (px.y / 3);
                             col.r = (i + j) / float(k + l + 1.0);
                         }
+
+                        float d = _Buffer.Load(int3(txB2.xy + txDKern3Area.xy + px, 0)).x;
+                        col.r -= _Train * _LearnRate * d;
                     }
                     else if (lc == 9 && insideArea(txBias3Area, px))
                     {
+                        px -= txBias3Area.xy;
                         if (_Time.y < 1.0)
                         {
                             // col.r = px.y * _Buffer_TexelSize.z + px.x;
                             // col.r = rand(col.r) * 0.5;
 
                             // Debugging
-                            px -= txBias3Area.xy;
                             col.r = (px.y / 128.0) - 0.5;
                         }
+
+                        float d = _Buffer.Load(int3(txB2.xy + txDB3Area.xy + px, 0)).x;
+                        col.r -= _Train * _LearnRateBias * d;
                     }
                     else if (lc == 10 && insideArea(txConv3Area, px))
                     {
@@ -398,31 +415,36 @@
                     [branch]
                     if (lc == 13 && insideArea(txW1Area, px))
                     {
+                        px -= txW1Area.xy;
                         if (_Time.y < 1.0)
                         {
                             // col.r = px.y * _Buffer_TexelSize.z + px.x;
                             // col.r = rand(col.r) * 0.001953125;
                             
                             // Debugging
-                            px -= txW1Area.xy;
                             int i = px.y % 2;
                             int j = px.x % 2;
                             int k = (px.y / 2);
                             int l = (px.x / 2);
                             col.r = (i * (j + i)) * k / float(l * k + 1);
                         }
+
+                        float d = _Buffer.Load(int3(txB1.xy + txDW1Area.xy + px, 0)).x;
+                        col.r -= _Train * _LearnRate * d;
                     }
                     else if (lc == 13 && insideArea(txW1BiasArea, px))
                     {
+                        px -= txW1BiasArea.xy;
                         if (_Time.y < 1.0)
                         {
                             // col.r = px.y * _Buffer_TexelSize.z + px.x;
                             // col.r = rand(col.r) * 0.5;
 
                             // Debugging
-                            px -= txW1BiasArea.xy;
                             col.r = (px.y % 8) / 8.0;
                         }
+                        float d = _Buffer.Load(int3(txB1.xy + txDBW1Area.xy + px, 0)).x;
+                        col.r -= _Train * _LearnRateBias * d;
                     }
                     else if (lc == 14 && insideArea(txFC1s, px))
                     {
@@ -453,29 +475,35 @@
                     [branch]
                     if (lc == 16 && insideArea(txW2Area, px))
                     {
+                        px -= txW2Area.xy;
                         if (_Time.y < 1.0)
                         {
                             // col.r = px.y * _Buffer_TexelSize.z + px.x;
                             // col.r = rand(col.r) * 0.0078125;
                             
                             // Debugging
-                            px -= txW2Area.xy;
                             int i = px.y;
                             int j = px.x;
                             col.r = (i + j) / (128.0 * 128.0);
                         }
+
+                        float d = _Buffer.Load(int3(txB1.xy + txDW2Area.xy + px, 0)).x;
+                        col.r -= _Train * _LearnRate * d;
                     }
                     else if (lc == 16 && insideArea(txW2BiasArea, px))
                     {
+                        px -= txW2BiasArea.xy;
                         if (_Time.y < 1.0)
                         {
                             // col.r = px.y * _Buffer_TexelSize.z + px.x;
                             // col.r = rand(col.r) * 0.5;
 
                             // Debugging
-                            px -= txW2BiasArea.xy;
                             col.r = 1.0 / (px.y + 1.0);
                         }
+
+                        float d = _Buffer.Load(int3(txB1.xy + txDBW2Area.xy + px, 0)).x;
+                        col.r -= _Train * _LearnRateBias * d;
                     }
                     else if (lc == 17 && insideArea(txFC2s, px))
                     {
@@ -503,29 +531,35 @@
                     [branch]
                     if (lc == 19 && insideArea(txW3Area, px))
                     {
+                        px -= txW3Area.xy;
                         if (_Time.y < 1.0)
                         {
                             // col.r = px.y * _Buffer_TexelSize.z + px.x;
                             // col.r = rand(col.r) * 0.0078125;
                             
                             // Debugging
-                            px -= txW3Area.xy;
                             int i = px.y + (px.x / 12) * 64;
                             int j = px.x % 12;
                             col.r = (i + j) / 100000000.0;
                         }
+
+                        float d = _Buffer.Load(int3(txB1.xy + txDW3Area.xy + px, 0)).x;
+                        col.r -= _Train * _LearnRate * d;
                     }
                     else if (lc == 19 && insideArea(txW3BiasArea, px))
                     {
+                        px -= txW3BiasArea.xy;
                         if (_Time.y < 1.0)
                         {
                             // col.r = px.y * _Buffer_TexelSize.z + px.x;
                             // col.r = rand(col.r) * 0.5;
 
                             // Debugging
-                            px -= txW3BiasArea.xy;
                             col.r = 1.0 - (px.y / 12.0);
                         }
+
+                        float d = _Buffer.Load(int3(txB1.xy + txDBW3Area.xy + px, 0)).x;
+                        col.r -= _Train * _LearnRateBias * d;
                     }
                     else if (lc == 20 && insideArea(txSoftout1, px))
                     {

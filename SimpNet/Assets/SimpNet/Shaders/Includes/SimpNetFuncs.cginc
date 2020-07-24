@@ -3,10 +3,6 @@
 
 #include "Includes/SimpNetLayout.cginc"
 
-#define eps 0.00001
-#define lr 0.2
-#define lrb 0.1
-
 inline float actFn(float x)
 {
     // ELU

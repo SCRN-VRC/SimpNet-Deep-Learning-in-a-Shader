@@ -90,6 +90,9 @@
 #define txDKern1Area            int4(460, 0, 24, 36)      // 3x3x3 x 8x4
 
 // Global Vars
+
+#define eps 0.00001
+
 #define txTimer                 int2(128, 1023)
 #define txLCTrain               int2(129, 1023)
 
