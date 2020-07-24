@@ -66,7 +66,7 @@
 #define txDW1Area               int4(0, 0, 256, 256)      // 2x2 x 128x128
 
 // B2
-#define txB2                    int4(256, 0, 256, 512)
+#define txB2                    int4(512, 0, 256, 512)
 #define txEMax3Area             int4(196, 112, 2, 256)    // 2x2 x 1x128
 #define txDB3Area               int4(4, 384, 1, 128)      // 1x128
 #define txEConv3Area            int4(0, 0, 4, 512)        // 4x4 x 1x128

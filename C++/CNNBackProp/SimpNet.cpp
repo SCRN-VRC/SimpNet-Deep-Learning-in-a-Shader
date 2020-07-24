@@ -574,7 +574,7 @@ int main()
 			// Cross Entropy derivative with softmax
 			dbiasw3[i] = (softout2[i] - testOut[i]);
 		}
-		out += to_string(dbiasw3[7]);
+
 		// FC3 gradient
 		for (int i = 0; i < 128; i++) {
 			for (int j = 0; j < 12; j++) {
@@ -736,6 +736,14 @@ int main()
 				for (int k = 0; k < 64; k++) {
 					econvL2[i][j][k] = imaxL2[i0][j0][k] == i * 14 + j ?
 						emaxL2[i0][j0][k] : 0.0f;
+					//if (econvL2[i][j][k] * 1000000.0 != 0.f) {
+					//	out += to_string(i);
+					//	out += " ";
+					//	out += to_string(j);
+					//	out += " ";
+					//	out += to_string(k);
+					//	out += "\n";
+					//}
 				}
 			}
 		}
@@ -820,14 +828,6 @@ int main()
 				for (int k = 0; k < 32; k++) {
 					diconvL1[i][j][k] = ((i % 2 == 1) || (j % 2 == 1)) ?
 						0.0f : econvL1[i0][j0][k];
-					//if (diconvL1[i][j][k] * 1000000.0 != 0.f) {
-					//	out += to_string(i);
-					//	out += " ";
-					//	out += to_string(j);
-					//	out += " ";
-					//	out += to_string(k);
-					//	out += "\n";
-					//}
 				}
 			}
 		}
@@ -851,7 +851,7 @@ int main()
 				}
 			}
 		}
-
+		out += to_string(dkern1[2][1][0][5] * 10000000);
 		// Update step
 
 		// FC3 weights

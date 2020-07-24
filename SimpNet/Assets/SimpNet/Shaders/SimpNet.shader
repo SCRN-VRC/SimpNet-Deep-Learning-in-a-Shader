@@ -541,7 +541,6 @@
                         px -= txDBW3Area.xy;
                         int i = px.y;
                         col.r = _Buffer.Load(int3(txL6.xy + txSoftout2.xy + int2(0, i), 0)).x - (i == _TargetClass ? 1.0 : 0.0);
-                        if (i == 7) buffer[0] = col.r;
                     }
                     else if (insideArea(txDW3Area, px))
                     {
@@ -602,14 +601,236 @@
                 else if (insideArea(txB2, px))
                 {
                     px -= txB2.xy;
+                    [branch]
+                    if (insideArea(txEMax3Area, px))
+                    {
+                        px -= txEMax3Area.xy;
+                        int i = px.y % 2;
+                        int j = px.x % 2;
+                        int k = px.y / 2;
+
+                        float sum = 0.0;
+                        for (int l = 0; l < 128; l++) {
+                            sum += _Buffer.Load(int3(txB1.xy + txDBW1Area + int2(0, l), 0)).x *
+                                dactFn(_Buffer.Load(int3(txL4.xy + txFC1s.xy + int2(0, l), 0)).x) *
+                                getW1(_Buffer, int4(i, j, k, l));
+                        }
+                        col.r = sum;
+                    }
+                    else if (insideArea(txDB3Area, px))
+                    {
+                        px -= txDB3Area.xy;
+                        int i = px.y;
+
+                        float sum = 0.0;
+                        for (int j = 0; j < 2; j++) {
+                            for (int k = 0; k < 2; k++) {
+                                sum += getEMax3(_Buffer, int3(j, k, i));
+                            }
+                        }
+                        col.r = sum;
+                    }
+                    else if (insideArea(txEConv3Area, px))
+                    {
+                        px -= txEConv3Area.xy;
+                        int i = px.y % 4;
+                        int j = px.x % 4;
+                        int k = px.y / 4;
+                        int i0 = i / 2, j0 = j / 2;
+
+                        col.r = abs(getIMax3(_Buffer, int3(j0, i0, k)) - float(i * 4 + j)) < eps ?
+                            getEMax3(_Buffer, int3(j0, i0, k)) : 0.0;
+                    }
+                    else if (insideArea(txDiConv3Area, px))
+                    {
+                        px -= txDiConv3Area.xy;
+                        int i = px.y % 7;
+                        int j = px.x % 7;
+                        int k = px.x / 7 + (px.y / 7) * 8;
+                        int i0 = i / 2, j0 = j / 2;
+                        
+                        col.r = ((i % 2 == 1) || (j % 2 == 1)) ? 0.0 : getEConv3(_Buffer, int3(j0, i0, k));
+                    }
+                    else if (insideArea(txDKern3Area, px))
+                    {
+                        px -= txDKern3Area.xy;
+                        int i = px.y % 3;
+                        int j = px.x % 3;
+                        int k = px.x / 3;
+                        int l = px.y / 3;
+
+                        float sum = 0.0;
+                        for (int x = 0; x < 7; x++) {
+                            for (int y = 0; y < 7; y++) {
+                                int l2x = x + i - 1;
+                                int l2y = y + j - 1;
+                                // Padding
+                                bool b = l2x < 0 || l2y < 0 || l2x > 6 || l2y > 6;
+                                sum += b ? 0.0 : getMax2(_Buffer, int3(l2y, l2x, k)) * getDiConv3(_Buffer, int3(y, x, l));
+                            }
+                        }
+                        col.r = sum;
+                    }
                 }
                 else if (insideArea(txB3, px))
                 {
                     px -= txB3.xy;
+                    [branch]
+                    if (insideArea(txEMax2Area, px))
+                    {
+                        px -= txEMax2Area.xy;
+                        int i = px.y % 7;
+                        int j = px.x % 7;
+                        int k = px.x / 7 + (px.y / 7) * 8;
+                        int i0 = i, i1 = i - 1, i2 = i + 1;
+                        int j0 = j, j1 = j - 1, j2 = j + 1;
+                        // Padding
+                        bool b0 = (i1 < 0 || j1 < 0), b1 = (i1 < 0), b2 = (i1 < 0 || j2 > 6), b3 = (j1 < 0);
+                        bool b4 = (j2 > 6), b5 = (i2 > 6 || j1 < 0), b6 = (i2 > 6), b7 = (i2 > 6 || j2 > 6);
+
+                        float sum = 0.0;
+                        for (int l = 0; l < 128; l++) {
+                            sum += (b0 ? 0.0 : getDiConv3(_Buffer, int3(j1, i1, l)) * getKern3(_Buffer, int4(2, 2, k, l)));
+                            sum += (b1 ? 0.0 : getDiConv3(_Buffer, int3(j0, i1, l)) * getKern3(_Buffer, int4(2, 1, k, l)));
+                            sum += (b2 ? 0.0 : getDiConv3(_Buffer, int3(j2, i1, l)) * getKern3(_Buffer, int4(2, 0, k, l)));
+                            sum += (b3 ? 0.0 : getDiConv3(_Buffer, int3(j1, i0, l)) * getKern3(_Buffer, int4(1, 2, k, l)));
+                            sum += getDiConv3(_Buffer, int3(j0, i0, l)) * getKern3(_Buffer, int4(1, 1, k, l));
+                            sum += (b4 ? 0.0 : getDiConv3(_Buffer, int3(j2, i0, l)) * getKern3(_Buffer, int4(1, 0, k, l)));
+                            sum += (b5 ? 0.0 : getDiConv3(_Buffer, int3(j1, i2, l)) * getKern3(_Buffer, int4(0, 2, k, l)));
+                            sum += (b6 ? 0.0 : getDiConv3(_Buffer, int3(j0, i2, l)) * getKern3(_Buffer, int4(0, 1, k, l)));
+                            sum += (b7 ? 0.0 : getDiConv3(_Buffer, int3(j2, i2, l)) * getKern3(_Buffer, int4(0, 0, k, l)));
+                        }
+                        col.r = sum;
+                    }
+                    else if (insideArea(txDB2Area, px))
+                    {
+                        px -= txDB2Area.xy;
+                        int i = px.y;
+
+                        float sum = 0.0;
+                        for (int j = 0; j < 7; j++) {
+                            for (int k = 0; k < 7; k++) {
+                                sum += getEMax2(_Buffer, int3(j, k, i));
+                            }
+                        }
+                        col.r = sum;
+                    }
+                    else if (insideArea(txEConv2Area, px))
+                    {
+                        px -= txEConv2Area.xy;
+                        int i = px.y % 14;
+                        int j = px.x % 14;
+                        int k = px.x / 14 + (px.y / 14) * 8;
+                        int i0 = i / 2, j0 = j / 2;
+
+                        col.r = abs(getIMax2(_Buffer, int3(j0, i0, k)) - float(i * 14 + j)) < eps ?
+                            getEMax2(_Buffer, int3(j0, i0, k)) : 0.0;
+                    }
+                    else if (insideArea(txDKern2Area, px))
+                    {
+                        px -= txDKern2Area.xy;
+                        int i = px.y % 3;
+                        int j = px.x % 3;
+                        int k = px.x / 3;
+                        int l = px.y / 3;
+
+                        float sum = 0.0;
+                        for (int x = 0; x < 14; x++) {
+                            for (int y = 0; y < 14; y++) {
+                                int l1x = x + i;
+                                int l1y = y + j;
+                                sum += getMax1(_Buffer, int3(l1y, l1x, k)) * getEConv2(_Buffer, int3(y, x, l));
+                            }
+                        }
+                        col.r = sum;
+                    }
                 }
                 else if (insideArea(txB4, px))
                 {
                     px -= txB4.xy;
+                    [branch]
+                    if (insideArea(txPConv2Area, px))
+                    {
+                        px -= txPConv2Area.xy;
+                        int i = px.y % 18;
+                        int j = px.x % 18;
+                        int k = px.x / 18 + (px.y / 18) * 8;
+
+                        col.r = i < 2 || j < 2 || i > 15 || j > 15 ? 0.0 : getEConv2(_Buffer, int3(j - 2, i - 2, k));
+                    }
+                    else if (insideArea(txEMax1Area, px))
+                    {
+                        px -= txEMax1Area.xy;
+                        int i = px.y % 16;
+                        int j = px.x % 16;
+                        int k = px.x / 16 + (px.y / 16) * 4;
+
+                        float sum = 0.0;
+                        for (int l = 0; l < 64; l++) {
+                            sum += getPConv2(_Buffer, int3(j + 0, i + 0, l)) * getKern2(_Buffer, int4(2, 2, k, l));
+                            sum += getPConv2(_Buffer, int3(j + 1, i + 0, l)) * getKern2(_Buffer, int4(2, 1, k, l));
+                            sum += getPConv2(_Buffer, int3(j + 2, i + 0, l)) * getKern2(_Buffer, int4(2, 0, k, l));
+                            sum += getPConv2(_Buffer, int3(j + 0, i + 1, l)) * getKern2(_Buffer, int4(1, 2, k, l));
+                            sum += getPConv2(_Buffer, int3(j + 1, i + 1, l)) * getKern2(_Buffer, int4(1, 1, k, l));
+                            sum += getPConv2(_Buffer, int3(j + 2, i + 1, l)) * getKern2(_Buffer, int4(1, 0, k, l));
+                            sum += getPConv2(_Buffer, int3(j + 0, i + 2, l)) * getKern2(_Buffer, int4(0, 2, k, l));
+                            sum += getPConv2(_Buffer, int3(j + 1, i + 2, l)) * getKern2(_Buffer, int4(0, 1, k, l));
+                            sum += getPConv2(_Buffer, int3(j + 2, i + 2, l)) * getKern2(_Buffer, int4(0, 0, k, l));
+                        }
+                        col.r = sum;
+                    }
+                    else if (insideArea(txDB1Area, px))
+                    {
+                        px -= txDB1Area.xy;
+                        int i = px.y;
+
+                        float sum = 0.0;
+                        for (int j = 0; j < 16; j++) {
+                            for (int k = 0; k < 16; k++) {
+                                sum += getEMax1(_Buffer, int3(j, k, i));
+                            }
+                        }
+                        col.r = sum;
+                    }
+                    else if (insideArea(txEConv1Area, px))
+                    {
+                        px -= txEConv1Area;
+                        int i = px.y % 32;
+                        int j = px.x % 32;
+                        int k = px.x / 32 + (px.y / 32) * 4;
+                        int i0 = i / 2, j0 = j / 2;
+                        
+                        col.r = abs(getIMax1(_Buffer, int3(j0, i0, k)) - float(i * 32 + j)) < eps ?
+                            getEMax1(_Buffer, int3(j0, i0, k)) : 0.0;
+                    }
+                    else if (insideArea(txDiConv1Area, px))
+                    {
+                        px -= txDiConv1Area.xy;
+                        int i = px.y % 63;
+                        int j = px.x % 63;
+                        int k = px.x / 63 + (px.y / 63) * 4;
+                        int i0 = i / 2, j0 = j / 2;
+
+                        col.r = ((i % 2 == 1) || (j % 2 == 1)) ? 0.0 : getEConv1(_Buffer, int3(j0, i0, k));
+                    }
+                    else if (insideArea(txDKern1Area, px))
+                    {
+                        px -= txDKern1Area.xy;
+                        int i = px.y % 3;
+                        int j = px.x % 3;
+                        int k = (px.y / 3) % 3;
+                        int l = px.x / 3 + (px.y / 9) * 8;
+                        
+                        float sum = 0.0;
+                        for (int x = 0; x < 63; x++) {
+                            for (int y = 0; y < 63; y++) {
+                                int l1x = x + i;
+                                int l1y = y + j;
+                                sum += testImage(l1x, l1y, k) * getDiConv1(_Buffer, int3(y, x, l));
+                            }
+                        }
+                        col.r = sum;
+                    }
                 }
 
                 return col;
