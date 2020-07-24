@@ -69,12 +69,27 @@
                 int2 px = _Buffer_TexelSize.zw * i.uv.xy;
                 float col = _Buffer.Load(int3(px, 0)).x;
 
+                // 15 FPS
+                float4 timer = LoadValue(_Buffer, txTimer);
+                timer.x += unity_DeltaTime;
+
+                if (timer.x < 0.0667)
+                {
+                    StoreValue(txTimer, timer, col, px);
+                    return col;
+                }
+                else timer.x = 0.0;
+
+                float4 lcTrain = LoadValue(_Buffer, txLCTrain);
+                int lc = floor(lcTrain.x);
+                buffer[0].x = lc;
+
                 [branch]
                 if (insideArea(txL1, px))
                 {
                     px -= txL1.xy;
                     [branch]
-                    if (insideArea(txKern1Area, px))
+                    if (lc == 1 && insideArea(txKern1Area, px))
                     {
                         px -= txKern1Area.xy;
                         int i = px.y % 3;
@@ -89,8 +104,13 @@
                             // Debugging
                             col.r = i * j * k / (l + 1.0);
                         }
+                        float o = lr * _Buffer.Load(int3(txB4.xy + txDKern1Area.xy + px, 0)).x;
+                        // 0.326494
+                        if (i == 2 && j == 0 && k == 1 && l == 5) {
+                            buffer[0].yzw = float3(col.r, o, col.r - o) * 1000;
+                        }
                     }
-                    else if (insideArea(txBias1Area, px))
+                    else if (lc == 1 && insideArea(txBias1Area, px))
                     {
                         px -= txBias1Area.xy;
                         if (_Time.y < 1.0)
@@ -102,7 +122,7 @@
                             col.r = px.y / 32.0 - 0.5;
                         }
                     }
-                    else if (insideArea(txConv1Area, px))
+                    else if (lc == 2 && insideArea(txConv1Area, px))
                     {
                         px -= txConv1Area.xy;
 
@@ -138,7 +158,7 @@
                         sum += _Buffer.Load(int3(txL1.xy + txBias1Area.xy + int2(0, k), 0)).x;
                         col.r = actFn(sum);
                     }
-                    else if (insideArea(txMax1Area, px))
+                    else if (lc == 3 && insideArea(txMax1Area, px))
                     {
                         px -= txMax1Area.xy;
 
@@ -154,7 +174,7 @@
                         m = max(m, getConv1(_Buffer, int3(j1, i1, k)));
                         col.r = m;
                     }
-                    else if (insideArea(txiMax1Area, px))
+                    else if (lc == 4 && insideArea(txiMax1Area, px))
                     {
                         px -= txiMax1Area.xy;
 
@@ -182,7 +202,7 @@
                 {
                     px -= txL2.xy;
                     [branch]
-                    if (insideArea(txKern2Area, px))
+                    if (lc == 5 && insideArea(txKern2Area, px))
                     {
                         if (_Time.y < 1.0)
                         {
@@ -198,7 +218,7 @@
                             col.r = (i + j + k + l) / 1000.0;
                         }
                     }
-                    else if (insideArea(txBias2Area, px))
+                    else if (lc == 5 && insideArea(txBias2Area, px))
                     {
                         if (_Time.y < 1.0)
                         {
@@ -210,7 +230,7 @@
                             col.r = 1.0 - (px.y / 64.0) - 0.5;
                         }
                     }
-                    else if (insideArea(txConv2Area, px))
+                    else if (lc == 6 && insideArea(txConv2Area, px))
                     {
                         px -= txConv2Area.xy;
                         int i = px.y % 14;
@@ -235,7 +255,7 @@
                         sum += _Buffer.Load(int3(txL2.xy + txBias2Area.xy + int2(0, k), 0)).x;
                         col.r = actFn(sum);
                     }
-                    else if (insideArea(txMax2Area, px))
+                    else if (lc == 7 && insideArea(txMax2Area, px))
                     {
                         px -= txMax2Area.xy;
                         int i = px.y % 7;
@@ -250,7 +270,7 @@
                         m = max(m, getConv2(_Buffer, int3(j1, i1, k)));
                         col.r = m;
                     }
-                    else if (insideArea(txiMax2Area, px))
+                    else if (lc == 8 && insideArea(txiMax2Area, px))
                     {
                         px -= txiMax2Area.xy;
                         int i = px.y % 7;
@@ -277,7 +297,7 @@
                 {
                     px -= txL3.xy;
                     [branch]
-                    if (insideArea(txKern3Area, px))
+                    if (lc == 9 && insideArea(txKern3Area, px))
                     {
                         if (_Time.y < 1.0)
                         {
@@ -293,7 +313,7 @@
                             col.r = (i + j) / float(k + l + 1.0);
                         }
                     }
-                    else if (insideArea(txBias3Area, px))
+                    else if (lc == 9 && insideArea(txBias3Area, px))
                     {
                         if (_Time.y < 1.0)
                         {
@@ -305,7 +325,7 @@
                             col.r = (px.y / 128.0) - 0.5;
                         }
                     }
-                    else if (insideArea(txConv3Area, px))
+                    else if (lc == 10 && insideArea(txConv3Area, px))
                     {
                         px -= txConv3Area.xy;
                         int i = px.y % 4;
@@ -334,7 +354,7 @@
                         sum += _Buffer.Load(int3(txL3.xy + txBias3Area.xy + int2(0, k), 0)).x;
                         col.r = actFn(sum);
                     }
-                    else if (insideArea(txMax3Area, px))
+                    else if (lc == 11 && insideArea(txMax3Area, px))
                     {
                         px -= txMax3Area.xy;
                         int i = px.y % 2;
@@ -349,7 +369,7 @@
                         m = max(m, getConv3(_Buffer, int3(j1, i1, k)));
                         col.r = m;
                     }
-                    else if (insideArea(txiMax3Area, px))
+                    else if (lc == 12 && insideArea(txiMax3Area, px))
                     {
                         px -= txiMax3Area.xy;
                         int i = px.y % 2;
@@ -376,9 +396,9 @@
                 {
                     px -= txL4.xy;
                     [branch]
-                    if (insideArea(txW1Area, px))
+                    if (lc == 13 && insideArea(txW1Area, px))
                     {
-                        if (_Time.y <= 1.0)
+                        if (_Time.y < 1.0)
                         {
                             // col.r = px.y * _Buffer_TexelSize.z + px.x;
                             // col.r = rand(col.r) * 0.001953125;
@@ -392,9 +412,9 @@
                             col.r = (i * (j + i)) * k / float(l * k + 1);
                         }
                     }
-                    else if (insideArea(txW1BiasArea, px))
+                    else if (lc == 13 && insideArea(txW1BiasArea, px))
                     {
-                        if (_Time.y <= 1.0)
+                        if (_Time.y < 1.0)
                         {
                             // col.r = px.y * _Buffer_TexelSize.z + px.x;
                             // col.r = rand(col.r) * 0.5;
@@ -404,7 +424,7 @@
                             col.r = (px.y % 8) / 8.0;
                         }
                     }
-                    else if (insideArea(txFC1s, px))
+                    else if (lc == 14 && insideArea(txFC1s, px))
                     {
                         px -= txFC1s.xy;
                         int i = px.y;
@@ -420,19 +440,20 @@
                         sum += _Buffer.Load(int3(txL4.xy + txW1BiasArea.xy + int2(0, i), 0)).x;
                         col.r = sum;
                     }
-                    else if (insideArea(txFC1a, px))
+                    else if (lc == 15 && insideArea(txFC1a, px))
                     {
                         px -= txFC1a.xy;
-                        col.r = actFn(_Buffer.Load(int3(txL4.xy + txFC1s.xy + int2(0, px.y), 0)).x);
+                        int i = px.y;
+                        col.r = actFn(_Buffer.Load(int3(txL4.xy + txFC1s.xy + int2(0, i), 0)).x);
                     }
                 }
                 else if (insideArea(txL5, px))
                 {
                     px -= txL5.xy;
                     [branch]
-                    if (insideArea(txW2Area, px))
+                    if (lc == 16 && insideArea(txW2Area, px))
                     {
-                        if (_Time.y <= 1.0)
+                        if (_Time.y < 1.0)
                         {
                             // col.r = px.y * _Buffer_TexelSize.z + px.x;
                             // col.r = rand(col.r) * 0.0078125;
@@ -444,9 +465,9 @@
                             col.r = (i + j) / (128.0 * 128.0);
                         }
                     }
-                    else if (insideArea(txW2BiasArea, px))
+                    else if (lc == 16 && insideArea(txW2BiasArea, px))
                     {
-                        if (_Time.y <= 1.0)
+                        if (_Time.y < 1.0)
                         {
                             // col.r = px.y * _Buffer_TexelSize.z + px.x;
                             // col.r = rand(col.r) * 0.5;
@@ -456,7 +477,7 @@
                             col.r = 1.0 / (px.y + 1.0);
                         }
                     }
-                    else if (insideArea(txFC2s, px))
+                    else if (lc == 17 && insideArea(txFC2s, px))
                     {
                         px -= txFC2s.xy;
                         int i = px.y;
@@ -469,19 +490,20 @@
                         sum += _Buffer.Load(int3(txL5.xy + txW2BiasArea.xy + int2(0, i), 0)).x;
                         col.r = sum;
                     }
-                    else if (insideArea(txFC2a, px))
+                    else if (lc == 18 && insideArea(txFC2a, px))
                     {
                         px -= txFC2a.xy;
-                        col.r = actFn(_Buffer.Load(int3(txL5.xy + txFC2s.xy + int2(0, px.y), 0)).x);
+                        int i = px.y;
+                        col.r = actFn(_Buffer.Load(int3(txL5.xy + txFC2s.xy + int2(0, i), 0)).x);
                     }
                 }
                 else if (insideArea(txL6, px))
                 {
                     px -= txL6.xy;
                     [branch]
-                    if (insideArea(txW3Area, px))
+                    if (lc == 19 && insideArea(txW3Area, px))
                     {
-                        if (_Time.y <= 1.0)
+                        if (_Time.y < 1.0)
                         {
                             // col.r = px.y * _Buffer_TexelSize.z + px.x;
                             // col.r = rand(col.r) * 0.0078125;
@@ -493,9 +515,9 @@
                             col.r = (i + j) / 100000000.0;
                         }
                     }
-                    else if (insideArea(txW3BiasArea, px))
+                    else if (lc == 19 && insideArea(txW3BiasArea, px))
                     {
-                        if (_Time.y <= 1.0)
+                        if (_Time.y < 1.0)
                         {
                             // col.r = px.y * _Buffer_TexelSize.z + px.x;
                             // col.r = rand(col.r) * 0.5;
@@ -505,7 +527,7 @@
                             col.r = 1.0 - (px.y / 12.0);
                         }
                     }
-                    else if (insideArea(txSoftout1, px))
+                    else if (lc == 20 && insideArea(txSoftout1, px))
                     {
                         px -= txSoftout1.xy;
                         int i = px.y;
@@ -519,7 +541,7 @@
                         sum += _Buffer.Load(int3(txL6.xy + txW3BiasArea.xy + int2(0, i), 0)).x;
                         col.r = sum;
                     }
-                    else if (insideArea(txSoftout2, px))
+                    else if (lc == 21 && insideArea(txSoftout2, px))
                     {
                         px -= txSoftout2.xy;
                         int i = px.y;
@@ -536,13 +558,13 @@
                 {
                     px -= txB1.xy;
                     [branch]
-                    if (insideArea(txDBW3Area, px))
+                    if (lc == 22 && insideArea(txDBW3Area, px))
                     {
                         px -= txDBW3Area.xy;
                         int i = px.y;
                         col.r = _Buffer.Load(int3(txL6.xy + txSoftout2.xy + int2(0, i), 0)).x - (i == _TargetClass ? 1.0 : 0.0);
                     }
-                    else if (insideArea(txDW3Area, px))
+                    else if (lc == 23 && insideArea(txDW3Area, px))
                     {
                         px -= txDW3Area.xy;
                         int i = px.y;
@@ -550,9 +572,9 @@
                         col.r = _Buffer.Load(int3(txB1.xy + txDBW3Area.xy + int2(0, j), 0)).x *
                             _Buffer.Load(int3(txL5.xy + txFC2a.xy + int2(0, i), 0)).x;
                     }
-                    else if (insideArea(txDBW2Area, px))
+                    else if (lc == 24 && insideArea(txDBW2Area, px))
                     {
-                        px -= txDW2Area.xy;
+                        px -= txDBW2Area.xy;
                         int i = px.y;
 
                         float sum = 0.0;
@@ -562,7 +584,7 @@
                         }
                         col.r = sum;
                     }
-                    else if (insideArea(txDW2Area, px))
+                    else if (lc == 25 && insideArea(txDW2Area, px))
                     {
                         px -= txDW2Area.xy;
                         int i = px.y;
@@ -572,7 +594,7 @@
                             dactFn(_Buffer.Load(int3(txL5.xy + txFC2s.xy + int2(0, i), 0)).x) *
                             _Buffer.Load(int3(txL4.xy + txFC1a.xy + int2(0, j), 0)).x;
                     }
-                    else if (insideArea(txDBW1Area, px))
+                    else if (lc == 26 && insideArea(txDBW1Area, px))
                     {
                         px -= txDBW1Area.xy;
                         int i = px.y;
@@ -584,8 +606,9 @@
                                 _Buffer.Load(int3(txL5.xy + txW2Area.xy + int2(i, k), 0)).x;
                         }
                         col.r = sum;
+
                     }
-                    else if (insideArea(txDW1Area, px))
+                    else if (lc == 27 && insideArea(txDW1Area, px))
                     {
                         px -= txDW1Area.xy;
                         int i = px.y % 2;
@@ -602,7 +625,7 @@
                 {
                     px -= txB2.xy;
                     [branch]
-                    if (insideArea(txEMax3Area, px))
+                    if (lc == 28 && insideArea(txEMax3Area, px))
                     {
                         px -= txEMax3Area.xy;
                         int i = px.y % 2;
@@ -617,7 +640,7 @@
                         }
                         col.r = sum;
                     }
-                    else if (insideArea(txDB3Area, px))
+                    else if (lc == 29 && insideArea(txDB3Area, px))
                     {
                         px -= txDB3Area.xy;
                         int i = px.y;
@@ -630,7 +653,7 @@
                         }
                         col.r = sum;
                     }
-                    else if (insideArea(txEConv3Area, px))
+                    else if (lc == 30 && insideArea(txEConv3Area, px))
                     {
                         px -= txEConv3Area.xy;
                         int i = px.y % 4;
@@ -641,7 +664,7 @@
                         col.r = abs(getIMax3(_Buffer, int3(j0, i0, k)) - float(i * 4 + j)) < eps ?
                             getEMax3(_Buffer, int3(j0, i0, k)) : 0.0;
                     }
-                    else if (insideArea(txDiConv3Area, px))
+                    else if (lc == 31 && insideArea(txDiConv3Area, px))
                     {
                         px -= txDiConv3Area.xy;
                         int i = px.y % 7;
@@ -651,7 +674,7 @@
                         
                         col.r = ((i % 2 == 1) || (j % 2 == 1)) ? 0.0 : getEConv3(_Buffer, int3(j0, i0, k));
                     }
-                    else if (insideArea(txDKern3Area, px))
+                    else if (lc == 32 && insideArea(txDKern3Area, px))
                     {
                         px -= txDKern3Area.xy;
                         int i = px.y % 3;
@@ -676,7 +699,7 @@
                 {
                     px -= txB3.xy;
                     [branch]
-                    if (insideArea(txEMax2Area, px))
+                    if (lc == 33 && insideArea(txEMax2Area, px))
                     {
                         px -= txEMax2Area.xy;
                         int i = px.y % 7;
@@ -702,7 +725,7 @@
                         }
                         col.r = sum;
                     }
-                    else if (insideArea(txDB2Area, px))
+                    else if (lc == 34 && insideArea(txDB2Area, px))
                     {
                         px -= txDB2Area.xy;
                         int i = px.y;
@@ -715,7 +738,7 @@
                         }
                         col.r = sum;
                     }
-                    else if (insideArea(txEConv2Area, px))
+                    else if (lc == 35 && insideArea(txEConv2Area, px))
                     {
                         px -= txEConv2Area.xy;
                         int i = px.y % 14;
@@ -726,7 +749,7 @@
                         col.r = abs(getIMax2(_Buffer, int3(j0, i0, k)) - float(i * 14 + j)) < eps ?
                             getEMax2(_Buffer, int3(j0, i0, k)) : 0.0;
                     }
-                    else if (insideArea(txDKern2Area, px))
+                    else if (lc == 36 && insideArea(txDKern2Area, px))
                     {
                         px -= txDKern2Area.xy;
                         int i = px.y % 3;
@@ -749,7 +772,7 @@
                 {
                     px -= txB4.xy;
                     [branch]
-                    if (insideArea(txPConv2Area, px))
+                    if (lc == 37 && insideArea(txPConv2Area, px))
                     {
                         px -= txPConv2Area.xy;
                         int i = px.y % 18;
@@ -758,7 +781,7 @@
 
                         col.r = i < 2 || j < 2 || i > 15 || j > 15 ? 0.0 : getEConv2(_Buffer, int3(j - 2, i - 2, k));
                     }
-                    else if (insideArea(txEMax1Area, px))
+                    else if (lc == 38 && insideArea(txEMax1Area, px))
                     {
                         px -= txEMax1Area.xy;
                         int i = px.y % 16;
@@ -779,7 +802,7 @@
                         }
                         col.r = sum;
                     }
-                    else if (insideArea(txDB1Area, px))
+                    else if (lc == 39 && insideArea(txDB1Area, px))
                     {
                         px -= txDB1Area.xy;
                         int i = px.y;
@@ -792,7 +815,7 @@
                         }
                         col.r = sum;
                     }
-                    else if (insideArea(txEConv1Area, px))
+                    else if (lc == 40 && insideArea(txEConv1Area, px))
                     {
                         px -= txEConv1Area;
                         int i = px.y % 32;
@@ -803,7 +826,7 @@
                         col.r = abs(getIMax1(_Buffer, int3(j0, i0, k)) - float(i * 32 + j)) < eps ?
                             getEMax1(_Buffer, int3(j0, i0, k)) : 0.0;
                     }
-                    else if (insideArea(txDiConv1Area, px))
+                    else if (lc == 41 && insideArea(txDiConv1Area, px))
                     {
                         px -= txDiConv1Area.xy;
                         int i = px.y % 63;
@@ -813,7 +836,7 @@
 
                         col.r = ((i % 2 == 1) || (j % 2 == 1)) ? 0.0 : getEConv1(_Buffer, int3(j0, i0, k));
                     }
-                    else if (insideArea(txDKern1Area, px))
+                    else if (lc == 42 && insideArea(txDKern1Area, px))
                     {
                         px -= txDKern1Area.xy;
                         int i = px.y % 3;
@@ -833,6 +856,8 @@
                     }
                 }
 
+                lc = (lc + 1) % 43;
+                StoreValue(txLCTrain, lc, col, px);
                 return col;
             }
             ENDCG

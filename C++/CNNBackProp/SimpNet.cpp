@@ -736,14 +736,6 @@ int main()
 				for (int k = 0; k < 64; k++) {
 					econvL2[i][j][k] = imaxL2[i0][j0][k] == i * 14 + j ?
 						emaxL2[i0][j0][k] : 0.0f;
-					//if (econvL2[i][j][k] * 1000000.0 != 0.f) {
-					//	out += to_string(i);
-					//	out += " ";
-					//	out += to_string(j);
-					//	out += " ";
-					//	out += to_string(k);
-					//	out += "\n";
-					//}
 				}
 			}
 		}
@@ -774,6 +766,14 @@ int main()
 				for (int k = 0; k < 64; k++) {
 					pconvL2[i][j][k] = i < 2 || j < 2 || i > 15 || j > 15 ? 
 						0.0f : econvL2[i - 2][j - 2][k];
+					//if (pconvL2[i][j][k] * 1000000.0 != 0.f) {
+					//	out += to_string(i);
+					//	out += " ";
+					//	out += to_string(j);
+					//	out += " ";
+					//	out += to_string(k);
+					//	out += "\n";
+					//}
 				}
 			}
 		}
@@ -820,6 +820,7 @@ int main()
 				}
 			}
 		}
+
 		// L1 dialation of stride=2
 		for (int i = 0; i < 63; i++) {
 			for (int j = 0; j < 63; j++) {
@@ -828,6 +829,14 @@ int main()
 				for (int k = 0; k < 32; k++) {
 					diconvL1[i][j][k] = ((i % 2 == 1) || (j % 2 == 1)) ?
 						0.0f : econvL1[i0][j0][k];
+					//if (econvL2[i][j][k] * 1000000.0 != 0.f) {
+					//	out += to_string(i);
+					//	out += " ";
+					//	out += to_string(j);
+					//	out += " ";
+					//	out += to_string(k);
+					//	out += "\n";
+					//}
 				}
 			}
 		}
@@ -851,7 +860,7 @@ int main()
 				}
 			}
 		}
-		out += to_string(dkern1[2][1][0][5] * 10000000);
+		out += to_string(dkern1[0][2][1][15] * 1000);
 		// Update step
 
 		// FC3 weights

@@ -89,21 +89,9 @@
 #define txDiConv1Area           int4(0, 0, 252, 504)      // 63x63 x 4x8
 #define txDKern1Area            int4(460, 0, 24, 36)      // 3x3x3 x 8x4
 
-/*
-    Layer Counter
-    To make sure the layers are ran in order
-*/
-
-#define L1_MAX_CT       6
-#define L2_MAX_CT       6
-#define L3_MAX_CT       6
-#define L4_MAX_CT       5
-#define L5_MAX_CT       5
-#define L6_MAX_CT       5
-#define B1_MAX_CT       6
-#define B2_MAX_CT       5
-#define B3_MAX_CT       4
-#define B4_MAX_CT       6
+// Global Vars
+#define txTimer                 int2(128, 1023)
+#define txLCTrain               int2(129, 1023)
 
 /*
     Functions
@@ -120,13 +108,23 @@ inline bool insideArea(in int4 area, int2 px)
     return false;
 }
 
+inline float LoadValue(in Texture2D<float> tex, in int2 re)
+{
+    return tex.Load(int3(re, 0));
+}
+
+inline float4 LoadValue(in Texture2D<float4> tex, in int2 re)
+{
+    return tex.Load(int3(re, 0));
+}
+
 inline void StoreValue(in int2 txPos, in float value, inout float col,
     in int2 fragPos)
 {
     col = all(fragPos == txPos) ? value : col;
 }
 
-inline void StoreValue4(in int2 txPos, in float4 value, inout float4 col,
+inline void StoreValue(in int2 txPos, in float4 value, inout float4 col,
     in int2 fragPos)
 {
     col = all(fragPos == txPos) ? value : col;
