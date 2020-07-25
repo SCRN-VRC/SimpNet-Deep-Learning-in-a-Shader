@@ -472,10 +472,10 @@ RectTransform:
   m_Father: {fileID: 1179907589}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -7.8}
-  m_SizeDelta: {x: 25, y: 8}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: -0.00000047683716}
+  m_SizeDelta: {x: 0, y: -0.0000009536743}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &60507393
 MonoBehaviour:
@@ -508,7 +508,9 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Button
+  m_Text: 'Anime
+
+    Waifus'
 --- !u!222 &60507394
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -4202,7 +4204,7 @@ GameObject:
   - component: {fileID: 542246471}
   - component: {fileID: 542246470}
   m_Layer: 0
-  m_Name: Button (3)
+  m_Name: btnDevs
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4335,10 +4337,10 @@ RectTransform:
   m_Father: {fileID: 542246469}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -7.7999983}
-  m_SizeDelta: {x: 25, y: 8}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &565940713
 MonoBehaviour:
@@ -4371,7 +4373,9 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: VRC
+  m_Text: 'VRC
+
+    Devs'
 --- !u!222 &565940714
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -6165,10 +6169,10 @@ RectTransform:
   m_Father: {fileID: 1008752646}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -7.7999983}
-  m_SizeDelta: {x: 25, y: 8}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0.00000047683716}
+  m_SizeDelta: {x: 0, y: 0.0000009536743}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &882956068
 MonoBehaviour:
@@ -6300,7 +6304,7 @@ GameObject:
   - component: {fileID: 1008752648}
   - component: {fileID: 1008752647}
   m_Layer: 0
-  m_Name: Button
+  m_Name: BtnFruits
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7767,7 +7771,7 @@ GameObject:
   - component: {fileID: 1167639597}
   - component: {fileID: 1167639596}
   m_Layer: 0
-  m_Name: Button (1)
+  m_Name: BtnAnimals
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7958,7 +7962,7 @@ GameObject:
   - component: {fileID: 1179907591}
   - component: {fileID: 1179907590}
   m_Layer: 0
-  m_Name: Button (2)
+  m_Name: BtnMemes
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -11778,10 +11782,10 @@ RectTransform:
   m_Father: {fileID: 1167639595}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -7.7999983}
-  m_SizeDelta: {x: 25, y: 8}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0.00000047683716}
+  m_SizeDelta: {x: 0, y: 0.0000009536743}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2009007157
 MonoBehaviour:
@@ -11814,7 +11818,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Animals
+  m_Text: Memes
 --- !u!222 &2009007158
 CanvasRenderer:
   m_ObjectHideFlags: 0

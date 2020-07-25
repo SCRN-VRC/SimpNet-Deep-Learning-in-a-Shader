@@ -5,7 +5,12 @@
 #include <string>
 #include <chrono>
 
+#include <opencv2/core.hpp>
+#include <opencv2/core/utility.hpp>
+#include <opencv2/highgui.hpp>
+
 using namespace std;
+using namespace cv;
 
 inline int clamp(int x, int y, int z)
 {
@@ -288,6 +293,14 @@ int main()
 	//for (int i = 0; i < 12; i++) {
 	//	biasw3[i] = 1.0f - i / 12.0f;
 	//}
+
+	vector<cv::String> fn;
+	glob("/home/images/*.png", fn, false);
+
+	vector<Mat> images;
+	size_t count = fn.size(); //number of png files in images folder
+	for (size_t i = 0; i < count; i++)
+		images.push_back(imread(fn[i]));
 
 	for (int ll = 0; ll < 50; ll++) {
 		// Time the neural net
