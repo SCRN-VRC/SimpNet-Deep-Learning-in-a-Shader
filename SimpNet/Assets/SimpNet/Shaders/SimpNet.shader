@@ -34,7 +34,7 @@
             #include "Includes/SimpNetLayout.cginc"
             #include "Includes/SimpNetFuncs.cginc"
 
-            //RWStructuredBuffer<float4> buffer : register(u1);
+            RWStructuredBuffer<float4> buffer : register(u1);
             Texture2D<float4> _CamIn;
             Texture2D<float> _Buffer;
             float4 _Buffer_TexelSize;
@@ -103,18 +103,18 @@
                         px -= txKern1Area.xy;
                         if (_Time.y < 1.0 || _Reset > 0)
                         {
-                            col.r = px.y * _Buffer_TexelSize.z + px.x;
-                            col.r = rand(col.r) * 0.037;
+                            // col.r = px.y * _Buffer_TexelSize.z + px.x;
+                            // col.r = rand(col.r) * 0.037;
                             
-                            // // Debugging
-                            // int i = px.y % 3;
-                            // int j = px.x % 3;
-                            // int k = (px.y / 3) % 3;
-                            // int l = (px.x / 3) + (px.y / 9) * 8;
-                            // col.r = i * j * k / (l + 1.0);
+                            // Debugging
+                            int i = px.y % 3;
+                            int j = px.x % 3;
+                            int k = (px.y / 3) % 3;
+                            int l = (px.x / 3) + (px.y / 9) * 8;
+                            col.r = i * j * k / (l + 1.0);
                         }
-                        float d = _Buffer.Load(int3(txB4.xy + txDKern1Area.xy + px, 0)).x;
-                        col.r -= _Train * _LearnRate * d;
+                        //float d = _Buffer.Load(int3(txB4.xy + txDKern1Area.xy + px, 0)).x;
+                        //col.r -= _Train * _LearnRate * d;
                     }
                     else if (lc == 1 && insideArea(txBias1Area, px))
                     {
@@ -142,15 +142,15 @@
 
                         float sum = 0.0;
                         for (int l = 0; l < 3; l++) {
-                            sum += _CamIn.Load(int3(j0, i0, 0))[l] * getKern1(_Buffer, int4(0, 0, l, k));
-                            sum += _CamIn.Load(int3(j0, i1, 0))[l] * getKern1(_Buffer, int4(0, 1, l, k));
-                            sum += _CamIn.Load(int3(j0, i2, 0))[l] * getKern1(_Buffer, int4(0, 2, l, k));
-                            sum += _CamIn.Load(int3(j1, i0, 0))[l] * getKern1(_Buffer, int4(1, 0, l, k));
-                            sum += _CamIn.Load(int3(j1, i1, 0))[l] * getKern1(_Buffer, int4(1, 1, l, k));
-                            sum += _CamIn.Load(int3(j1, i2, 0))[l] * getKern1(_Buffer, int4(1, 2, l, k));
-                            sum += _CamIn.Load(int3(j2, i0, 0))[l] * getKern1(_Buffer, int4(2, 0, l, k));
-                            sum += _CamIn.Load(int3(j2, i1, 0))[l] * getKern1(_Buffer, int4(2, 1, l, k));
-                            sum += _CamIn.Load(int3(j2, i2, 0))[l] * getKern1(_Buffer, int4(2, 2, l, k));
+                            sum += _CamIn.Load(int3(j0, 64 - i0, 0))[2 - l] * getKern1(_Buffer, int4(0, 0, l, k));
+                            sum += _CamIn.Load(int3(j0, 64 - i1, 0))[2 - l] * getKern1(_Buffer, int4(0, 1, l, k));
+                            sum += _CamIn.Load(int3(j0, 64 - i2, 0))[2 - l] * getKern1(_Buffer, int4(0, 2, l, k));
+                            sum += _CamIn.Load(int3(j1, 64 - i0, 0))[2 - l] * getKern1(_Buffer, int4(1, 0, l, k));
+                            sum += _CamIn.Load(int3(j1, 64 - i1, 0))[2 - l] * getKern1(_Buffer, int4(1, 1, l, k));
+                            sum += _CamIn.Load(int3(j1, 64 - i2, 0))[2 - l] * getKern1(_Buffer, int4(1, 2, l, k));
+                            sum += _CamIn.Load(int3(j2, 64 - i0, 0))[2 - l] * getKern1(_Buffer, int4(2, 0, l, k));
+                            sum += _CamIn.Load(int3(j2, 64 - i1, 0))[2 - l] * getKern1(_Buffer, int4(2, 1, l, k));
+                            sum += _CamIn.Load(int3(j2, 64 - i2, 0))[2 - l] * getKern1(_Buffer, int4(2, 2, l, k));
                             
                             // sum += testImage(i0, j0, l) * getKern1(_Buffer, int4(0, 0, l, k));
                             // sum += testImage(i0, j1, l) * getKern1(_Buffer, int4(0, 1, l, k));
@@ -163,8 +163,10 @@
                             // sum += testImage(i2, j2, l) * getKern1(_Buffer, int4(2, 2, l, k));
                         
                         }
-                        sum += _Buffer.Load(int3(txL1.xy + txBias1Area.xy + int2(0, k), 0)).x;
-                        col.r = actFn(sum);
+                        //sum += _Buffer.Load(int3(txL1.xy + txBias1Area.xy + int2(0, k), 0)).x;
+                        //col.r = actFn(sum);
+                        col.r = sum;
+                        if (i == 31 && j == 31 && k == 20) buffer[0] = col.r;
                     }
                     else if (lc == 3 && insideArea(txMax1Area, px))
                     {
@@ -885,7 +887,7 @@
                                 int l1x = x + i;
                                 int l1y = y + j;
                                 // sum += testImage(l1x, l1y, k) * getDiConv1(_Buffer, int3(y, x, l));
-                                sum += _CamIn.Load(int3(l1y, l1x, 0))[k] * getDiConv1(_Buffer, int3(y, x, l));
+                                sum += _CamIn.Load(int3(l1y, 64 - l1x, 0))[2 - k] * getDiConv1(_Buffer, int3(y, x, l));
                             }
                         }
                         col.r = sum;
