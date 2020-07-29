@@ -805,7 +805,7 @@ void doBackProp(size_t ll, float image[65][65][3], int img_class)
 			int j0 = j / 2;
 			for (int k = 0; k < 128; k++) {
 				diconvL3[i][j][k] = ((i % 2 == 1) || (j % 2 == 1)) ?
-					0.0f : econvL3[i0][j0][k];
+					0.0f : econvL3[i0][j0][k] * dactFn(convL3s[j][i][k]);
 			}
 		}
 	}
@@ -823,8 +823,7 @@ void doBackProp(size_t ll, float image[65][65][3], int img_class)
 							int l2y = y + j - 1;
 							// Padding
 							bool b = l2x < 0 || l2y < 0 || l2x > 6 || l2y > 6;
-							// s += b ? 0.0f : maxL2[l2x][l2y][k] * diconvL3[x][y][l];
-							s += b ? 0.0f : diconvL3[x][y][l] * dactFn(convL3s[j][i][k]) * maxL2[l2x][l2y][k];
+							s += b ? 0.0f : diconvL3[x][y][l] * maxL2[l2x][l2y][k];
 						}
 					}
 					dkern3[i][j][k][l] = s;
@@ -1360,7 +1359,7 @@ int main()
 	//std::cout << lin_g << endl;
 
 	// Training
-	for (size_t ll = 0; ll < 400; ll++) {
+	for (size_t ll = 0; ll < 600; ll++) {
 		string out;
 		// Time the neural net
 		auto t1 = chrono::high_resolution_clock::now();
