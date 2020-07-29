@@ -35,7 +35,7 @@ inline float dactFn(float x) {
 }
 
 // Learning rate
-float lr = 0.1f;
+float lr = 0.0001f;
 // Bias learning rate
 float lrb = 0.01f;
 
@@ -792,7 +792,7 @@ void doBackProp(size_t ll, float image[65][65][3], int img_class)
 			int j0 = j / 2;
 			for (int k = 0; k < 128; k++) {
 				econvL3[i][j][k] = imaxL3[i0][j0][k] == i * 4 + j ?
-					emaxL3[i0][j0][k] : 0.0f;
+					emaxL3[i0][j0][k] * dactFn(convL3s[j][i][k]) : 0.0f;
 			}
 		}
 	}
@@ -804,8 +804,10 @@ void doBackProp(size_t ll, float image[65][65][3], int img_class)
 			int i0 = i / 2;
 			int j0 = j / 2;
 			for (int k = 0; k < 128; k++) {
+				//diconvL3[i][j][k] = ((i % 2 == 1) || (j % 2 == 1)) ?
+				//	0.0f : econvL3[i0][j0][k] * dactFn(convL3s[j0][i0][k]);
 				diconvL3[i][j][k] = ((i % 2 == 1) || (j % 2 == 1)) ?
-					0.0f : econvL3[i0][j0][k] * dactFn(convL3s[j][i][k]);
+					0.0f : econvL3[i0][j0][k] ;
 			}
 		}
 	}
@@ -842,7 +844,7 @@ void doBackProp(size_t ll, float image[65][65][3], int img_class)
 			bool b4 = j2 > 6, b5 = i2 > 6 || j1 < 0, b6 = i2 > 6, b7 = i2 > 6 || j2 > 6;
 			for (int k = 0; k < 64; k++) {
 				float s = 0.0f;
-				// Convolve 7x7 error padded to 9x9 over flipped 3x3 filter
+				// Convolve flipped 3x3 filter over 7x7 error padded to 9x9
 				for (int l = 0; l < 128; l++) {
 					s += (b0 ? 0.0f : diconvL3[i1][j1][l] * kern3[2][2][k][l]);
 					s += (b1 ? 0.0f : diconvL3[i1][j0][l] * kern3[2][1][k][l]);
@@ -876,7 +878,7 @@ void doBackProp(size_t ll, float image[65][65][3], int img_class)
 			int j0 = j / 2;
 			for (int k = 0; k < 64; k++) {
 				econvL2[i][j][k] = imaxL2[i0][j0][k] == i * 14 + j ?
-					emaxL2[i0][j0][k] : 0.0f;
+					emaxL2[i0][j0][k] * dactFn(convL2s[j][i][k]) : 0.0f;
 			}
 		}
 	}
@@ -892,7 +894,7 @@ void doBackProp(size_t ll, float image[65][65][3], int img_class)
 						for (int y = 0; y < 14; y++) {
 							int l1x = x + i;
 							int l1y = y + j;
-							s += maxL1[l1x][l1y][k] * econvL2[x][y][l];
+							s += econvL2[x][y][l] * maxL1[l1x][l1y][k];
 						}
 					}
 					dkern2[i][j][k][l] = s;
@@ -957,7 +959,7 @@ void doBackProp(size_t ll, float image[65][65][3], int img_class)
 			int j0 = j / 2;
 			for (int k = 0; k < 32; k++) {
 				econvL1[i][j][k] = imaxL1[i0][j0][k] == i * 32 + j ?
-					emaxL1[i0][j0][k] : 0.0f;
+					emaxL1[i0][j0][k] * dactFn(convL1s[j][i][k]) : 0.0f;
 			}
 		}
 	}
@@ -1045,37 +1047,37 @@ void doBackProp(size_t ll, float image[65][65][3], int img_class)
 	//	biasw1[i] -= lrb * dbiasw1[i];
 	//}
 
-	// Kern3 bias
-	for (int i = 0; i < 128; i++) {
-		bias3[i] -= lrb * dbias3[i];
-	}
+	//// Kern3 bias
+	//for (int i = 0; i < 128; i++) {
+	//	bias3[i] -= lrb * dbias3[i];
+	//}
 
-	// Kern3 weights
-	for (int i = 0; i < 3; i++) {
-		for (int j = 0; j < 3; j++) {
-			for (int k = 0; k < 64; k++) {
-				for (int l = 0; l < 128; l++) {
-					kern3[i][j][k][l] -= lr * dkern3[i][j][k][l];
-				}
-			}
-		}
-	}
+	//// Kern3 weights
+	//for (int i = 0; i < 3; i++) {
+	//	for (int j = 0; j < 3; j++) {
+	//		for (int k = 0; k < 64; k++) {
+	//			for (int l = 0; l < 128; l++) {
+	//				kern3[i][j][k][l] -= lr * dkern3[i][j][k][l];
+	//			}
+	//		}
+	//	}
+	//}
 
 	//// Kern2 bias
 	//for (int i = 0; i < 64; i++) {
 	//	bias2[i] -= lrb * dbias2[i];
 	//}
 
-	//// Kern2 weights
-	//for (int i = 0; i < 3; i++) {
-	//	for (int j = 0; j < 3; j++) {
-	//		for (int k = 0; k < 32; k++) {
-	//			for (int l = 0; l < 64; l++) {
-	//				kern2[i][j][k][l] -= lr * dkern2[i][j][k][l];
-	//			}
-	//		}
-	//	}
-	//}
+	// Kern2 weights
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++) {
+			for (int k = 0; k < 32; k++) {
+				for (int l = 0; l < 64; l++) {
+					kern2[i][j][k][l] -= lr * dkern2[i][j][k][l];
+				}
+			}
+		}
+	}
 
 	//// Kern1 bias
 	//for (int i = 0; i < 32; i++) {
