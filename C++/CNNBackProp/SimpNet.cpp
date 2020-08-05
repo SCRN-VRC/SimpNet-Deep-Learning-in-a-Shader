@@ -1315,7 +1315,7 @@ int main()
 	vector<int> img_class;
 	size_t count = fn.size();
 	// Randomize
-	shuffle(fn.begin(), fn.end(), gen);
+	//shuffle(fn.begin(), fn.end(), gen);
 
 	unordered_map<String, int> all_classes;
 	regex rgx("Fruits\\\\([A-Z]\\w+)");

@@ -113,8 +113,8 @@
                             int l = (px.x / 3) + (px.y / 9) * 8;
                             col.r = i * j * k / (l + 1.0);
                         }
-                        //float d = _Buffer.Load(int3(txB4.xy + txDKern1Area.xy + px, 0)).x;
-                        //col.r -= _Train * _LearnRate * d;
+                        float d = _Buffer.Load(int3(txB4.xy + txDKern1Area.xy + px, 0)).x;
+                        col.r -= _Train * _LearnRate * 0.025 * d;
                     }
                     else if (lc == 1 && insideArea(txBias1Area, px))
                     {
@@ -128,7 +128,7 @@
                             // col.r = px.y / 32.0 - 0.5;
                         }
                         float d = _Buffer.Load(int3(txB4.xy + txDB1Area.xy + px, 0)).x;
-                        col.r -= _Train * _LearnRateBias * d;
+                        col.r -= _Train * _LearnRateBias * 0.025 * d;
                     }
                     else if (lc == 2 && insideArea(txConv1Area, px))
                     {
@@ -228,7 +228,7 @@
                             // col.r = (i + j + k + l) / 1000.0;
                         }
                         float d = _Buffer.Load(int3(txB3.xy + txDKern2Area.xy + px, 0)).x;
-                        col.r -= _Train * _LearnRate * d;
+                        col.r -= _Train * _LearnRate * 0.05 * d;
                     }
                     else if (lc == 5 && insideArea(txBias2Area, px))
                     {
@@ -242,7 +242,7 @@
                             // col.r = 1.0 - (px.y / 64.0) - 0.5;
                         }
                         float d = _Buffer.Load(int3(txB3.xy + txDB2Area.xy + px, 0)).x;
-                        col.r -= _Train * _LearnRateBias * d;
+                        col.r -= _Train * _LearnRateBias * 0.05 * d;
                     }
                     else if (lc == 6 && insideArea(txConv2Area, px))
                     {
@@ -328,7 +328,7 @@
                         }
 
                         float d = _Buffer.Load(int3(txB2.xy + txDKern3Area.xy + px, 0)).x;
-                        col.r -= _Train * _LearnRate * d;
+                        col.r -= _Train * _LearnRate * 0.1 * d;
                     }
                     else if (lc == 9 && insideArea(txBias3Area, px))
                     {
@@ -343,7 +343,7 @@
                         }
 
                         float d = _Buffer.Load(int3(txB2.xy + txDB3Area.xy + px, 0)).x;
-                        col.r -= _Train * _LearnRateBias * d;
+                        col.r -= _Train * _LearnRateBias * 0.1 * d;
                     }
                     else if (lc == 10 && insideArea(txConv3Area, px))
                     {
@@ -433,7 +433,7 @@
                         }
 
                         float d = _Buffer.Load(int3(txB1.xy + txDW1Area.xy + px, 0)).x;
-                        col.r -= _Train * _LearnRate * d;
+                        col.r -= _Train * _LearnRate * 0.25 * d;
                     }
                     else if (lc == 13 && insideArea(txW1BiasArea, px))
                     {
@@ -447,7 +447,7 @@
                             // col.r = (px.y % 8) / 8.0;
                         }
                         float d = _Buffer.Load(int3(txB1.xy + txDBW1Area.xy + px, 0)).x;
-                        col.r -= _Train * _LearnRateBias * d;
+                        col.r -= _Train * _LearnRateBias * 0.25 * d;
                     }
                     else if (lc == 14 && insideArea(txFC1s, px))
                     {
@@ -491,7 +491,7 @@
                         }
 
                         float d = _Buffer.Load(int3(txB1.xy + txDW2Area.xy + px, 0)).x;
-                        col.r -= _Train * _LearnRate * d;
+                        col.r -= _Train * _LearnRate * 0.5 * d;
                     }
                     else if (lc == 16 && insideArea(txW2BiasArea, px))
                     {
@@ -506,7 +506,7 @@
                         }
 
                         float d = _Buffer.Load(int3(txB1.xy + txDBW2Area.xy + px, 0)).x;
-                        col.r -= _Train * _LearnRateBias * d;
+                        col.r -= _Train * _LearnRateBias * 0.5 * d;
                     }
                     else if (lc == 17 && insideArea(txFC2s, px))
                     {
