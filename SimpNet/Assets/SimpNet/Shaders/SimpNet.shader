@@ -8,7 +8,7 @@
         _Reset ("Reset Weights", Int) = 0
         _Stop ("Stop Propagation", Int) = 0
         _Train ("Train Network", Float) = 0
-        _LearnRate ("Learning Rate for Weights", Float) = 0.2
+        _LearnRate ("Learning Rate for Weights", Float) = 0.3
         _LearnRateBias ("Learning Rate for Bias", Float) = 0.1
         _MaxDist ("Max Distance", Float) = 0.02
     }
@@ -699,7 +699,7 @@
                         int i0 = i / 2, j0 = j / 2;
 
                         col.r = abs(getIMax3(_Buffer, int3(j0, i0, k)) - float(i * 4 + j)) < eps ?
-                            getEMax3(_Buffer, int3(j0, i0, k)) : 0.0;
+                            getEMax3(_Buffer, int3(j0, i0, k)) * dactFn(getConv3(_Buffer, int3(i, j, k))) : 0.0;
                     }
                     else if (lc == 31 && insideArea(txDiConv3Area, px))
                     {
@@ -784,7 +784,7 @@
                         int i0 = i / 2, j0 = j / 2;
 
                         col.r = abs(getIMax2(_Buffer, int3(j0, i0, k)) - float(i * 14 + j)) < eps ?
-                            getEMax2(_Buffer, int3(j0, i0, k)) : 0.0;
+                            getEMax2(_Buffer, int3(j0, i0, k)) * dactFn(getConv2(_Buffer, int3(i, j, k))): 0.0;
                     }
                     else if (lc == 36 && insideArea(txDKern2Area, px))
                     {
@@ -861,7 +861,7 @@
                         int i0 = i / 2, j0 = j / 2;
                         
                         col.r = abs(getIMax1(_Buffer, int3(j0, i0, k)) - float(i * 32 + j)) < eps ?
-                            getEMax1(_Buffer, int3(j0, i0, k)) : 0.0;
+                            getEMax1(_Buffer, int3(j0, i0, k)) * dactFn(getConv1(_Buffer, int3(i, j, k))) : 0.0;
                     }
                     else if (lc == 41 && insideArea(txDiConv1Area, px))
                     {

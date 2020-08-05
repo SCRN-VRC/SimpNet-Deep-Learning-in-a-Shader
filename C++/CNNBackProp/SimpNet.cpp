@@ -25,17 +25,19 @@ inline float actFn(float x) {
 	// ELU
 	return x >= 0.0f ? x : (0.15f * (exp(x) - 1.0f));
 	// RELU
-	// return fmaxf(0.0f, x);
+	//return fmaxf(0.0f, x);
 }
 inline float dactFn(float x) {
 	// Sigmoid
 	//return x * (1.0f - x);
 	// ELU
 	return x >= 0.0f ? 1.0f : exp(x) * 0.15f;
+	// RELU
+	//return (x < 0.f ? 0.f : 1.0f);
 }
 
 // Learning rate
-float lr = 0.0001f;
+float lr = 0.3f;
 // Bias learning rate
 float lrb = 0.01f;
 
@@ -108,7 +110,7 @@ float econvL1[32][32][32] = { 0.0f }; // Undo max pool for L1
 float diconvL1[63][63][32] = { 0.0f }; // L1 dialation
 float dkern1[3][3][3][32] = { 0.0f }; // L1 kernel gradient
 
-int doForwardProp(size_t ll, float image[65][65][3], int img_class, String& out)
+int doForwardProp(size_t ll, Mat image, int img_class, String& out)
 {
 	// Convolutional layer 1, kernel=3x3, stride=2
 	for (int k = 0; k < 32; k++) {
@@ -119,29 +121,29 @@ int doForwardProp(size_t ll, float image[65][65][3], int img_class, String& out)
 				int i0 = i * 2, i1 = i0 + 1, i2 = i0 + 2;
 				int j0 = j * 2, j1 = j0 + 1, j2 = j0 + 2;
 
-				// Sample image
+				//// Sample image
 				for (int l = 0; l < 3; l++) {
-					convL1s[i][j][k] +=
-						image[i0][j0][l] * kern1[0][0][l][k] +
-						image[i0][j1][l] * kern1[0][1][l][k] +
-						image[i0][j2][l] * kern1[0][2][l][k] +
-						image[i1][j0][l] * kern1[1][0][l][k] +
-						image[i1][j1][l] * kern1[1][1][l][k] +
-						image[i1][j2][l] * kern1[1][2][l][k] +
-						image[i2][j0][l] * kern1[2][0][l][k] +
-						image[i2][j1][l] * kern1[2][1][l][k] +
-						image[i2][j2][l] * kern1[2][2][l][k];
+				//	convL1s[i][j][k] +=
+				//		image[i0][j0][l] * kern1[0][0][l][k] +
+				//		image[i0][j1][l] * kern1[0][1][l][k] +
+				//		image[i0][j2][l] * kern1[0][2][l][k] +
+				//		image[i1][j0][l] * kern1[1][0][l][k] +
+				//		image[i1][j1][l] * kern1[1][1][l][k] +
+				//		image[i1][j2][l] * kern1[1][2][l][k] +
+				//		image[i2][j0][l] * kern1[2][0][l][k] +
+				//		image[i2][j1][l] * kern1[2][1][l][k] +
+				//		image[i2][j2][l] * kern1[2][2][l][k];
 
-					//convL1[i][j][k] +=
-					//	image.at<Vec3b>(i0, j0)[l] / 255.0f * kern1[0][0][l][k] +
-					//	image.at<Vec3b>(i0, j1)[l] / 255.0f * kern1[0][1][l][k] +
-					//	image.at<Vec3b>(i0, j2)[l] / 255.0f * kern1[0][2][l][k] +
-					//	image.at<Vec3b>(i1, j0)[l] / 255.0f * kern1[1][0][l][k] +
-					//	image.at<Vec3b>(i1, j1)[l] / 255.0f * kern1[1][1][l][k] +
-					//	image.at<Vec3b>(i1, j2)[l] / 255.0f * kern1[1][2][l][k] +
-					//	image.at<Vec3b>(i2, j0)[l] / 255.0f * kern1[2][0][l][k] +
-					//	image.at<Vec3b>(i2, j1)[l] / 255.0f * kern1[2][1][l][k] +
-					//	image.at<Vec3b>(i2, j2)[l] / 255.0f * kern1[2][2][l][k];
+					convL1s[i][j][k] +=
+						image.at<Vec3b>(i0, j0)[l] / 255.0f * kern1[0][0][l][k] +
+						image.at<Vec3b>(i0, j1)[l] / 255.0f * kern1[0][1][l][k] +
+						image.at<Vec3b>(i0, j2)[l] / 255.0f * kern1[0][2][l][k] +
+						image.at<Vec3b>(i1, j0)[l] / 255.0f * kern1[1][0][l][k] +
+						image.at<Vec3b>(i1, j1)[l] / 255.0f * kern1[1][1][l][k] +
+						image.at<Vec3b>(i1, j2)[l] / 255.0f * kern1[1][2][l][k] +
+						image.at<Vec3b>(i2, j0)[l] / 255.0f * kern1[2][0][l][k] +
+						image.at<Vec3b>(i2, j1)[l] / 255.0f * kern1[2][1][l][k] +
+						image.at<Vec3b>(i2, j2)[l] / 255.0f * kern1[2][2][l][k];
 				}
 				// Bias
 				convL1s[i][j][k] += bias1[k];
@@ -705,7 +707,7 @@ int doForwardProp(size_t ll, float image[65][65][3], int img_class, String& out)
 	return max_element(softout2, softout2 + 12) - softout2;
 }
 
-void doBackProp(size_t ll, float image[65][65][3], int img_class)
+void doBackProp(size_t ll, Mat image, int img_class)
 {
 	float expected[12] = { 0.0f };
 	expected[img_class] = 1.0f;
@@ -995,8 +997,8 @@ void doBackProp(size_t ll, float image[65][65][3], int img_class)
 						for (int y = 0; y < 63; y++) {
 							int l1x = x + i;
 							int l1y = y + j;
-							s += image[l1x][l1y][k] * diconvL1[x][y][l];
-							//s += image.at<Vec3b>(l1x, l1y)[k] / 255.0f * diconvL1[x][y][l];
+							//s += image[l1x][l1y][k] * diconvL1[x][y][l];
+							s += image.at<Vec3b>(l1x, l1y)[k] / 255.0f * diconvL1[x][y][l];
 						}
 					}
 					dkern1[i][j][k][l] = s;
@@ -1007,93 +1009,93 @@ void doBackProp(size_t ll, float image[65][65][3], int img_class)
 
 	// Update step
 
-	//// FC3 weights
-	//for (int i = 0; i < 128; i++) {
-	//	for (int j = 0; j < 12; j++) {
-	//		w3[i][j] -= lr * dw3[i][j];
-	//	}
-	//}
+	// FC3 weights
+	for (int i = 0; i < 128; i++) {
+		for (int j = 0; j < 12; j++) {
+			w3[i][j] -= lr * dw3[i][j];
+		}
+	}
 
-	//// FC3 bias
-	//for (int i = 0; i < 12; i++) {
-	//	biasw3[i] -= lrb * dbiasw3[i];
-	//}
+	// FC3 bias
+	for (int i = 0; i < 12; i++) {
+		biasw3[i] -= lrb * dbiasw3[i];
+	}
 
-	//// FC2 weights
-	//for (int i = 0; i < 128; i++) {
-	//	for (int j = 0; j < 128; j++) {
-	//		w2[i][j] -= lr * dw2[i][j];
-	//	}
-	//}
+	// FC2 weights
+	for (int i = 0; i < 128; i++) {
+		for (int j = 0; j < 128; j++) {
+			w2[i][j] -= lr * 0.5 * dw2[i][j];
+		}
+	}
 
-	//// FC2 bias
-	//for (int i = 0; i < 128; i++) {
-	//	biasw2[i] -= lrb * dbiasw2[i];
-	//}
+	// FC2 bias
+	for (int i = 0; i < 128; i++) {
+		biasw2[i] -= lrb * 0.5 * dbiasw2[i];
+	}
 
-	//// FC1 weights
-	//for (int i = 0; i < 2; i++) {
-	//	for (int j = 0; j < 2; j++) {
-	//		for (int k = 0; k < 128; k++) {
-	//			for (int l = 0; l < 128; l++) {
-	//				w1[i][j][k][l] -= lr * dw1[i][j][k][l];
-	//			}
-	//		}
-	//	}
-	//}
+	// FC1 weights
+	for (int i = 0; i < 2; i++) {
+		for (int j = 0; j < 2; j++) {
+			for (int k = 0; k < 128; k++) {
+				for (int l = 0; l < 128; l++) {
+					w1[i][j][k][l] -= lr * 0.25 * dw1[i][j][k][l];
+				}
+			}
+		}
+	}
 
-	//// FC1 bias
-	//for (int i = 0; i < 128; i++) {
-	//	biasw1[i] -= lrb * dbiasw1[i];
-	//}
+	// FC1 bias
+	for (int i = 0; i < 128; i++) {
+		biasw1[i] -= lrb * 0.25 * dbiasw1[i];
+	}
 
-	//// Kern3 bias
-	//for (int i = 0; i < 128; i++) {
-	//	bias3[i] -= lrb * dbias3[i];
-	//}
+	// Kern3 bias
+	for (int i = 0; i < 128; i++) {
+		bias3[i] -= lrb * 0.1 * dbias3[i];
+	}
 
-	//// Kern3 weights
-	//for (int i = 0; i < 3; i++) {
-	//	for (int j = 0; j < 3; j++) {
-	//		for (int k = 0; k < 64; k++) {
-	//			for (int l = 0; l < 128; l++) {
-	//				kern3[i][j][k][l] -= lr * dkern3[i][j][k][l];
-	//			}
-	//		}
-	//	}
-	//}
+	// Kern3 weights
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++) {
+			for (int k = 0; k < 64; k++) {
+				for (int l = 0; l < 128; l++) {
+					kern3[i][j][k][l] -= lr * 0.1 * dkern3[i][j][k][l];
+				}
+			}
+		}
+	}
 
-	//// Kern2 bias
-	//for (int i = 0; i < 64; i++) {
-	//	bias2[i] -= lrb * dbias2[i];
-	//}
+	// Kern2 bias
+	for (int i = 0; i < 64; i++) {
+		bias2[i] -= lrb * 0.05 * dbias2[i];
+	}
 
 	// Kern2 weights
 	for (int i = 0; i < 3; i++) {
 		for (int j = 0; j < 3; j++) {
 			for (int k = 0; k < 32; k++) {
 				for (int l = 0; l < 64; l++) {
-					kern2[i][j][k][l] -= lr * dkern2[i][j][k][l];
+					kern2[i][j][k][l] -= lr * 0.05 * dkern2[i][j][k][l];
 				}
 			}
 		}
 	}
 
-	//// Kern1 bias
-	//for (int i = 0; i < 32; i++) {
-	//	bias1[i] -= lrb * dbias1[i];
-	//}
+	// Kern1 bias
+	for (int i = 0; i < 32; i++) {
+		bias1[i] -= lrb * 0.025 * dbias1[i];
+	}
 
-	//// Kern1 weights
-	//for (int i = 0; i < 3; i++) {
-	//	for (int j = 0; j < 3; j++) {
-	//		for (int k = 0; k < 3; k++) {
-	//			for (int l = 0; l < 32; l++) {
-	//				kern1[i][j][k][l] -= lr * dkern1[i][j][k][l];
-	//			}
-	//		}
-	//	}
-	//}
+	// Kern1 weights
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++) {
+			for (int k = 0; k < 3; k++) {
+				for (int l = 0; l < 32; l++) {
+					kern1[i][j][k][l] -= lr * 0.025 * dkern1[i][j][k][l];
+				}
+			}
+		}
+	}
 }
 
 int main()
@@ -1306,18 +1308,18 @@ int main()
 	//	biasw3[i] = 1.0f - i / 12.0f;
 	//}
 
-	//vector<String> fn;
-	//glob("D:\\Storage\\Datasets\\Train\\Fruits\\*.*", fn, true);
+	vector<String> fn;
+	glob("D:\\Storage\\Datasets\\Train\\Fruits\\*.*", fn, true);
 
-	//vector<Mat> images;
-	//vector<int> img_class;
-	//size_t count = fn.size();
-	//// Randomize
-	//shuffle(fn.begin(), fn.end(), gen);
+	vector<Mat> images;
+	vector<int> img_class;
+	size_t count = fn.size();
+	// Randomize
+	shuffle(fn.begin(), fn.end(), gen);
 
-	//unordered_map<String, int> all_classes;
-	//regex rgx("Fruits\\\\([A-Z]\\w+)");
-	//smatch matches;
+	unordered_map<String, int> all_classes;
+	regex rgx("Fruits\\\\([A-Z]\\w+)");
+	smatch matches;
 
 	//pair<String, int> cur_class1("Apples", all_classes.size());
 	//all_classes.insert(cur_class1);
@@ -1340,16 +1342,16 @@ int main()
 	//pair<String, int> cur_class10("Watermelon", all_classes.size());
 	//all_classes.insert(cur_class10);
 
-	//for (size_t i = 0; i < count; i++) {
-	//	images.push_back(imread(fn[i]));
-	//	// Find the class in the string
-	//	regex_search(fn[i], matches, rgx);
-	//	// Add the class string as an index map
-	//	pair<String, int> cur_class(matches[1], all_classes.size());
-	//	all_classes.insert(cur_class);
-	//	// Save class table index
-	//	img_class.push_back(all_classes.at(matches[1]));
-	//}
+	for (size_t i = 0; i < count; i++) {
+		images.push_back(imread(fn[i]));
+		// Find the class in the string
+		regex_search(fn[i], matches, rgx);
+		// Add the class string as an index map
+		pair<String, int> cur_class(matches[1], all_classes.size());
+		all_classes.insert(cur_class);
+		// Save class table index
+		img_class.push_back(all_classes.at(matches[1]));
+	}
 
 	//float lin_r = images[0].at<Vec3b>(0, 64)[2] / 255.0;
 	//std::cout << lin_r << endl;
@@ -1365,9 +1367,9 @@ int main()
 		string out;
 		// Time the neural net
 		auto t1 = chrono::high_resolution_clock::now();
-		doForwardProp(ll, trainImg[ll], trainClass[ll], out);
+		doForwardProp(ll, images[ll], img_class[ll], out);
 		auto t2 = chrono::high_resolution_clock::now();
-		doBackProp(ll, trainImg[ll], trainClass[ll]);
+		doBackProp(ll, images[ll], img_class[ll]);
 		auto t3 = chrono::high_resolution_clock::now();
 
 		auto duration = chrono::duration_cast<chrono::milliseconds>(t2 - t1).count();
@@ -1381,27 +1383,27 @@ int main()
 		std::cout << out << endl;
 	}
 
-	//vector<String> fn_test;
-	//glob("D:\\Storage\\Datasets\\Test\\Fruits\\*.*", fn_test, true);
-	//vector<Mat> images_test;
-	//vector<String> str_class_test;
-	//vector<int> img_class_test;
-	//size_t count_t = fn_test.size();
+	vector<String> fn_test;
+	glob("D:\\Storage\\Datasets\\Test\\Fruits\\*.*", fn_test, true);
+	vector<Mat> images_test;
+	vector<String> str_class_test;
+	vector<int> img_class_test;
+	size_t count_t = fn_test.size();
 
-	//for (size_t i = 0; i < count_t; i++) {
-	//	images_test.push_back(imread(fn_test[i]));
-	//	regex_search(fn_test[i], matches, rgx);
-	//	img_class_test.push_back(all_classes.at(matches[1]));
-	//	str_class_test.push_back(matches[1]);
-	//}
+	for (size_t i = 0; i < count_t; i++) {
+		images_test.push_back(imread(fn_test[i]));
+		regex_search(fn_test[i], matches, rgx);
+		img_class_test.push_back(all_classes.at(matches[1]));
+		str_class_test.push_back(matches[1]);
+	}
 
 	int cc = 0;
 	// Testing
-	for (size_t ll = 0; ll < 100; ll++) {
+	for (size_t ll = 0; ll < count_t; ll++) {
 		string out;
-		int out_class = doForwardProp(ll, testImg[ll], testClass[ll], out);
-		cc = out_class == testClass[ll] ? cc + 1 : cc;
-		out += "\nCorrect: " + to_string(cc) + " / " + to_string(100);
+		int out_class = doForwardProp(ll, images_test[ll], img_class_test[ll], out);
+		cc = out_class == img_class_test[ll] ? cc + 1 : cc;
+		out += "\nCorrect: " + to_string(cc) + " / " + to_string(count_t);
 		std::cout << out << endl;
 	}
 	system("pause");
