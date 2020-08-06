@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <random>
 #include <iostream>
+#include <fstream>
+#include <filesystem>
 #include <string>
 #include <chrono>
 #include <unordered_map>
@@ -37,7 +39,7 @@ inline float dactFn(float x) {
 }
 
 // Learning rate
-float lr = 0.3f;
+float lr = 0.35f;
 // Bias learning rate
 float lrb = 0.01f;
 
@@ -1024,13 +1026,13 @@ void doBackProp(size_t ll, Mat image, int img_class)
 	// FC2 weights
 	for (int i = 0; i < 128; i++) {
 		for (int j = 0; j < 128; j++) {
-			w2[i][j] -= lr * 0.5 * dw2[i][j];
+			w2[i][j] -= lr * 0.5f * dw2[i][j];
 		}
 	}
 
 	// FC2 bias
 	for (int i = 0; i < 128; i++) {
-		biasw2[i] -= lrb * 0.5 * dbiasw2[i];
+		biasw2[i] -= lrb * 0.5f * dbiasw2[i];
 	}
 
 	// FC1 weights
@@ -1038,7 +1040,7 @@ void doBackProp(size_t ll, Mat image, int img_class)
 		for (int j = 0; j < 2; j++) {
 			for (int k = 0; k < 128; k++) {
 				for (int l = 0; l < 128; l++) {
-					w1[i][j][k][l] -= lr * 0.25 * dw1[i][j][k][l];
+					w1[i][j][k][l] -= lr * 0.25f * dw1[i][j][k][l];
 				}
 			}
 		}
@@ -1046,12 +1048,12 @@ void doBackProp(size_t ll, Mat image, int img_class)
 
 	// FC1 bias
 	for (int i = 0; i < 128; i++) {
-		biasw1[i] -= lrb * 0.25 * dbiasw1[i];
+		biasw1[i] -= lrb * 0.25f * dbiasw1[i];
 	}
 
 	// Kern3 bias
 	for (int i = 0; i < 128; i++) {
-		bias3[i] -= lrb * 0.1 * dbias3[i];
+		bias3[i] -= lrb * 0.1f * dbias3[i];
 	}
 
 	// Kern3 weights
@@ -1059,7 +1061,7 @@ void doBackProp(size_t ll, Mat image, int img_class)
 		for (int j = 0; j < 3; j++) {
 			for (int k = 0; k < 64; k++) {
 				for (int l = 0; l < 128; l++) {
-					kern3[i][j][k][l] -= lr * 0.1 * dkern3[i][j][k][l];
+					kern3[i][j][k][l] -= lr * 0.1f * dkern3[i][j][k][l];
 				}
 			}
 		}
@@ -1067,7 +1069,7 @@ void doBackProp(size_t ll, Mat image, int img_class)
 
 	// Kern2 bias
 	for (int i = 0; i < 64; i++) {
-		bias2[i] -= lrb * 0.05 * dbias2[i];
+		bias2[i] -= lrb * 0.05f * dbias2[i];
 	}
 
 	// Kern2 weights
@@ -1075,7 +1077,7 @@ void doBackProp(size_t ll, Mat image, int img_class)
 		for (int j = 0; j < 3; j++) {
 			for (int k = 0; k < 32; k++) {
 				for (int l = 0; l < 64; l++) {
-					kern2[i][j][k][l] -= lr * 0.05 * dkern2[i][j][k][l];
+					kern2[i][j][k][l] -= lr * 0.05f * dkern2[i][j][k][l];
 				}
 			}
 		}
@@ -1083,7 +1085,7 @@ void doBackProp(size_t ll, Mat image, int img_class)
 
 	// Kern1 bias
 	for (int i = 0; i < 32; i++) {
-		bias1[i] -= lrb * 0.025 * dbias1[i];
+		bias1[i] -= lrb * 0.025f * dbias1[i];
 	}
 
 	// Kern1 weights
@@ -1091,11 +1093,132 @@ void doBackProp(size_t ll, Mat image, int img_class)
 		for (int j = 0; j < 3; j++) {
 			for (int k = 0; k < 3; k++) {
 				for (int l = 0; l < 32; l++) {
-					kern1[i][j][k][l] -= lr * 0.025 * dkern1[i][j][k][l];
+					kern1[i][j][k][l] -= lr * 0.025f * dkern1[i][j][k][l];
 				}
 			}
 		}
 	}
+}
+
+int save(unordered_map<String, int> all_classes)
+{
+	String path = std::experimental::filesystem::current_path().string();
+	ofstream outfile;
+	outfile.open(path + "\\out.txt", ios::trunc);
+	if (outfile.fail()) return -1;
+
+	String o;
+
+	o += "classes:\n";
+	for (auto it : all_classes) {
+		o += to_string(it.second) + " " +  it.first + " ";
+	}
+	o += "\n";
+
+	o += "\ndkern1:\n";
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++) {
+			for (int k = 0; k < 3; k++) {
+				for (int l = 0; l < 32; l++) {
+					o += to_string(dkern1[i][j][k][l]) + " ";
+				}
+				o += "\n";
+			}
+		}
+	}
+
+	o += "\ndbias1:\n";
+	for (int i = 0; i < 32; i++) {
+		o += to_string(dbias1[i]) + " ";
+	}
+	o += "\n";
+
+	o += "\ndkern2:\n";
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++) {
+			for (int k = 0; k < 32; k++) {
+				for (int l = 0; l < 64; l++) {
+					o += to_string(dkern2[i][j][k][l]) + " ";
+				}
+				o += "\n";
+			}
+		}
+	}
+
+	o += "\ndbias2:\n";
+	for (int i = 0; i < 64; i++) {
+		o += to_string(dbias2[i]) + " ";
+	}
+	o += "\n";
+
+	o += "\ndkern3:\n";
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++) {
+			for (int k = 0; k < 64; k++) {
+				for (int l = 0; l < 128; l++) {
+					o += to_string(dkern3[i][j][k][l]) + " ";
+				}
+				o += "\n";
+			}
+		}
+	}
+
+	o += "\ndbias3:\n";
+	for (int i = 0; i < 128; i++) {
+		o += to_string(dbias3[i]) + " ";
+	}
+	o += "\n";
+
+	o += "\ndw1:\n";
+	for (int i = 0; i < 2; i++) {
+		for (int j = 0; j < 2; j++) {
+			for (int k = 0; k < 128; k++) {
+				for (int l = 0; l < 128; l++) {
+					o += to_string(dw1[i][j][k][l]) + " ";
+				}
+				o += "\n";
+			}
+		}
+	}
+
+	o += "\ndbiasw1:\n";
+	for (int i = 0; i < 128; i++) {
+		o += to_string(dbiasw1[i]) + " ";
+	}
+	o += "\n";
+
+	o += "\ndw2:\n";
+	for (int i = 0; i < 128; i++) {
+		for (int j = 0; j < 128; j++) {
+			o += to_string(dw2[i][j]) + " ";
+		}
+		o += "\n";
+	}
+
+	o += "\ndbiasw2:\n";
+	for (int i = 0; i < 128; i++) {
+		o += to_string(dbiasw2[i]) + " ";
+	}
+	o += "\n";
+
+	o += "\ndw3:\n";
+	for (int i = 0; i < 128; i++) {
+		for (int j = 0; j < 12; j++) {
+			o += to_string(dw3[i][j]) + " ";
+		}
+		o += "\n";
+	}
+
+	o += "\ndbiasw3:\n";
+	for (int i = 0; i < 12; i++) {
+		o += to_string(dbiasw3[i]) + " ";
+	}
+	o += "\n";
+
+	outfile << o;
+	outfile.close();
+
+	return 0;
 }
 
 int main()
@@ -1104,35 +1227,35 @@ int main()
 	default_random_engine gen{ rd() };
 	uniform_real_distribution<float> dis0(0.0f, 64.0f);
 
-	// Setup input
-	for (int k = 0; k < 600; k++) {
-		int r0 = floor(dis0(gen));
-		int r1 = floor(dis0(gen));
-		for (int i = 0; i < 65; i++) {
-			for (int j = 0; j < 65; j++) {
-				trainImg[k][i][j][0] = (i == r0 && j == r1) ? 1.0f : 0.0f;
-				trainImg[k][i][j][1] = trainImg[k][i][j][0];
-				trainImg[k][i][j][2] = trainImg[k][i][j][0];
-			}
-		}
-		// XOR function
-		trainClass[k] = ((r0 < 32) == (r1 < 32)) ? 0 : 1;
-	}
+	//// Setup input
+	//for (int k = 0; k < 600; k++) {
+	//	int r0 = floor(dis0(gen));
+	//	int r1 = floor(dis0(gen));
+	//	for (int i = 0; i < 65; i++) {
+	//		for (int j = 0; j < 65; j++) {
+	//			trainImg[k][i][j][0] = (i == r0 && j == r1) ? 1.0f : 0.0f;
+	//			trainImg[k][i][j][1] = trainImg[k][i][j][0];
+	//			trainImg[k][i][j][2] = trainImg[k][i][j][0];
+	//		}
+	//	}
+	//	// XOR function
+	//	trainClass[k] = ((r0 < 32) == (r1 < 32)) ? 0 : 1;
+	//}
 
-	// Test input
-	for (int k = 0; k < 100; k++) {
-		int r0 = floor(dis0(gen));
-		int r1 = floor(dis0(gen));
-		for (int i = 0; i < 65; i++) {
-			for (int j = 0; j < 65; j++) {
-				testImg[k][i][j][0] = (i == r0 && j == r1) ? 1.0f : 0.0f;
-				testImg[k][i][j][1] = testImg[k][i][j][0];
-				testImg[k][i][j][2] = testImg[k][i][j][0];
-			}
-		}
-		// XOR function
-		testClass[k] = ((r0 < 32) == (r1 < 32)) ? 0 : 1;
-	}
+	//// Test input
+	//for (int k = 0; k < 100; k++) {
+	//	int r0 = floor(dis0(gen));
+	//	int r1 = floor(dis0(gen));
+	//	for (int i = 0; i < 65; i++) {
+	//		for (int j = 0; j < 65; j++) {
+	//			testImg[k][i][j][0] = (i == r0 && j == r1) ? 1.0f : 0.0f;
+	//			testImg[k][i][j][1] = testImg[k][i][j][0];
+	//			testImg[k][i][j][2] = testImg[k][i][j][0];
+	//		}
+	//	}
+	//	// XOR function
+	//	testClass[k] = ((r0 < 32) == (r1 < 32)) ? 0 : 1;
+	//}
 
 	/*
 		Initialize weights to normal Gaussians with mean zero and
@@ -1315,7 +1438,7 @@ int main()
 	vector<int> img_class;
 	size_t count = fn.size();
 	// Randomize
-	//shuffle(fn.begin(), fn.end(), gen);
+	shuffle(fn.begin(), fn.end(), gen);
 
 	unordered_map<String, int> all_classes;
 	regex rgx("Fruits\\\\([A-Z]\\w+)");
@@ -1363,7 +1486,7 @@ int main()
 	//std::cout << lin_g << endl;
 
 	// Training
-	for (size_t ll = 0; ll < 600; ll++) {
+	for (size_t ll = 0; ll < 10; ll++) {
 		string out;
 		// Time the neural net
 		auto t1 = chrono::high_resolution_clock::now();
@@ -1399,13 +1522,15 @@ int main()
 
 	int cc = 0;
 	// Testing
-	for (size_t ll = 0; ll < count_t; ll++) {
+	for (size_t ll = 0; ll < 10; ll++) {
 		string out;
 		int out_class = doForwardProp(ll, images_test[ll], img_class_test[ll], out);
 		cc = out_class == img_class_test[ll] ? cc + 1 : cc;
 		out += "\nCorrect: " + to_string(cc) + " / " + to_string(count_t);
 		std::cout << out << endl;
 	}
+
+	int s = save(all_classes);
 	system("pause");
-	return 0;
+	return s;
 }
