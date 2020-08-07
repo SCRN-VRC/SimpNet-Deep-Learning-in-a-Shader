@@ -3,6 +3,7 @@
 #include <random>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <filesystem>
 #include <string>
 #include <chrono>
@@ -15,6 +16,14 @@
 
 using namespace std;
 using namespace cv;
+
+// Avoid default to_string method
+template < typename Type > string to_str(const Type & t)
+{
+	ostringstream os;
+	os << t;
+	return os.str();
+}
 
 inline int clamp(int x, int y, int z)
 {
@@ -39,7 +48,7 @@ inline float dactFn(float x) {
 }
 
 // Learning rate
-float lr = 0.35f;
+float lr = 0.3f;
 // Bias learning rate
 float lrb = 0.01f;
 
@@ -112,7 +121,7 @@ float econvL1[32][32][32] = { 0.0f }; // Undo max pool for L1
 float diconvL1[63][63][32] = { 0.0f }; // L1 dialation
 float dkern1[3][3][3][32] = { 0.0f }; // L1 kernel gradient
 
-int doForwardProp(size_t ll, Mat image, int img_class, String& out)
+int doForwardProp(size_t ll, float image[65][65][3], int img_class, String& out)
 {
 	// Convolutional layer 1, kernel=3x3, stride=2
 	for (int k = 0; k < 32; k++) {
@@ -125,27 +134,27 @@ int doForwardProp(size_t ll, Mat image, int img_class, String& out)
 
 				//// Sample image
 				for (int l = 0; l < 3; l++) {
-				//	convL1s[i][j][k] +=
-				//		image[i0][j0][l] * kern1[0][0][l][k] +
-				//		image[i0][j1][l] * kern1[0][1][l][k] +
-				//		image[i0][j2][l] * kern1[0][2][l][k] +
-				//		image[i1][j0][l] * kern1[1][0][l][k] +
-				//		image[i1][j1][l] * kern1[1][1][l][k] +
-				//		image[i1][j2][l] * kern1[1][2][l][k] +
-				//		image[i2][j0][l] * kern1[2][0][l][k] +
-				//		image[i2][j1][l] * kern1[2][1][l][k] +
-				//		image[i2][j2][l] * kern1[2][2][l][k];
-
 					convL1s[i][j][k] +=
-						image.at<Vec3b>(i0, j0)[l] / 255.0f * kern1[0][0][l][k] +
-						image.at<Vec3b>(i0, j1)[l] / 255.0f * kern1[0][1][l][k] +
-						image.at<Vec3b>(i0, j2)[l] / 255.0f * kern1[0][2][l][k] +
-						image.at<Vec3b>(i1, j0)[l] / 255.0f * kern1[1][0][l][k] +
-						image.at<Vec3b>(i1, j1)[l] / 255.0f * kern1[1][1][l][k] +
-						image.at<Vec3b>(i1, j2)[l] / 255.0f * kern1[1][2][l][k] +
-						image.at<Vec3b>(i2, j0)[l] / 255.0f * kern1[2][0][l][k] +
-						image.at<Vec3b>(i2, j1)[l] / 255.0f * kern1[2][1][l][k] +
-						image.at<Vec3b>(i2, j2)[l] / 255.0f * kern1[2][2][l][k];
+						image[i0][j0][l] * kern1[0][0][l][k] +
+						image[i0][j1][l] * kern1[0][1][l][k] +
+						image[i0][j2][l] * kern1[0][2][l][k] +
+						image[i1][j0][l] * kern1[1][0][l][k] +
+						image[i1][j1][l] * kern1[1][1][l][k] +
+						image[i1][j2][l] * kern1[1][2][l][k] +
+						image[i2][j0][l] * kern1[2][0][l][k] +
+						image[i2][j1][l] * kern1[2][1][l][k] +
+						image[i2][j2][l] * kern1[2][2][l][k];
+
+					//convL1s[i][j][k] +=
+					//	image.at<Vec3b>(i0, j0)[l] / 255.0f * kern1[0][0][l][k] +
+					//	image.at<Vec3b>(i0, j1)[l] / 255.0f * kern1[0][1][l][k] +
+					//	image.at<Vec3b>(i0, j2)[l] / 255.0f * kern1[0][2][l][k] +
+					//	image.at<Vec3b>(i1, j0)[l] / 255.0f * kern1[1][0][l][k] +
+					//	image.at<Vec3b>(i1, j1)[l] / 255.0f * kern1[1][1][l][k] +
+					//	image.at<Vec3b>(i1, j2)[l] / 255.0f * kern1[1][2][l][k] +
+					//	image.at<Vec3b>(i2, j0)[l] / 255.0f * kern1[2][0][l][k] +
+					//	image.at<Vec3b>(i2, j1)[l] / 255.0f * kern1[2][1][l][k] +
+					//	image.at<Vec3b>(i2, j2)[l] / 255.0f * kern1[2][2][l][k];
 				}
 				// Bias
 				convL1s[i][j][k] += bias1[k];
@@ -403,7 +412,7 @@ int doForwardProp(size_t ll, Mat image, int img_class, String& out)
 	//for (int i = 0; i < 3; i++) {
 	//	for (int j = 0; j < 3; j++) {
 	//		for (int k = 0; k < 3; k++) {
-	//			out += to_string(kern1[i][j][k][0]);
+	//			out += to_str(kern1[i][j][k][0]);
 	//			out.push_back(' ');
 	//		}
 	//		out.push_back('\n');
@@ -414,7 +423,7 @@ int doForwardProp(size_t ll, Mat image, int img_class, String& out)
 	//for (int i = 0; i < 3; i++) {
 	//	for (int j = 0; j < 3; j++) {
 	//		for (int k = 0; k < 3; k++) {
-	//			out += to_string(kern1[i][j][k][31]);
+	//			out += to_str(kern1[i][j][k][31]);
 	//			out.push_back(' ');
 	//		}
 	//		out.push_back('\n');
@@ -424,7 +433,7 @@ int doForwardProp(size_t ll, Mat image, int img_class, String& out)
 	//out += "\nconv1\n";
 	//for (int i = 0; i < 32; i++) {
 	//	for (int j = 0; j < 32; j++) {
-	//		out += to_string(convL1[i][j][0]);
+	//		out += to_str(convL1[i][j][0]);
 	//		out.push_back(' ');
 	//	}
 	//	out.push_back('\n');
@@ -433,7 +442,7 @@ int doForwardProp(size_t ll, Mat image, int img_class, String& out)
 	//out += "\nconv1\n";
 	//for (int i = 0; i < 32; i++) {
 	//	for (int j = 0; j < 32; j++) {
-	//		out += to_string(convL1[i][j][31]);
+	//		out += to_str(convL1[i][j][31]);
 	//		out.push_back(' ');
 	//	}
 	//	out.push_back('\n');
@@ -442,7 +451,7 @@ int doForwardProp(size_t ll, Mat image, int img_class, String& out)
 	//out += "\nmax1\n";
 	//for (int i = 0; i < 16; i++) {
 	//	for (int j = 0; j < 16; j++) {
-	//		out += to_string(maxL1[i][j][0]);
+	//		out += to_str(maxL1[i][j][0]);
 	//		out.push_back(' ');
 	//	}
 	//	out.push_back('\n');
@@ -451,7 +460,7 @@ int doForwardProp(size_t ll, Mat image, int img_class, String& out)
 	//out += "\nmax1\n";
 	//for (int i = 0; i < 16; i++) {
 	//	for (int j = 0; j < 16; j++) {
-	//		out += to_string(maxL1[i][j][31]);
+	//		out += to_str(maxL1[i][j][31]);
 	//		out.push_back(' ');
 	//	}
 	//	out.push_back('\n');
@@ -460,7 +469,7 @@ int doForwardProp(size_t ll, Mat image, int img_class, String& out)
 	//out += "\nmax1 index\n";
 	//for (int i = 0; i < 16; i++) {
 	//	for (int j = 0; j < 16; j++) {
-	//		out += to_string(imaxL1[i][j][0]);
+	//		out += to_str(imaxL1[i][j][0]);
 	//		out.push_back(' ');
 	//	}
 	//	out.push_back('\n');
@@ -469,7 +478,7 @@ int doForwardProp(size_t ll, Mat image, int img_class, String& out)
 	//out += "\nmax1 index\n";
 	//for (int i = 0; i < 16; i++) {
 	//	for (int j = 0; j < 16; j++) {
-	//		out += to_string(imaxL1[i][j][31]);
+	//		out += to_str(imaxL1[i][j][31]);
 	//		out.push_back(' ');
 	//	}
 	//	out.push_back('\n');
@@ -478,7 +487,7 @@ int doForwardProp(size_t ll, Mat image, int img_class, String& out)
 	//out += "\nconv2\n";
 	//for (int i = 0; i < 14; i++) {
 	//	for (int j = 0; j < 14; j++) {
-	//		out += to_string(convL2[i][j][0]);
+	//		out += to_str(convL2[i][j][0]);
 	//		out.push_back(' ');
 	//	}
 	//	out.push_back('\n');
@@ -487,7 +496,7 @@ int doForwardProp(size_t ll, Mat image, int img_class, String& out)
 	//out += "\nconv2\n";
 	//for (int i = 0; i < 14; i++) {
 	//	for (int j = 0; j < 14; j++) {
-	//		out += to_string(convL2[i][j][63]);
+	//		out += to_str(convL2[i][j][63]);
 	//		out.push_back(' ');
 	//	}
 	//	out.push_back('\n');
@@ -496,7 +505,7 @@ int doForwardProp(size_t ll, Mat image, int img_class, String& out)
 	//out += "\nmax2\n";
 	//for (int i = 0; i < 7; i++) {
 	//	for (int j = 0; j < 7; j++) {
-	//		out += to_string(maxL2[i][j][0]);
+	//		out += to_str(maxL2[i][j][0]);
 	//		out.push_back(' ');
 	//	}
 	//	out.push_back('\n');
@@ -505,7 +514,7 @@ int doForwardProp(size_t ll, Mat image, int img_class, String& out)
 	//out += "\nmax2\n";
 	//for (int i = 0; i < 7; i++) {
 	//	for (int j = 0; j < 7; j++) {
-	//		out += to_string(maxL2[i][j][63]);
+	//		out += to_str(maxL2[i][j][63]);
 	//		out.push_back(' ');
 	//	}
 	//	out.push_back('\n');
@@ -514,7 +523,7 @@ int doForwardProp(size_t ll, Mat image, int img_class, String& out)
 	//out += "\nmax2 index\n";
 	//for (int i = 0; i < 7; i++) {
 	//	for (int j = 0; j < 7; j++) {
-	//		out += to_string(imaxL2[i][j][0]);
+	//		out += to_str(imaxL2[i][j][0]);
 	//		out.push_back(' ');
 	//	}
 	//	out.push_back('\n');
@@ -523,7 +532,7 @@ int doForwardProp(size_t ll, Mat image, int img_class, String& out)
 	//out += "\nmax2 index\n";
 	//for (int i = 0; i < 7; i++) {
 	//	for (int j = 0; j < 7; j++) {
-	//		out += to_string(imaxL2[i][j][63]);
+	//		out += to_str(imaxL2[i][j][63]);
 	//		out.push_back(' ');
 	//	}
 	//	out.push_back('\n');
@@ -532,7 +541,7 @@ int doForwardProp(size_t ll, Mat image, int img_class, String& out)
 	//out += "\nl2 error\n";
 	//for (int i = 0; i < 7; i++) {
 	//	for (int j = 0; j < 7; j++) {
-	//		out += to_string(emaxL2[i][j][0]);
+	//		out += to_str(emaxL2[i][j][0]);
 	//		out.push_back(' ');
 	//	}
 	//	out.push_back('\n');
@@ -541,7 +550,7 @@ int doForwardProp(size_t ll, Mat image, int img_class, String& out)
 	//out += "\nl2 error\n";
 	//for (int i = 0; i < 7; i++) {
 	//	for (int j = 0; j < 7; j++) {
-	//		out += to_string(emaxL2[i][j][63]);
+	//		out += to_str(emaxL2[i][j][63]);
 	//		out.push_back(' ');
 	//	}
 	//	out.push_back('\n');
@@ -550,7 +559,7 @@ int doForwardProp(size_t ll, Mat image, int img_class, String& out)
 	//out += "\nl2 conv\n";
 	//for (int i = 0; i < 14; i++) {
 	//	for (int j = 0; j < 14; j++) {
-	//		out += to_string(econvL2[i][j][0]);
+	//		out += to_str(econvL2[i][j][0]);
 	//		out.push_back(' ');
 	//	}
 	//	out.push_back('\n');
@@ -559,7 +568,7 @@ int doForwardProp(size_t ll, Mat image, int img_class, String& out)
 	//out += "\nl2 conv\n";
 	//for (int i = 0; i < 14; i++) {
 	//	for (int j = 0; j < 14; j++) {
-	//		out += to_string(econvL2[i][j][63]);
+	//		out += to_str(econvL2[i][j][63]);
 	//		out.push_back(' ');
 	//	}
 	//	out.push_back('\n');
@@ -568,7 +577,7 @@ int doForwardProp(size_t ll, Mat image, int img_class, String& out)
 	//out += "\nl2 pad 2\n";
 	//for (int i = 0; i < 18; i++) {
 	//	for (int j = 0; j < 18; j++) {
-	//		out += to_string(pconvL2[i][j][0]);
+	//		out += to_str(pconvL2[i][j][0]);
 	//		out.push_back(' ');
 	//	}
 	//	out.push_back('\n');
@@ -577,7 +586,7 @@ int doForwardProp(size_t ll, Mat image, int img_class, String& out)
 	//out += "\nconv3\n";
 	//for (int i = 0; i < 4; i++) {
 	//	for (int j = 0; j < 4; j++) {
-	//		out += to_string(convL3[i][j][0]);
+	//		out += to_str(convL3[i][j][0]);
 	//		out.push_back(' ');
 	//	}
 	//	out.push_back('\n');
@@ -586,57 +595,57 @@ int doForwardProp(size_t ll, Mat image, int img_class, String& out)
 	//out += "\nconv3\n";
 	//for (int i = 0; i < 4; i++) {
 	//	for (int j = 0; j < 4; j++) {
-	//		out += to_string(convL3[i][j][127]);
+	//		out += to_str(convL3[i][j][127]);
 	//		out.push_back(' ');
 	//	}
 	//	out.push_back('\n');
 	//}
 
 	//out += "\nmax3\n";
-	//out += to_string(maxL3[0][0][0]);
+	//out += to_str(maxL3[0][0][0]);
 	//out.push_back(' ');
-	//out += to_string(maxL3[0][1][0]);
+	//out += to_str(maxL3[0][1][0]);
 	//out.push_back('\n');
-	//out += to_string(maxL3[1][0][0]);
+	//out += to_str(maxL3[1][0][0]);
 	//out.push_back(' ');
-	//out += to_string(maxL3[1][1][0]);
+	//out += to_str(maxL3[1][1][0]);
 	//out.push_back('\n');
 
 	//out += "\nmax3\n";
-	//out += to_string(maxL3[0][0][127]);
+	//out += to_str(maxL3[0][0][127]);
 	//out.push_back(' ');
-	//out += to_string(maxL3[0][1][127]);
+	//out += to_str(maxL3[0][1][127]);
 	//out.push_back('\n');
-	//out += to_string(maxL3[1][0][127]);
+	//out += to_str(maxL3[1][0][127]);
 	//out.push_back(' ');
-	//out += to_string(maxL3[1][1][127]);
-	//out.push_back('\n');
-
-	//out += "\nmax3 index\n";
-	//out += to_string(imaxL3[0][0][0]);
-	//out.push_back(' ');
-	//out += to_string(imaxL3[0][1][0]);
-	//out.push_back('\n');
-	//out += to_string(imaxL3[1][0][0]);
-	//out.push_back(' ');
-	//out += to_string(imaxL3[1][1][0]);
+	//out += to_str(maxL3[1][1][127]);
 	//out.push_back('\n');
 
 	//out += "\nmax3 index\n";
-	//out += to_string(imaxL3[0][0][127]);
+	//out += to_str(imaxL3[0][0][0]);
 	//out.push_back(' ');
-	//out += to_string(imaxL3[0][1][127]);
+	//out += to_str(imaxL3[0][1][0]);
 	//out.push_back('\n');
-	//out += to_string(imaxL3[1][0][127]);
+	//out += to_str(imaxL3[1][0][0]);
 	//out.push_back(' ');
-	//out += to_string(imaxL3[1][1][127]);
+	//out += to_str(imaxL3[1][1][0]);
+	//out.push_back('\n');
+
+	//out += "\nmax3 index\n";
+	//out += to_str(imaxL3[0][0][127]);
+	//out.push_back(' ');
+	//out += to_str(imaxL3[0][1][127]);
+	//out.push_back('\n');
+	//out += to_str(imaxL3[1][0][127]);
+	//out.push_back(' ');
+	//out += to_str(imaxL3[1][1][127]);
 	//out.push_back('\n');
 
 	//// convL3 Errors
 	//out += "\nconv3 error\n";
 	//for (int i = 0; i < 4; i++) {
 	//	for (int j = 0; j < 4; j++) {
-	//		out += to_string(econvL3[i][j][0]);
+	//		out += to_str(econvL3[i][j][0]);
 	//		out.push_back(' ');
 	//	}
 	//	out.push_back('\n');
@@ -644,7 +653,7 @@ int doForwardProp(size_t ll, Mat image, int img_class, String& out)
 	//out += "\nconv3 error\n";
 	//for (int i = 0; i < 4; i++) {
 	//	for (int j = 0; j < 4; j++) {
-	//		out += to_string(econvL3[i][j][127]);
+	//		out += to_str(econvL3[i][j][127]);
 	//		out.push_back(' ');
 	//	}
 	//	out.push_back('\n');
@@ -654,7 +663,7 @@ int doForwardProp(size_t ll, Mat image, int img_class, String& out)
 	//out += "\nconv3 dialate\n";
 	//for (int i = 0; i < 7; i++) {
 	//	for (int j = 0; j < 7; j++) {
-	//		out += to_string(diconvL3[i][j][0]);
+	//		out += to_str(diconvL3[i][j][0]);
 	//		out.push_back(' ');
 	//	}
 	//	out.push_back('\n');
@@ -662,7 +671,7 @@ int doForwardProp(size_t ll, Mat image, int img_class, String& out)
 	//out += "\nconv3 dialate\n";
 	//for (int i = 0; i < 7; i++) {
 	//	for (int j = 0; j < 7; j++) {
-	//		out += to_string(diconvL3[i][j][127]);
+	//		out += to_str(diconvL3[i][j][127]);
 	//		out.push_back(' ');
 	//	}
 	//	out.push_back('\n');
@@ -670,27 +679,27 @@ int doForwardProp(size_t ll, Mat image, int img_class, String& out)
 
 	//out += "\nfc1\n";
 	//for (int i = 0; i < 128; i++) {
-	//	out += to_string(fc1[i]);
+	//	out += to_str(fc1[i]);
 	//	out.push_back(' ');
 	//}
 
 	//out += "\nfc2\n";
 	//for (int i = 0; i < 128; i++) {
-	//	out += to_string(fc2a[i]);
+	//	out += to_str(fc2a[i]);
 	//	out.push_back(' ');
 	//}
 
 	//out += "\nsoftmax\n";
 	//for (int i = 0; i < 12; i++) {
-	//	out += to_string(softout[i]);
+	//	out += to_str(softout[i]);
 	//	out.push_back(' ');
 	//}
 	//out.push_back('\n');
 
-	out += to_string(ll);
+	out += to_str(ll);
 	out += "\nsoftmax2\n";
 	for (int i = 0; i < 12; i++) {
-		out += to_string(softout2[i]);
+		out += to_str(softout2[i]);
 		out.push_back(' ');
 		if ((i + 1) % 4 == 0) out.push_back('\n');
 	}
@@ -704,12 +713,12 @@ int doForwardProp(size_t ll, Mat image, int img_class, String& out)
 	for (int i = 0; i < 12; i++) {
 		ce += expected[i] * log(softout2[i]);
 	}
-	out += to_string(-ce);
+	out += to_str(-ce);
 
 	return max_element(softout2, softout2 + 12) - softout2;
 }
 
-void doBackProp(size_t ll, Mat image, int img_class)
+void doBackProp(size_t ll, float image[65][65][3], int img_class, float anneal)
 {
 	float expected[12] = { 0.0f };
 	expected[img_class] = 1.0f;
@@ -914,11 +923,11 @@ void doBackProp(size_t ll, Mat image, int img_class)
 				pconvL2[i][j][k] = i < 2 || j < 2 || i > 15 || j > 15 ?
 					0.0f : econvL2[i - 2][j - 2][k];
 				//if (pconvL2[i][j][k] * 1000000.0 != 0.f) {
-				//	out += to_string(i);
+				//	out += to_str(i);
 				//	out += " ";
-				//	out += to_string(j);
+				//	out += to_str(j);
 				//	out += " ";
-				//	out += to_string(k);
+				//	out += to_str(k);
 				//	out += "\n";
 				//}
 			}
@@ -977,11 +986,11 @@ void doBackProp(size_t ll, Mat image, int img_class)
 				diconvL1[i][j][k] = ((i % 2 == 1) || (j % 2 == 1)) ?
 					0.0f : econvL1[i0][j0][k];
 				//if (econvL2[i][j][k] * 1000000.0 != 0.f) {
-				//	out += to_string(i);
+				//	out += to_str(i);
 				//	out += " ";
-				//	out += to_string(j);
+				//	out += to_str(j);
 				//	out += " ";
-				//	out += to_string(k);
+				//	out += to_str(k);
 				//	out += "\n";
 				//}
 			}
@@ -999,8 +1008,8 @@ void doBackProp(size_t ll, Mat image, int img_class)
 						for (int y = 0; y < 63; y++) {
 							int l1x = x + i;
 							int l1y = y + j;
-							//s += image[l1x][l1y][k] * diconvL1[x][y][l];
-							s += image.at<Vec3b>(l1x, l1y)[k] / 255.0f * diconvL1[x][y][l];
+							s += image[l1x][l1y][k] * diconvL1[x][y][l];
+							//s += image.at<Vec3b>(l1x, l1y)[k] / 255.0f * diconvL1[x][y][l];
 						}
 					}
 					dkern1[i][j][k][l] = s;
@@ -1014,25 +1023,25 @@ void doBackProp(size_t ll, Mat image, int img_class)
 	// FC3 weights
 	for (int i = 0; i < 128; i++) {
 		for (int j = 0; j < 12; j++) {
-			w3[i][j] -= lr * dw3[i][j];
+			w3[i][j] -= lr * anneal * dw3[i][j];
 		}
 	}
 
 	// FC3 bias
 	for (int i = 0; i < 12; i++) {
-		biasw3[i] -= lrb * dbiasw3[i];
+		biasw3[i] -= lrb * anneal * dbiasw3[i];
 	}
 
 	// FC2 weights
 	for (int i = 0; i < 128; i++) {
 		for (int j = 0; j < 128; j++) {
-			w2[i][j] -= lr * 0.5f * dw2[i][j];
+			w2[i][j] -= lr * 0.5f * anneal * dw2[i][j];
 		}
 	}
 
 	// FC2 bias
 	for (int i = 0; i < 128; i++) {
-		biasw2[i] -= lrb * 0.5f * dbiasw2[i];
+		biasw2[i] -= lrb * 0.5f * anneal * dbiasw2[i];
 	}
 
 	// FC1 weights
@@ -1040,7 +1049,7 @@ void doBackProp(size_t ll, Mat image, int img_class)
 		for (int j = 0; j < 2; j++) {
 			for (int k = 0; k < 128; k++) {
 				for (int l = 0; l < 128; l++) {
-					w1[i][j][k][l] -= lr * 0.25f * dw1[i][j][k][l];
+					w1[i][j][k][l] -= lr * 0.25f * anneal * dw1[i][j][k][l];
 				}
 			}
 		}
@@ -1048,12 +1057,12 @@ void doBackProp(size_t ll, Mat image, int img_class)
 
 	// FC1 bias
 	for (int i = 0; i < 128; i++) {
-		biasw1[i] -= lrb * 0.25f * dbiasw1[i];
+		biasw1[i] -= lrb * 0.25f * anneal * dbiasw1[i];
 	}
 
 	// Kern3 bias
 	for (int i = 0; i < 128; i++) {
-		bias3[i] -= lrb * 0.1f * dbias3[i];
+		bias3[i] -= lrb * 0.1f * anneal * dbias3[i];
 	}
 
 	// Kern3 weights
@@ -1061,7 +1070,7 @@ void doBackProp(size_t ll, Mat image, int img_class)
 		for (int j = 0; j < 3; j++) {
 			for (int k = 0; k < 64; k++) {
 				for (int l = 0; l < 128; l++) {
-					kern3[i][j][k][l] -= lr * 0.1f * dkern3[i][j][k][l];
+					kern3[i][j][k][l] -= lr * 0.1f * anneal * dkern3[i][j][k][l];
 				}
 			}
 		}
@@ -1069,7 +1078,7 @@ void doBackProp(size_t ll, Mat image, int img_class)
 
 	// Kern2 bias
 	for (int i = 0; i < 64; i++) {
-		bias2[i] -= lrb * 0.05f * dbias2[i];
+		bias2[i] -= lrb * 0.05f * anneal * dbias2[i];
 	}
 
 	// Kern2 weights
@@ -1077,7 +1086,7 @@ void doBackProp(size_t ll, Mat image, int img_class)
 		for (int j = 0; j < 3; j++) {
 			for (int k = 0; k < 32; k++) {
 				for (int l = 0; l < 64; l++) {
-					kern2[i][j][k][l] -= lr * 0.05f * dkern2[i][j][k][l];
+					kern2[i][j][k][l] -= lr * 0.05f * anneal * dkern2[i][j][k][l];
 				}
 			}
 		}
@@ -1085,7 +1094,7 @@ void doBackProp(size_t ll, Mat image, int img_class)
 
 	// Kern1 bias
 	for (int i = 0; i < 32; i++) {
-		bias1[i] -= lrb * 0.025f * dbias1[i];
+		bias1[i] -= lrb * 0.025f * anneal * dbias1[i];
 	}
 
 	// Kern1 weights
@@ -1093,7 +1102,7 @@ void doBackProp(size_t ll, Mat image, int img_class)
 		for (int j = 0; j < 3; j++) {
 			for (int k = 0; k < 3; k++) {
 				for (int l = 0; l < 32; l++) {
-					kern1[i][j][k][l] -= lr * 0.025f * dkern1[i][j][k][l];
+					kern1[i][j][k][l] -= lr * 0.025f * anneal * dkern1[i][j][k][l];
 				}
 			}
 		}
@@ -1111,107 +1120,107 @@ int save(unordered_map<String, int> all_classes)
 
 	o += "classes:\n";
 	for (auto it : all_classes) {
-		o += to_string(it.second) + " " +  it.first + " ";
+		o += to_str(it.second) + " " +  it.first + " ";
 	}
 	o += "\n";
 
-	o += "\ndkern1:\n";
+	o += "\nkern1:\n";
 	for (int i = 0; i < 3; i++) {
 		for (int j = 0; j < 3; j++) {
 			for (int k = 0; k < 3; k++) {
 				for (int l = 0; l < 32; l++) {
-					o += to_string(dkern1[i][j][k][l]) + " ";
+					o += to_str(kern1[i][j][k][l]) + " ";
 				}
 				o += "\n";
 			}
 		}
 	}
 
-	o += "\ndbias1:\n";
+	o += "\nbias1:\n";
 	for (int i = 0; i < 32; i++) {
-		o += to_string(dbias1[i]) + " ";
+		o += to_str(bias1[i]) + " ";
 	}
 	o += "\n";
 
-	o += "\ndkern2:\n";
+	o += "\nkern2:\n";
 	for (int i = 0; i < 3; i++) {
 		for (int j = 0; j < 3; j++) {
 			for (int k = 0; k < 32; k++) {
 				for (int l = 0; l < 64; l++) {
-					o += to_string(dkern2[i][j][k][l]) + " ";
+					o += to_str(kern2[i][j][k][l]) + " ";
 				}
 				o += "\n";
 			}
 		}
 	}
 
-	o += "\ndbias2:\n";
+	o += "\nbias2:\n";
 	for (int i = 0; i < 64; i++) {
-		o += to_string(dbias2[i]) + " ";
+		o += to_str(bias2[i]) + " ";
 	}
 	o += "\n";
 
-	o += "\ndkern3:\n";
+	o += "\nkern3:\n";
 	for (int i = 0; i < 3; i++) {
 		for (int j = 0; j < 3; j++) {
 			for (int k = 0; k < 64; k++) {
 				for (int l = 0; l < 128; l++) {
-					o += to_string(dkern3[i][j][k][l]) + " ";
+					o += to_str(kern3[i][j][k][l]) + " ";
 				}
 				o += "\n";
 			}
 		}
 	}
 
-	o += "\ndbias3:\n";
+	o += "\nbias3:\n";
 	for (int i = 0; i < 128; i++) {
-		o += to_string(dbias3[i]) + " ";
+		o += to_str(bias3[i]) + " ";
 	}
 	o += "\n";
 
-	o += "\ndw1:\n";
+	o += "\nw1:\n";
 	for (int i = 0; i < 2; i++) {
 		for (int j = 0; j < 2; j++) {
 			for (int k = 0; k < 128; k++) {
 				for (int l = 0; l < 128; l++) {
-					o += to_string(dw1[i][j][k][l]) + " ";
+					o += to_str(w1[i][j][k][l]) + " ";
 				}
 				o += "\n";
 			}
 		}
 	}
 
-	o += "\ndbiasw1:\n";
+	o += "\nbiasw1:\n";
 	for (int i = 0; i < 128; i++) {
-		o += to_string(dbiasw1[i]) + " ";
+		o += to_str(biasw1[i]) + " ";
 	}
 	o += "\n";
 
-	o += "\ndw2:\n";
+	o += "\nw2:\n";
 	for (int i = 0; i < 128; i++) {
 		for (int j = 0; j < 128; j++) {
-			o += to_string(dw2[i][j]) + " ";
+			o += to_str(w2[i][j]) + " ";
 		}
 		o += "\n";
 	}
 
-	o += "\ndbiasw2:\n";
+	o += "\nbiasw2:\n";
 	for (int i = 0; i < 128; i++) {
-		o += to_string(dbiasw2[i]) + " ";
+		o += to_str(biasw2[i]) + " ";
 	}
 	o += "\n";
 
-	o += "\ndw3:\n";
+	o += "\nw3:\n";
 	for (int i = 0; i < 128; i++) {
 		for (int j = 0; j < 12; j++) {
-			o += to_string(dw3[i][j]) + " ";
+			o += to_str(w3[i][j]) + " ";
 		}
 		o += "\n";
 	}
 
-	o += "\ndbiasw3:\n";
+	o += "\nbiasw3:\n";
 	for (int i = 0; i < 12; i++) {
-		o += to_string(dbiasw3[i]) + " ";
+		o += to_str(biasw3[i]) + " ";
 	}
 	o += "\n";
 
@@ -1486,22 +1495,34 @@ int main()
 	//std::cout << lin_g << endl;
 
 	// Training
-	for (size_t ll = 0; ll < 10; ll++) {
+	for (size_t ll = 0; ll < 600; ll++) {
+
+		float floatRBG[65][65][3];
+		Mat img = images[ll];
+
+		for (int i = 0; i < 65; i++) {
+			for (int j = 0; j < 65; j++) {
+				for (int k = 0; k < 3; k++) {
+					floatRBG[i][j][k] = img.at<Vec3b>(i, j)[k] / 255.0f;
+				}
+			}
+		}
+
 		string out;
 		// Time the neural net
 		auto t1 = chrono::high_resolution_clock::now();
-		doForwardProp(ll, images[ll], img_class[ll], out);
+		doForwardProp(ll, floatRBG, img_class[ll], out);
 		auto t2 = chrono::high_resolution_clock::now();
-		doBackProp(ll, images[ll], img_class[ll]);
+		doBackProp(ll, floatRBG, img_class[ll], fmaxf((count - ll) / count, 0.1f));
 		auto t3 = chrono::high_resolution_clock::now();
 
 		auto duration = chrono::duration_cast<chrono::milliseconds>(t2 - t1).count();
 		out += "\nforward pass: ";
-		out += to_string(duration);
+		out += to_str(duration);
 		out += "ms";
 		duration = chrono::duration_cast<chrono::milliseconds>(t3 - t2).count();
 		out += "\nbackward pass: ";
-		out += to_string(duration);
+		out += to_str(duration);
 		out += "ms\n";
 		std::cout << out << endl;
 	}
@@ -1522,11 +1543,23 @@ int main()
 
 	int cc = 0;
 	// Testing
-	for (size_t ll = 0; ll < 10; ll++) {
+	for (size_t ll = 0; ll < count_t; ll++) {
+
+		float floatRBG[65][65][3];
+		Mat img = images[ll];
+
+		for (int i = 0; i < 65; i++) {
+			for (int j = 0; j < 65; j++) {
+				for (int k = 0; k < 3; k++) {
+					floatRBG[i][j][k] = img.at<Vec3b>(i, j)[k] / 255.0f;
+				}
+			}
+		}
+
 		string out;
-		int out_class = doForwardProp(ll, images_test[ll], img_class_test[ll], out);
+		int out_class = doForwardProp(ll, floatRBG, img_class_test[ll], out);
 		cc = out_class == img_class_test[ll] ? cc + 1 : cc;
-		out += "\nCorrect: " + to_string(cc) + " / " + to_string(count_t);
+		out += "\nCorrect: " + to_str(cc) + " / " + to_str(count_t);
 		std::cout << out << endl;
 	}
 
