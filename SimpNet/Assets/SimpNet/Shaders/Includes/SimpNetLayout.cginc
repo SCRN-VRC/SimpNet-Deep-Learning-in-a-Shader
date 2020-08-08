@@ -9,7 +9,7 @@
 // x, y : origin
 // z, w : width, height
 #define txL1                    int4(0, 512, 256, 256)
-#define txKern1Area             int4(193, 0, 24, 36)      // 3x3x3 x 8x4
+#define txKern1Area             int4(193, 0, 24, 36)      // 3x3x4 x 8x3
 #define txBias1Area             int4(192, 0, 1, 32)       // 1x32
 #define txConv1Area             int4(0, 0, 128, 256)      // 32x32 x 4x8
 #define txMax1Area              int4(128, 0, 32, 256)     // 16x16 x 2x16
@@ -87,7 +87,23 @@
 #define txDB1Area               int4(460, 24, 1, 32)      // 1x32
 #define txEConv1Area            int4(252, 144, 128, 256)  // 32x32 x 4x8
 #define txDiConv1Area           int4(0, 0, 252, 504)      // 63x63 x 4x8
-#define txDKern1Area            int4(460, 0, 24, 36)      // 3x3x3 x 8x4
+#define txDKern1Area            int4(460, 0, 24, 36)      // 3x3x4 x 8x3
+
+// Weight Initialization
+
+#define txInitKern1             int2(24, 384)
+#define txInitKern2             int2(192, 256)
+#define txInitKern3             int2(0, 0)
+#define txInitW1                int2(192, 0)
+#define txInitW2                int2(288, 256)
+#define txInitW3                int2(0, 384)
+
+#define txInitB1                int2(448, 0)
+#define txInitB2                int2(449, 0)
+#define txInitB3                int2(450, 0)
+#define txInitBw1               int2(451, 0)
+#define txInitBw2               int2(452, 0)
+#define txInitBw3               int2(453, 0)
 
 // Global Vars
 

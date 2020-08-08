@@ -48,9 +48,9 @@ inline float dactFn(float x) {
 }
 
 // Learning rate
-float lr = 0.3f;
+float lr = 0.1f;
 // Bias learning rate
-float lrb = 0.01f;
+float lrb = 0.001f;
 
 float trainImg[600][65][65][3] = { 0.0f };
 int trainClass[600] = { 0 };
@@ -1113,7 +1113,7 @@ int save(unordered_map<String, int> all_classes)
 {
 	String path = std::experimental::filesystem::current_path().string();
 	ofstream outfile;
-	outfile.open(path + "\\out.txt", ios::trunc);
+	outfile.open(path + "\\Weights.txt", ios::trunc);
 	if (outfile.fail()) return -1;
 
 	String o;
@@ -1125,15 +1125,15 @@ int save(unordered_map<String, int> all_classes)
 	o += "\n";
 
 	o += "\nkern1:\n";
-	for (int i = 0; i < 3; i++) {
-		for (int j = 0; j < 3; j++) {
-			for (int k = 0; k < 3; k++) {
-				for (int l = 0; l < 32; l++) {
-					o += to_str(kern1[i][j][k][l]) + " ";
-				}
-				o += "\n";
-			}
+	for (int y = 0; y < 36; y++) {
+		for (int x = 0; x < 24; x++) {
+			int i = y % 3;
+			int j = x % 3;
+			int k = (y / 3) % 3;
+			int l = (x / 3) + (y / 9) * 8;
+			o += to_str(kern1[i][j][k][l]) + " ";
 		}
+		o += "\n";
 	}
 
 	o += "\nbias1:\n";
@@ -1143,15 +1143,15 @@ int save(unordered_map<String, int> all_classes)
 	o += "\n";
 
 	o += "\nkern2:\n";
-	for (int i = 0; i < 3; i++) {
-		for (int j = 0; j < 3; j++) {
-			for (int k = 0; k < 32; k++) {
-				for (int l = 0; l < 64; l++) {
-					o += to_str(kern2[i][j][k][l]) + " ";
-				}
-				o += "\n";
-			}
+	for (int y = 0; y < 192; y++) {
+		for (int x = 0; x < 96; x++) {
+			int i = y % 3;
+			int j = x % 3;
+			int k = x / 3;
+			int l = y / 3;
+			o += to_str(kern2[i][j][k][l]) + " ";
 		}
+		o += "\n";
 	}
 
 	o += "\nbias2:\n";
@@ -1161,15 +1161,15 @@ int save(unordered_map<String, int> all_classes)
 	o += "\n";
 
 	o += "\nkern3:\n";
-	for (int i = 0; i < 3; i++) {
-		for (int j = 0; j < 3; j++) {
-			for (int k = 0; k < 64; k++) {
-				for (int l = 0; l < 128; l++) {
-					o += to_str(kern3[i][j][k][l]) + " ";
-				}
-				o += "\n";
-			}
+	for (int y = 0; y < 384; y++) {
+		for (int x = 0; x < 192; x++) {
+			 int i = y % 3;
+			 int j = x % 3;
+			 int k = x / 3;
+			 int l = y / 3;
+			 o += to_str(kern3[i][j][k][l]) + " ";
 		}
+		o += "\n";
 	}
 
 	o += "\nbias3:\n";
@@ -1179,15 +1179,15 @@ int save(unordered_map<String, int> all_classes)
 	o += "\n";
 
 	o += "\nw1:\n";
-	for (int i = 0; i < 2; i++) {
-		for (int j = 0; j < 2; j++) {
-			for (int k = 0; k < 128; k++) {
-				for (int l = 0; l < 128; l++) {
-					o += to_str(w1[i][j][k][l]) + " ";
-				}
-				o += "\n";
-			}
+	for (int y = 0; y < 256; y++) {
+		for (int x = 0; x < 256; x++) {
+			int i = y % 2;
+			int j = x % 2;
+			int k = y / 2;
+			int l = x / 2;
+			o += to_str(w1[i][j][k][l]) + " ";
 		}
+		o += "\n";
 	}
 
 	o += "\nbiasw1:\n";
@@ -1197,9 +1197,9 @@ int save(unordered_map<String, int> all_classes)
 	o += "\n";
 
 	o += "\nw2:\n";
-	for (int i = 0; i < 128; i++) {
-		for (int j = 0; j < 128; j++) {
-			o += to_str(w2[i][j]) + " ";
+	for (int y = 0; y < 128; y++) {
+		for (int x = 0; x < 128; x++) {
+			o += to_str(w2[y][x]) + " ";
 		}
 		o += "\n";
 	}
@@ -1211,8 +1211,10 @@ int save(unordered_map<String, int> all_classes)
 	o += "\n";
 
 	o += "\nw3:\n";
-	for (int i = 0; i < 128; i++) {
-		for (int j = 0; j < 12; j++) {
+	for (int y = 0; y < 64; y++) {
+		for (int x = 0; x < 24; x++) {
+			int i = y + (x / 12) * 64;
+			int j = x % 12;
 			o += to_str(w3[i][j]) + " ";
 		}
 		o += "\n";
@@ -1495,36 +1497,38 @@ int main()
 	//std::cout << lin_g << endl;
 
 	// Training
-	for (size_t ll = 0; ll < 600; ll++) {
+	for (int e = 0; e < 5; e++) {
+		for (size_t ll = 0; ll < 300; ll++) {
 
-		float floatRBG[65][65][3];
-		Mat img = images[ll];
+			float floatRBG[65][65][3];
+			Mat img = images[ll];
 
-		for (int i = 0; i < 65; i++) {
-			for (int j = 0; j < 65; j++) {
-				for (int k = 0; k < 3; k++) {
-					floatRBG[i][j][k] = img.at<Vec3b>(i, j)[k] / 255.0f;
+			for (int i = 0; i < 65; i++) {
+				for (int j = 0; j < 65; j++) {
+					for (int k = 0; k < 3; k++) {
+						floatRBG[i][j][k] = img.at<Vec3b>(i, j)[k] / 255.0f;
+					}
 				}
 			}
+
+			string out;
+			// Time the neural net
+			auto t1 = chrono::high_resolution_clock::now();
+			doForwardProp(ll, floatRBG, img_class[ll], out);
+			auto t2 = chrono::high_resolution_clock::now();
+			doBackProp(ll, floatRBG, img_class[ll], fmaxf((count - ll) / count, 0.1f));
+			auto t3 = chrono::high_resolution_clock::now();
+
+			auto duration = chrono::duration_cast<chrono::milliseconds>(t2 - t1).count();
+			out += "\nforward pass: ";
+			out += to_str(duration);
+			out += "ms";
+			duration = chrono::duration_cast<chrono::milliseconds>(t3 - t2).count();
+			out += "\nbackward pass: ";
+			out += to_str(duration);
+			out += "ms\n";
+			std::cout << out << endl;
 		}
-
-		string out;
-		// Time the neural net
-		auto t1 = chrono::high_resolution_clock::now();
-		doForwardProp(ll, floatRBG, img_class[ll], out);
-		auto t2 = chrono::high_resolution_clock::now();
-		doBackProp(ll, floatRBG, img_class[ll], fmaxf((count - ll) / count, 0.1f));
-		auto t3 = chrono::high_resolution_clock::now();
-
-		auto duration = chrono::duration_cast<chrono::milliseconds>(t2 - t1).count();
-		out += "\nforward pass: ";
-		out += to_str(duration);
-		out += "ms";
-		duration = chrono::duration_cast<chrono::milliseconds>(t3 - t2).count();
-		out += "\nbackward pass: ";
-		out += to_str(duration);
-		out += "ms\n";
-		std::cout << out << endl;
 	}
 
 	vector<String> fn_test;

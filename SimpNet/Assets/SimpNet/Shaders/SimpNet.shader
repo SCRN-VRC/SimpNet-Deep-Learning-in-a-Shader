@@ -4,6 +4,7 @@
     {
         _CamIn ("Cam Input", 2D) = "black" {}
         _Buffer ("Buffer", 2D) = "black" {}
+        _InitWeights ("Initial Weights", 2D) = "black" {}
         _TargetClass ("Target Class #", Int) = 0
         _Reset ("Reset Weights", Int) = 0
         _Stop ("Stop Propagation", Int) = 0
@@ -37,6 +38,7 @@
             RWStructuredBuffer<float4> buffer : register(u1);
             Texture2D<float4> _CamIn;
             Texture2D<float> _Buffer;
+            Texture2D<float> _InitWeights;
             float4 _Buffer_TexelSize;
             float _MaxDist;
             float _Train;
@@ -103,15 +105,16 @@
                         px -= txKern1Area.xy;
                         if (_Time.y < 1.0 || _Reset > 0)
                         {
+                            col.r = _InitWeights.Load(int3(txInitKern1 + px, 0));
                             // col.r = px.y * _Buffer_TexelSize.z + px.x;
                             // col.r = rand(col.r) * 0.037;
                             
-                            // Debugging
-                            int i = px.y % 3;
-                            int j = px.x % 3;
-                            int k = (px.y / 3) % 3;
-                            int l = (px.x / 3) + (px.y / 9) * 8;
-                            col.r = i * j * k / (l + 1.0);
+                            // // Debugging
+                            // int i = px.y % 3;
+                            // int j = px.x % 3;
+                            // int k = (px.y / 3) % 3;
+                            // int l = (px.x / 3) + (px.y / 9) * 8;
+                            // col.r = i * j * k / (l + 1.0);
                         }
                         float d = _Buffer.Load(int3(txB4.xy + txDKern1Area.xy + px, 0)).x;
                         col.r -= _Train * _LearnRate * 0.025 * d;
@@ -121,8 +124,9 @@
                         px -= txBias1Area.xy;
                         if (_Time.y < 1.0 || _Reset > 0)
                         {
-                            col.r = px.y * _Buffer_TexelSize.z + px.x;
-                            col.r = rand(col.r) * 0.001;
+                            col.r = _InitWeights.Load(int3(txInitB1 + px, 0));
+                            // col.r = px.y * _Buffer_TexelSize.z + px.x;
+                            // col.r = rand(col.r) * 0.001;
 
                             // // Debugging
                             // col.r = px.y / 32.0 - 0.5;
@@ -217,8 +221,9 @@
                         px -= txKern2Area.xy;
                         if (_Time.y < 1.0 || _Reset > 0)
                         {
-                            col.r = px.y * _Buffer_TexelSize.z + px.x;
-                            col.r = rand(col.r) * 0.003472;
+                            col.r = _InitWeights.Load(int3(txInitKern2 + px, 0));
+                            // col.r = px.y * _Buffer_TexelSize.z + px.x;
+                            // col.r = rand(col.r) * 0.003472;
                             
                             // // Debugging
                             // int i = px.y % 3;
@@ -235,8 +240,9 @@
                         px -= txBias2Area.xy;
                         if (_Time.y < 1.0 || _Reset > 0)
                         {
-                            col.r = px.y * _Buffer_TexelSize.z + px.x;
-                            col.r = rand(col.r) * 0.001;
+                            col.r = _InitWeights.Load(int3(txInitB2 + px, 0));
+                            // col.r = px.y * _Buffer_TexelSize.z + px.x;
+                            // col.r = rand(col.r) * 0.001;
 
                             // // Debugging
                             // col.r = 1.0 - (px.y / 64.0) - 0.5;
@@ -316,8 +322,9 @@
                         px -= txKern3Area.xy;
                         if (_Time.y < 1.0 || _Reset > 0)
                         {
-                            col.r = px.y * _Buffer_TexelSize.z + px.x;
-                            col.r = rand(col.r) * 0.0017361;
+                            col.r = _InitWeights.Load(int3(txInitKern3 + px, 0));
+                            // col.r = px.y * _Buffer_TexelSize.z + px.x;
+                            // col.r = rand(col.r) * 0.0017361;
                             
                             // // Debugging
                             // int i = px.y % 3;
@@ -335,8 +342,9 @@
                         px -= txBias3Area.xy;
                         if (_Time.y < 1.0 || _Reset > 0)
                         {
-                            col.r = px.y * _Buffer_TexelSize.z + px.x;
-                            col.r = rand(col.r) * 0.001;
+                            col.r = _InitWeights.Load(int3(txInitB3 + px, 0));
+                            // col.r = px.y * _Buffer_TexelSize.z + px.x;
+                            // col.r = rand(col.r) * 0.001;
 
                             // // Debugging
                             // col.r = (px.y / 128.0) - 0.5;
@@ -421,8 +429,9 @@
                         px -= txW1Area.xy;
                         if (_Time.y < 1.0 || _Reset > 0)
                         {
-                            col.r = px.y * _Buffer_TexelSize.z + px.x;
-                            col.r = rand(col.r) * 0.001953125;
+                            col.r = _InitWeights.Load(int3(txInitW1 + px, 0));
+                            // col.r = px.y * _Buffer_TexelSize.z + px.x;
+                            // col.r = rand(col.r) * 0.001953125;
                             
                             // // Debugging
                             // int i = px.y % 2;
@@ -440,8 +449,9 @@
                         px -= txW1BiasArea.xy;
                         if (_Time.y < 1.0 || _Reset > 0)
                         {
-                            col.r = px.y * _Buffer_TexelSize.z + px.x;
-                            col.r = rand(col.r) * 0.001;
+                            col.r = _InitWeights.Load(int3(txInitBw1 + px, 0));
+                            // col.r = px.y * _Buffer_TexelSize.z + px.x;
+                            // col.r = rand(col.r) * 0.001;
 
                             // // Debugging
                             // col.r = (px.y % 8) / 8.0;
@@ -481,8 +491,9 @@
                         px -= txW2Area.xy;
                         if (_Time.y < 1.0 || _Reset > 0)
                         {
-                            col.r = px.y * _Buffer_TexelSize.z + px.x;
-                            col.r = rand(col.r) * 0.0078125;
+                            col.r = _InitWeights.Load(int3(txInitW2 + px, 0));
+                            // col.r = px.y * _Buffer_TexelSize.z + px.x;
+                            // col.r = rand(col.r) * 0.0078125;
                             
                             // // Debugging
                             // int i = px.y;
@@ -498,8 +509,9 @@
                         px -= txW2BiasArea.xy;
                         if (_Time.y < 1.0 || _Reset > 0)
                         {
-                            col.r = px.y * _Buffer_TexelSize.z + px.x;
-                            col.r = rand(col.r) * 0.001;
+                            col.r = _InitWeights.Load(int3(txInitBw2 + px, 0));
+                            // col.r = px.y * _Buffer_TexelSize.z + px.x;
+                            // col.r = rand(col.r) * 0.001;
 
                             // // Debugging
                             // col.r = 1.0 / (px.y + 1.0);
@@ -537,8 +549,9 @@
                         px -= txW3Area.xy;
                         if (_Time.y < 1.0 || _Reset > 0)
                         {
-                            col.r = px.y * _Buffer_TexelSize.z + px.x;
-                            col.r = rand(col.r) * 0.0078125;
+                            col.r = _InitWeights.Load(int3(txInitW3 + px, 0));
+                            // col.r = px.y * _Buffer_TexelSize.z + px.x;
+                            // col.r = rand(col.r) * 0.0078125;
                             
                             // // Debugging
                             // int i = px.y + (px.x / 12) * 64;
@@ -554,8 +567,9 @@
                         px -= txW3BiasArea.xy;
                         if (_Time.y < 1.0 || _Reset > 0)
                         {
-                            col.r = px.y * _Buffer_TexelSize.z + px.x;
-                            col.r = rand(col.r) * 0.001;
+                            col.r = _InitWeights.Load(int3(txInitBw3 + px, 0));
+                            // col.r = px.y * _Buffer_TexelSize.z + px.x;
+                            // col.r = rand(col.r) * 0.001;
 
                             // // Debugging
                             // col.r = 1.0 - (px.y / 12.0);
