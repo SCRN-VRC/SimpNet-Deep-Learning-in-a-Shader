@@ -69,7 +69,7 @@ public class BakeCNNWeights : EditorWindow {
         Regex rgFloats = new Regex("[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?");
         MatchCollection fvals = rgFloats.Matches(strWs);
 
-        //Debug.Log("Count: " + fvals.Count);
+        Debug.Log("Count: " + fvals.Count);
         
         int c = 0;
         foreach (Match fValMatches in fvals)
@@ -90,7 +90,10 @@ public class BakeCNNWeights : EditorWindow {
     void OnGenerateTexture()
     {
         Texture2D tex = new Texture2D(512, 512, TextureFormat.RFloat, false);
-        
+        tex.wrapMode = TextureWrapMode.Clamp;
+        tex.filterMode = FilterMode.Point;
+        tex.anisoLevel = 1;
+
         // Kern1 weights
         Regex rgWs = new Regex("(?<=kern1:)[\\s\\S]*(?=bias1:)");
         ExtractFloats(tex, rgWs, 24, 0);

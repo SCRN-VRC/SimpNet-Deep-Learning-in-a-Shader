@@ -48,9 +48,9 @@ inline float dactFn(float x) {
 }
 
 // Learning rate
-float lr = 0.1f;
+float lr = 0.3f;
 // Bias learning rate
-float lrb = 0.001f;
+float lrb = 0.1f;
 
 float trainImg[600][65][65][3] = { 0.0f };
 int trainClass[600] = { 0 };
@@ -1448,8 +1448,6 @@ int main()
 	vector<Mat> images;
 	vector<int> img_class;
 	size_t count = fn.size();
-	// Randomize
-	shuffle(fn.begin(), fn.end(), gen);
 
 	unordered_map<String, int> all_classes;
 	regex rgx("Fruits\\\\([A-Z]\\w+)");
@@ -1497,8 +1495,18 @@ int main()
 	//std::cout << lin_g << endl;
 
 	// Training
-	for (int e = 0; e < 5; e++) {
-		for (size_t ll = 0; ll < 300; ll++) {
+
+	int const iters = 75;
+	for (int e = 0; e < 10; e++) {
+
+		// Shuffle
+		auto seed = unsigned(time(0));
+		srand(seed);
+		random_shuffle(images.begin(), images.end());
+		srand(seed);
+		random_shuffle(img_class.begin(), img_class.end());
+
+		for (size_t ll = 0; ll < iters; ll++) {
 
 			float floatRBG[65][65][3];
 			Mat img = images[ll];
@@ -1516,7 +1524,7 @@ int main()
 			auto t1 = chrono::high_resolution_clock::now();
 			doForwardProp(ll, floatRBG, img_class[ll], out);
 			auto t2 = chrono::high_resolution_clock::now();
-			doBackProp(ll, floatRBG, img_class[ll], fmaxf((count - ll) / count, 0.1f));
+			doBackProp(ll, floatRBG, img_class[ll], 1);
 			auto t3 = chrono::high_resolution_clock::now();
 
 			auto duration = chrono::duration_cast<chrono::milliseconds>(t2 - t1).count();
