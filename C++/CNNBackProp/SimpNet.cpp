@@ -50,7 +50,7 @@ inline float dactFn(float x) {
 // Learning rate
 float lr = 0.3f;
 // Bias learning rate
-float lrb = 0.1f;
+float lrb = 0.001f;
 
 float trainImg[600][65][65][3] = { 0.0f };
 int trainClass[600] = { 0 };
@@ -1496,8 +1496,8 @@ int main()
 
 	// Training
 
-	int const iters = 75;
-	for (int e = 0; e < 10; e++) {
+	int const iters = 1000;
+	for (int e = 0; e < 2; e++) {
 
 		// Shuffle
 		auto seed = unsigned(time(0));
