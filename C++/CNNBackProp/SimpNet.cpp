@@ -48,9 +48,9 @@ inline float dactFn(float x) {
 }
 
 // Learning rate
-float lr = 0.3f;
+float lr = 0.1f;
 // Bias learning rate
-float lrb = 0.001f;
+float lrb = 0.01f;
 
 float trainImg[600][65][65][3] = { 0.0f };
 int trainClass[600] = { 0 };
@@ -1076,37 +1076,37 @@ void doBackProp(size_t ll, float image[65][65][3], int img_class, float anneal)
 		}
 	}
 
-	// Kern2 bias
-	for (int i = 0; i < 64; i++) {
-		bias2[i] -= lrb * 0.05f * anneal * dbias2[i];
-	}
+	//// Kern2 bias
+	//for (int i = 0; i < 64; i++) {
+	//	bias2[i] -= lrb * 0.05f * anneal * dbias2[i];
+	//}
 
-	// Kern2 weights
-	for (int i = 0; i < 3; i++) {
-		for (int j = 0; j < 3; j++) {
-			for (int k = 0; k < 32; k++) {
-				for (int l = 0; l < 64; l++) {
-					kern2[i][j][k][l] -= lr * 0.05f * anneal * dkern2[i][j][k][l];
-				}
-			}
-		}
-	}
+	//// Kern2 weights
+	//for (int i = 0; i < 3; i++) {
+	//	for (int j = 0; j < 3; j++) {
+	//		for (int k = 0; k < 32; k++) {
+	//			for (int l = 0; l < 64; l++) {
+	//				kern2[i][j][k][l] -= lr * 0.05f * anneal * dkern2[i][j][k][l];
+	//			}
+	//		}
+	//	}
+	//}
 
-	// Kern1 bias
-	for (int i = 0; i < 32; i++) {
-		bias1[i] -= lrb * 0.025f * anneal * dbias1[i];
-	}
+	//// Kern1 bias
+	//for (int i = 0; i < 32; i++) {
+	//	bias1[i] -= lrb * 0.025f * anneal * dbias1[i];
+	//}
 
-	// Kern1 weights
-	for (int i = 0; i < 3; i++) {
-		for (int j = 0; j < 3; j++) {
-			for (int k = 0; k < 3; k++) {
-				for (int l = 0; l < 32; l++) {
-					kern1[i][j][k][l] -= lr * 0.025f * anneal * dkern1[i][j][k][l];
-				}
-			}
-		}
-	}
+	//// Kern1 weights
+	//for (int i = 0; i < 3; i++) {
+	//	for (int j = 0; j < 3; j++) {
+	//		for (int k = 0; k < 3; k++) {
+	//			for (int l = 0; l < 32; l++) {
+	//				kern1[i][j][k][l] -= lr * 0.025f * anneal * dkern1[i][j][k][l];
+	//			}
+	//		}
+	//	}
+	//}
 }
 
 int save(unordered_map<String, int> all_classes)
@@ -1443,7 +1443,7 @@ int main()
 	//}
 
 	vector<String> fn;
-	glob("D:\\Storage\\Datasets\\Train\\Fruits\\*.*", fn, true);
+	cv::glob("D:\\Storage\\Datasets\\Train\\Fruits\\*.*", fn, true);
 
 	vector<Mat> images;
 	vector<int> img_class;
@@ -1496,35 +1496,35 @@ int main()
 
 	// Training
 
-	int const iters = 1000;
-	for (int e = 0; e < 2; e++) {
+	int const iters = 303;
+	for (int e = 0; e < 5; e++) {
 
 		// Shuffle
-		auto seed = unsigned(time(0));
-		srand(seed);
-		random_shuffle(images.begin(), images.end());
-		srand(seed);
-		random_shuffle(img_class.begin(), img_class.end());
+		unsigned seed = chrono::system_clock::now().time_since_epoch().count();
+		shuffle(images.begin(), images.end(), default_random_engine(seed));
+		shuffle(img_class.begin(), img_class.end(), default_random_engine(seed));
 
 		for (size_t ll = 0; ll < iters; ll++) {
 
 			float floatRBG[65][65][3];
 			Mat img = images[ll];
 
+			float atten = fmin(pow(ll / float(iters), 5) + 0.05f, 1.0f);
+
 			for (int i = 0; i < 65; i++) {
 				for (int j = 0; j < 65; j++) {
 					for (int k = 0; k < 3; k++) {
-						floatRBG[i][j][k] = img.at<Vec3b>(i, j)[k] / 255.0f;
+						floatRBG[i][j][k] = img.at<Vec3b>(i, j)[k] / 255.0f - 0.5f;
 					}
 				}
 			}
-
+			cout << img_class[ll] << endl;
 			string out;
 			// Time the neural net
 			auto t1 = chrono::high_resolution_clock::now();
 			doForwardProp(ll, floatRBG, img_class[ll], out);
 			auto t2 = chrono::high_resolution_clock::now();
-			doBackProp(ll, floatRBG, img_class[ll], 1);
+			doBackProp(ll, floatRBG, img_class[ll], atten);
 			auto t3 = chrono::high_resolution_clock::now();
 
 			auto duration = chrono::duration_cast<chrono::milliseconds>(t2 - t1).count();
@@ -1540,7 +1540,7 @@ int main()
 	}
 
 	vector<String> fn_test;
-	glob("D:\\Storage\\Datasets\\Test\\Fruits\\*.*", fn_test, true);
+	cv::glob("D:\\Storage\\Datasets\\Test\\Fruits\\*.*", fn_test, true);
 	vector<Mat> images_test;
 	vector<String> str_class_test;
 	vector<int> img_class_test;
@@ -1563,7 +1563,7 @@ int main()
 		for (int i = 0; i < 65; i++) {
 			for (int j = 0; j < 65; j++) {
 				for (int k = 0; k < 3; k++) {
-					floatRBG[i][j][k] = img.at<Vec3b>(i, j)[k] / 255.0f;
+					floatRBG[i][j][k] = img.at<Vec3b>(i, j)[k] / 255.0f - 0.5f;
 				}
 			}
 		}
@@ -1576,6 +1576,6 @@ int main()
 	}
 
 	int s = save(all_classes);
-	system("pause");
+	std::system("pause");
 	return s;
 }

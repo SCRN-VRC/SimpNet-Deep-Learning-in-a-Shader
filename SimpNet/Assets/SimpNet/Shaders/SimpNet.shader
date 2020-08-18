@@ -146,15 +146,15 @@
 
                         float sum = 0.0;
                         for (int l = 0; l < 3; l++) {
-                            sum += _CamIn.Load(int3(j0, 64 - i0, 0))[2 - l] * getKern1(_Buffer, int4(0, 0, l, k));
-                            sum += _CamIn.Load(int3(j0, 64 - i1, 0))[2 - l] * getKern1(_Buffer, int4(0, 1, l, k));
-                            sum += _CamIn.Load(int3(j0, 64 - i2, 0))[2 - l] * getKern1(_Buffer, int4(0, 2, l, k));
-                            sum += _CamIn.Load(int3(j1, 64 - i0, 0))[2 - l] * getKern1(_Buffer, int4(1, 0, l, k));
-                            sum += _CamIn.Load(int3(j1, 64 - i1, 0))[2 - l] * getKern1(_Buffer, int4(1, 1, l, k));
-                            sum += _CamIn.Load(int3(j1, 64 - i2, 0))[2 - l] * getKern1(_Buffer, int4(1, 2, l, k));
-                            sum += _CamIn.Load(int3(j2, 64 - i0, 0))[2 - l] * getKern1(_Buffer, int4(2, 0, l, k));
-                            sum += _CamIn.Load(int3(j2, 64 - i1, 0))[2 - l] * getKern1(_Buffer, int4(2, 1, l, k));
-                            sum += _CamIn.Load(int3(j2, 64 - i2, 0))[2 - l] * getKern1(_Buffer, int4(2, 2, l, k));
+                            sum += (_CamIn.Load(int3(j0, 64 - i0, 0))[2 - l] - 0.5) * getKern1(_Buffer, int4(0, 0, l, k));
+                            sum += (_CamIn.Load(int3(j0, 64 - i1, 0))[2 - l] - 0.5) * getKern1(_Buffer, int4(0, 1, l, k));
+                            sum += (_CamIn.Load(int3(j0, 64 - i2, 0))[2 - l] - 0.5) * getKern1(_Buffer, int4(0, 2, l, k));
+                            sum += (_CamIn.Load(int3(j1, 64 - i0, 0))[2 - l] - 0.5) * getKern1(_Buffer, int4(1, 0, l, k));
+                            sum += (_CamIn.Load(int3(j1, 64 - i1, 0))[2 - l] - 0.5) * getKern1(_Buffer, int4(1, 1, l, k));
+                            sum += (_CamIn.Load(int3(j1, 64 - i2, 0))[2 - l] - 0.5) * getKern1(_Buffer, int4(1, 2, l, k));
+                            sum += (_CamIn.Load(int3(j2, 64 - i0, 0))[2 - l] - 0.5) * getKern1(_Buffer, int4(2, 0, l, k));
+                            sum += (_CamIn.Load(int3(j2, 64 - i1, 0))[2 - l] - 0.5) * getKern1(_Buffer, int4(2, 1, l, k));
+                            sum += (_CamIn.Load(int3(j2, 64 - i2, 0))[2 - l] - 0.5) * getKern1(_Buffer, int4(2, 2, l, k));
                             
                             // sum += testImage(i0, j0, l) * getKern1(_Buffer, int4(0, 0, l, k));
                             // sum += testImage(i0, j1, l) * getKern1(_Buffer, int4(0, 1, l, k));
@@ -901,7 +901,7 @@
                                 int l1x = x + i;
                                 int l1y = y + j;
                                 // sum += testImage(l1x, l1y, k) * getDiConv1(_Buffer, int3(y, x, l));
-                                sum += _CamIn.Load(int3(l1y, 64 - l1x, 0))[2 - k] * getDiConv1(_Buffer, int3(y, x, l));
+                                sum += (_CamIn.Load(int3(l1y, 64 - l1x, 0))[2 - k] - 0.5) * getDiConv1(_Buffer, int3(y, x, l));
                             }
                         }
                         col.r = sum;
