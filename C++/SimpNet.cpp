@@ -29,9 +29,9 @@ using json = nlohmann::json;
 #define DEBUG_ALL       7
 
 #define DEBUG_LAYER     FC3
-#define DEBUG_BP		FC3
+#define DEBUG_BP		0
 #define DEBUG_WEIGHTS   0
-#define TRAIN           1
+#define TRAIN           0
 
 #define WEIGHTS_PATH    "C:\\Users\\Alan\\source\\repos\\SimpNetPython\\Weights.txt"
 #define TRAIN_DIR       "D:\\Storage\\Datasets\\Train\\"
@@ -1173,6 +1173,7 @@ int main()
 
 	int correct = 0;
 	for (size_t ll = 0; ll < count; ll++) {
+		String o;
 		Mat img = images[ll];
 
 		for (int i = 0; i < imageSize[0]; i++) {
@@ -1205,6 +1206,7 @@ int main()
 		correct = (classOut == img_class[ll]) ? correct + 1 : correct;
 		o += "Testing " + to_str(ll) + " Expected: " + to_str(img_class[ll]) +
 			" was " + to_str(classOut) + " Correct: " + to_str(correct) + "/" + to_str(count) + "\n";
+		cout << o << endl;
 	}
 
 	CNN::freeArray(65, 65, 3, (void***)floatRBG);

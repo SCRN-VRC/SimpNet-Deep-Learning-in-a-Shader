@@ -485,4 +485,4 @@ MigrationBackup/
 FodyWeavers.xsd
 
 # Other
-C++/Images/*
+C++/json.hpp
