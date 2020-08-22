@@ -28,7 +28,7 @@ using json = nlohmann::json;
 #define FC3             6
 #define DEBUG_ALL       7
 
-#define DEBUG_LAYER     FC3
+#define DEBUG_LAYER     DEBUG_ALL
 #define DEBUG_BP		0
 #define DEBUG_WEIGHTS   0
 #define XORTEST         0
@@ -1111,9 +1111,9 @@ public:
 
 		// FC2 bias
 		for (int i = 0; i < 128; i++) {
+			dbFC2_h[i] = dbFC2[i];
 			dbFC2[i] = 0.f;
 			for (int j = 0; j < 12; j++) {
-				dbFC2_h[i] = dbFC2[i];
 				// With respect to w3
 				dbFC2[i] += dbFC3[j] * wFC3[i][j];
 			}
@@ -1130,9 +1130,9 @@ public:
 
 		// FC1 bias
 		for (int i = 0; i < 128; i++) {
+			dbFC1_h[i] = dbFC1[i];
 			dbFC1[i] = 0.0f;
 			for (int j = 0; j < 128; j++) {
-				dbFC1_h[i]= dbFC1[i];
 				// With respect to activation function of fc2 and w2
 				dbFC1[i] += dbFC2[j] * dfn(FC2s[j]) * wFC2[j][i];
 			}
@@ -1184,19 +1184,19 @@ public:
 			}
 		}
 
-		// FC1 bias
-		for (int i = 0; i < 128; i++) {
-			float vdb = momentum(dbFC1[i], dbFC1_h[i]);
-			bFC1[i] -= lr * (dbFC1[i] / (sqrt(vdb) + epsilon));
-		}
+		//// FC1 bias
+		//for (int i = 0; i < 128; i++) {
+		//	float vdb = momentum(dbFC1[i], dbFC1_h[i]);
+		//	bFC1[i] -= lr * (dbFC1[i] / (sqrt(vdb) + epsilon));
+		//}
 
-		// FC1 weights
-		for (int i = 0; i < 128; i++) {
-			for (int j = 0; j < 128; j++) {
-				float vdw = momentum(dwFC1[i][j], dwFC1_h[i][j]);
-				wFC1[i][j] -= lr * (dwFC1[i][j] / (sqrt(vdw) + epsilon));
-			}
-		}
+		//// FC1 weights
+		//for (int i = 0; i < 128; i++) {
+		//	for (int j = 0; j < 128; j++) {
+		//		float vdw = momentum(dwFC1[i][j], dwFC1_h[i][j]);
+		//		wFC1[i][j] -= lr * (dwFC1[i][j] / (sqrt(vdw) + epsilon));
+		//	}
+		//}
 	}
 };
 
@@ -1267,11 +1267,11 @@ int main()
 
 			o += "training " + to_str(ll) + " expected: " + to_str(img_class[ll]) +
 				" was " + to_str(classOut);
-			o += "\naccuracy: " + to_str(co / float(ll)) + " loss: " + to_str(tce / float(ll));
+			o += "\naccuracy: " + to_str(co / float(ll + 1)) +
+				" loss: " + to_str(tce / float(ll + 1));
 			testCNN.backProp(floatRBG, img_class[ll], o);
 			testCNN.update(o);
 
-			system("cls");
 			cout << o << endl;
 		}
 	}
@@ -1297,7 +1297,7 @@ int main()
 
 	float tce = 0.0f;
 	int co = 0;
-	for (size_t ll = 0; ll < count; ll++) {
+	for (size_t ll = 0; ll < 1; ll++) {
 		String o;
 		Mat img = images[ll];
 
@@ -1316,9 +1316,9 @@ int main()
 		tce += ce;
 		o += "testing " + to_str(ll) + " expected: " + to_str(img_class[ll]) +
 			" was " + to_str(classOut);
-		o += "\naccuracy: " + to_str(co / float(ll)) + " loss: " + to_str(tce / float(ll));
+		o += "\naccuracy: " + to_str(co / float(ll + 1)) +
+			" loss: " + to_str(tce / float(ll + 1));
 
-		system("cls");
 		cout << o << endl;
 	}
 
