@@ -28,9 +28,10 @@ using json = nlohmann::json;
 #define FC3             6
 #define DEBUG_ALL       7
 
-#define DEBUG_LAYER     L2
+#define DEBUG_LAYER     FC3
+#define DEBUG_BP		FC3
 #define DEBUG_WEIGHTS   0
-#define TRAIN           0
+#define TRAIN           1
 
 #define WEIGHTS_PATH    "C:\\Users\\Alan\\source\\repos\\SimpNetPython\\Weights.txt"
 #define TRAIN_DIR       "D:\\Storage\\Datasets\\Train\\"
@@ -791,7 +792,6 @@ public:
 			o += "\n";
 		}
 #endif
-		// TODO FIX ME: OUTPUTS INCORRECT
 		// Convolutional layer 2, kernel=3x3, stride=1
 		for (int k = 0; k < 64; k++) {
 			for (int i = 0; i < 14; i++) {
@@ -824,7 +824,7 @@ public:
 		o += "\nConv Layer 2:\n";
 		for (int i = 0; i < 14; i++) {
 			for (int j = 0; j < 14; j++) {
-				o += to_str(L2a[i][j][0]) + " ";
+				o += to_str(L2s[i][j][0]) + " ";
 			}
 			o += "\n";
 		}
@@ -897,8 +897,8 @@ public:
 				for (int j = 0; j < 3; j++) {
 					L3s[i][j][k] = 0.0f;
 
-					int i0 = i * 2, i1 = i + 1, i2 = i + 2;
-					int j0 = j * 2, j1 = j + 1, j2 = j + 2;
+					int i0 = i * 2, i1 = i0 + 1, i2 = i0 + 2;
+					int j0 = j * 2, j1 = j0 + 1, j2 = j0 + 2;
 
 					for (int l = 0; l < 64; l++) {
 						L3s[i][j][k] +=
@@ -913,7 +913,7 @@ public:
 							L2Max[i2][j2][l] * wL3[2][2][l][k];
 					}
 
-					L3s[i][j][k] += bL2[k];
+					L3s[i][j][k] += bL3[k];
 					L3a[i][j][k] = afn(L3s[i][j][k]);
 				}
 			}
@@ -1137,7 +1137,6 @@ public:
 int main()
 {
 	CNN testCNN;
-	String o;
 	const int imageSize[2] = { 65, 65 };
 
 #if (!TRAIN)
@@ -1173,7 +1172,7 @@ int main()
 	float*** floatRBG = (float***)CNN::createArray(imageSize[0], imageSize[1], 3, sizeof(float));
 
 	int correct = 0;
-	for (size_t ll = 0; ll < 1; ll++) {
+	for (size_t ll = 0; ll < count; ll++) {
 		Mat img = images[ll];
 
 		for (int i = 0; i < imageSize[0]; i++) {
@@ -1226,7 +1225,7 @@ int main()
 		int r1 = (int)floor(dis0(gen));
 		for (int i = 0; i < imageSize[0]; i++) {
 			for (int j = 0; j < imageSize[1]; j++) {
-				input[k][i][j][0] = (i == r0 && j == r1) ? 1.0f : 0.0f;
+				input[k][i][j][0] = (i == r0 && j == r1) ? -0.5f : 0.5f;
 				input[k][i][j][1] = input[k][i][j][0];
 				input[k][i][j][2] = input[k][i][j][0];
 			}
@@ -1236,11 +1235,13 @@ int main()
 	}
 
 	for (int i = 0; i < c; i++) {
+		String o;
 		int classOut = testCNN.forwardProp(input[i], inClass[i], o);
 		o += "Training " + to_str(c) + " Expected: " + to_str(inClass[i]) +
 			" was " + to_str(classOut) + "\n";
 		testCNN.backProp(input[i], inClass[i], o);
 		testCNN.update(o);
+		cout << o << endl;
 	}
 
 	const int t = 100;
@@ -1255,7 +1256,7 @@ int main()
 		int r1 = (int)floor(dis0(gen));
 		for (int i = 0; i < 65; i++) {
 			for (int j = 0; j < 65; j++) {
-				test[k][i][j][0] = (i == r0 && j == r1) ? 1.0f : 0.0f;
+				test[k][i][j][0] = (i == r0 && j == r1) ? -0.5f : 0.5f;
 				test[k][i][j][1] = test[k][i][j][0];
 				test[k][i][j][2] = test[k][i][j][0];
 			}
@@ -1265,11 +1266,13 @@ int main()
 	}
 
 	for (int i = 0; i < t; i++) {
+		String o;
 		int classOut = testCNN.forwardProp(test[i], testClass[i], o);
 		correct = (classOut == inClass[i]) ? correct + 1 : correct;
 		o += "Testing " + to_str(i) + " Expected: " + to_str(inClass[i]) +
 			" was " + to_str(classOut) + "\n";
 		o += "\nCorrect: " + to_str(correct) + "/" + to_str(t);
+		cout << o << endl;
 	}
 
 	CNN::freeArray(c, imageSize[0], imageSize[1], 3, (void****)input);
@@ -1279,7 +1282,6 @@ int main()
 
 #endif
 
-	std::cout << o << endl;
 	system("pause");
 
 	return 0;
