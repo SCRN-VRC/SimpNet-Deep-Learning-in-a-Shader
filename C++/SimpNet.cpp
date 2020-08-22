@@ -29,7 +29,7 @@ using json = nlohmann::json;
 #define DEBUG_ALL       7
 
 #define DEBUG_LAYER     FC3
-#define DEBUG_BP		0
+#define DEBUG_BP		FC3
 #define DEBUG_WEIGHTS   0
 #define TRAIN           0
 
@@ -111,6 +111,11 @@ private:
 	float** dwFC2_h;    // 128 x 128
 	float* dbFC2;       // 1 x 128
 	float* dbFC2_h;     // 1 x 128
+
+	float** dwFC1;      // 128 x 128
+	float** dwFC1_h;    // 128 x 128
+	float* dbFC1;       // 1 x 128
+	float* dbFC1_h;     // 1 x 128
 
 public:
 
@@ -496,6 +501,8 @@ public:
 		wFC2 = (float**)createArray(128, 128, sizeof(float));
 		dwFC2 = (float**)createArray(128, 128, sizeof(float));
 		dwFC2_h = (float**)createArray(128, 128, sizeof(float));
+		dwFC1 = (float**)createArray(128, 128, sizeof(float));
+		dwFC1_h = (float**)createArray(128, 128, sizeof(float));
 #if (DEBUG_WEIGHTS)
 		for (int i = 0; i < 128; i++) {
 			for (int j = 0; j < 128; j++) {
@@ -503,6 +510,8 @@ public:
 				wFC2[i][j] = (127 - i) / 12800.0f;
 				dwFC2[i][j] = 0.0f;
 				dwFC2_h[i][j] = 0.0f;
+				dwFC1[i][j] = 0.0f;
+				dwFC1_h[i][j] = 0.0f;
 			}
 		}
 #else
@@ -513,6 +522,8 @@ public:
 				wFC2[i][j] = dis4(gen);
 				dwFC2[i][j] = 0.0f;
 				dwFC2_h[i][j] = 0.0f;
+				dwFC1[i][j] = 0.0f;
+				dwFC1_h[i][j] = 0.0f;
 			}
 		}
 #endif
@@ -558,11 +569,15 @@ public:
 		bFC2 = (float*)malloc(128 * sizeof(float));
 		dbFC2 = (float*)malloc(128 * sizeof(float));
 		dbFC2_h = (float*)malloc(128 * sizeof(float));
+		dbFC1 = (float*)malloc(128 * sizeof(float));
+		dbFC1_h = (float*)malloc(128 * sizeof(float));
 		for (int i = 0; i < 128; i++) {
 			bFC1[i] = 0.0f;
 			bFC2[i] = 0.0f;
 			dbFC2[i] = 0.0f;
 			dbFC2_h[i] = 0.0f;
+			dbFC1[i] = 0.0f;
+			dbFC1_h[i] = 0.0f;
 		}
 
 		bFC3 = (float*)malloc(12 * sizeof(float));
@@ -681,6 +696,10 @@ public:
 		freeArray(128, 128, (void**)dwFC2_h);
 		free(dbFC2);
 		free(dbFC2_h);
+		freeArray(128, 128, (void**)dwFC1);
+		freeArray(128, 128, (void**)dwFC1_h);
+		free(dbFC1);
+		free(dbFC1_h);
 	}
 
 	int forwardProp(float*** image, int classNo, String &o)
@@ -1058,40 +1077,66 @@ public:
 		float expected[12] = { 0.0f };
 		expected[classNo] = 1.0f;
 
-		//o += "\ndelta bias 3: ";
+		// FC3 bias
 		for (int i = 0; i < 12; i++) {
 			// Save history
 			dbFC3_h[i] = dbFC3[i];
 			// Cross Entropy derivative with softmax
 			dbFC3[i] = (FC3o[i] - expected[i]);
-			//o += to_str(expected[i]) + " ";
 		}
 
-		//o += "\ndelta w3: ";
+#if (DEBUG_BP == FC3)
+		o += "\nFC3 bias delta:\n";
+		for (int i = 0; i < 12; i++) {
+			o += to_str(dbFC3[i]) + " ";
+		}
+		o += "\n";
+#endif
+
+		// FC3 gradient
 		for (int i = 0; i < 128; i++) {
 			for (int j = 0; j < 12; j++) {
 				dwFC3_h[i][j] = dwFC3[i][j];
 				dwFC3[i][j] = dbFC3[j] * FC2a[i];
-				//o += to_str(dwFC2[i][j]) + " ";
 			}
-			//o += "\n";
 		}
 
-		//o += "\ndelta bias 2: ";
+#if (DEBUG_BP == FC3)
+		o += "\nFC3 weight delta:\n";
+		for (int i = 0; i < 128; i++) {
+			for (int j = 0; j < 12; j++) {
+				o += to_str(dwFC3[i][j]) + " ";
+			}
+			o += "\n";
+		}
+#endif
+
+		// FC2 bias
 		for (int i = 0; i < 128; i++) {
 			dbFC2[i] = 0.f;
 			for (int j = 0; j < 12; j++) {
 				dbFC2_h[i] = dbFC2[i];
+				// With respect to w3
 				dbFC2[i] += dbFC3[j] * wFC3[i][j];
 			}
 		}
 
-		//o += "\ndelta w2: ";
+		// FC2 gradient
 		for (int i = 0; i < 128; i++) {
 			for (int j = 0; j < 128; j++) {
 				dwFC2_h[i][j] = dwFC2[i][j];
 				// With respect to the activation function of fc2 and the output of previous layer
-				dwFC2[i][j] = dbFC2[i] * afn(FC2s[i]) * FC1a[j];
+				dwFC2[i][j] = dbFC2[i] * dfn(FC2s[i]) * FC1a[j];
+			}
+		}
+
+		// FC1 bias
+		for (int i = 0; i < 128; i++) {
+			dbFC1[i] = 0.0f;
+			for (int j = 0; j < 128; j++) {
+				dwFC1_h[i][j] = dwFC1[i][j];
+				// With respect to activation function of fc2 and w2
+				dbFC1[i] += dbFC2[j] * dfn(FC2s[j]) * wFC2[j][i];
 			}
 		}
 	}
@@ -1172,7 +1217,7 @@ int main()
 	float*** floatRBG = (float***)CNN::createArray(imageSize[0], imageSize[1], 3, sizeof(float));
 
 	int correct = 0;
-	for (size_t ll = 0; ll < count; ll++) {
+	for (size_t ll = 0; ll < 1; ll++) {
 		String o;
 		Mat img = images[ll];
 
@@ -1206,6 +1251,10 @@ int main()
 		correct = (classOut == img_class[ll]) ? correct + 1 : correct;
 		o += "Testing " + to_str(ll) + " Expected: " + to_str(img_class[ll]) +
 			" was " + to_str(classOut) + " Correct: " + to_str(correct) + "/" + to_str(count) + "\n";
+		
+		testCNN.backProp(floatRBG, img_class[ll], o);
+		testCNN.update(o);
+
 		cout << o << endl;
 	}
 
