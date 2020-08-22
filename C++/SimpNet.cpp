@@ -29,9 +29,10 @@ using json = nlohmann::json;
 #define DEBUG_ALL       7
 
 #define DEBUG_LAYER     FC3
-#define DEBUG_BP		FC3
+#define DEBUG_BP		0
 #define DEBUG_WEIGHTS   0
-#define TRAIN           0
+#define XORTEST         0
+#define TRAIN           1
 
 #define WEIGHTS_PATH    "C:\\Users\\Alan\\source\\repos\\SimpNetPython\\Weights.txt"
 #define TRAIN_DIR       "D:\\Storage\\Datasets\\Train\\"
@@ -702,7 +703,7 @@ public:
 		free(dbFC1_h);
 	}
 
-	int forwardProp(float*** image, int classNo, String &o)
+	int forwardProp(float*** image, int classNo, String& o, float* ce)
 	{
 		// Convolutional layer 1, kernel=3x3, stride=2
 		for (int k = 0; k < 32; k++) {
@@ -1050,23 +1051,20 @@ public:
 			FC3o[i] = exp(FC3s[i]) / s;
 		}
 
+		float expected[12] = { 0.0f };
+		expected[classNo] = 1.0f;
+		*ce = 0.0f;
+		for (int i = 0; i < 12; i++) {
+			*ce += expected[i] * log(FC3o[i]);
+		}
+		*ce = -*ce;
+
 #if (DEBUG_LAYER == FC3 || DEBUG_LAYER == DEBUG_ALL)
 		o += "\nsoftmax\n";
 		for (int i = 0; i < 12; i++) {
 			o += to_str(FC3o[i]);
 			o.push_back(' ');
 		}
-		o.push_back('\n');
-
-		float expected[12] = { 0.0f };
-		expected[classNo] = 1.0f;
-
-		o += "\ncross entropy error: ";
-		float ce = 0.0f;
-		for (int i = 0; i < 12; i++) {
-			ce += expected[i] * log(FC3o[i]);
-		}
-		o += to_str(-ce);
 		o.push_back('\n');
 #endif
 		return (int)(max_element(FC3o, FC3o + 12) - FC3o);
@@ -1134,9 +1132,18 @@ public:
 		for (int i = 0; i < 128; i++) {
 			dbFC1[i] = 0.0f;
 			for (int j = 0; j < 128; j++) {
-				dwFC1_h[i][j] = dwFC1[i][j];
+				dbFC1_h[i]= dbFC1[i];
 				// With respect to activation function of fc2 and w2
 				dbFC1[i] += dbFC2[j] * dfn(FC2s[j]) * wFC2[j][i];
+			}
+		}
+
+		// FC1 gradient
+		for (int i = 0; i < 128; i++) {
+			for (int j = 0; j < 128; j++) {
+				dwFC1_h[i][j] = dwFC1[i][j];
+				// With respect to activation function of fc1 and the output of previous layer
+				dwFC1[i][j] = dbFC1[i] * dfn(FC1s[i]) * L3Max[j];
 			}
 		}
 	}
@@ -1176,6 +1183,20 @@ public:
 				wFC2[i][j] -= lr * (dwFC2[i][j] / (sqrt(vdw) + epsilon));
 			}
 		}
+
+		// FC1 bias
+		for (int i = 0; i < 128; i++) {
+			float vdb = momentum(dbFC1[i], dbFC1_h[i]);
+			bFC1[i] -= lr * (dbFC1[i] / (sqrt(vdb) + epsilon));
+		}
+
+		// FC1 weights
+		for (int i = 0; i < 128; i++) {
+			for (int j = 0; j < 128; j++) {
+				float vdw = momentum(dwFC1[i][j], dwFC1_h[i][j]);
+				wFC1[i][j] -= lr * (dwFC1[i][j] / (sqrt(vdw) + epsilon));
+			}
+		}
 	}
 };
 
@@ -1184,9 +1205,9 @@ int main()
 	CNN testCNN;
 	const int imageSize[2] = { 65, 65 };
 
-#if (!TRAIN)
+#if (!XORTEST)
 	vector<String> fn;
-	string dir = TEST_DIR;
+	string dir = TRAIN_DIR;
 	dir.append(CATEGORY);
 	dir.append("\\*.*");
 	cv::glob(dir, fn, true);
@@ -1212,12 +1233,71 @@ int main()
 		img_class.push_back(all_classes.at(matches[1]));
 	}
 
-	testCNN.load(WEIGHTS_PATH);
-
 	float*** floatRBG = (float***)CNN::createArray(imageSize[0], imageSize[1], 3, sizeof(float));
 
-	int correct = 0;
-	for (size_t ll = 0; ll < 1; ll++) {
+#if (TRAIN)
+	// epoch
+	for (int e = 0; e < 1; e++) {
+		float tce = 0.0f;
+		int co = 0;
+		// Shuffle
+		unsigned seed = chrono::system_clock::now().time_since_epoch().count();
+		shuffle(images.begin(), images.end(), default_random_engine(seed));
+		shuffle(img_class.begin(), img_class.end(), default_random_engine(seed));
+
+		for (size_t ll = 0; ll < 1; ll++) {
+			String o;
+			Mat img = images[ll];
+
+			for (int i = 0; i < imageSize[0]; i++) {
+				for (int j = 0; j < imageSize[1]; j++) {
+					for (int k = 0; k < 3; k++) {
+						// Flip BGR to RGB
+						floatRBG[i][j][k] = img.at<Vec3b>(i, j)[2 - k] / 255.0f;
+					}
+				}
+			}
+
+			float ce = 0.0f;
+			int classOut = testCNN.forwardProp(floatRBG, img_class[ll], o, &ce);
+			// Accuracy
+			co = img_class[ll] == classOut ? co + 1 : co;
+			// Loss
+			tce += ce;
+
+			o += "training " + to_str(ll) + " expected: " + to_str(img_class[ll]) +
+				" was " + to_str(classOut);
+			o += "\naccuracy: " + to_str(co / float(ll)) + " loss: " + to_str(tce / float(ll));
+			testCNN.backProp(floatRBG, img_class[ll], o);
+			testCNN.update(o);
+
+			system("cls");
+			cout << o << endl;
+		}
+	}
+#else
+	testCNN.load(WEIGHTS_PATH);
+#endif
+
+	fn.clear();
+	dir = TEST_DIR;
+	dir.append(CATEGORY);
+	dir.append("\\*.*");
+	cv::glob(dir, fn, true);
+
+	images.clear();
+	img_class.clear();
+	count = fn.size();
+
+	for (size_t i = 0; i < count; i++) {
+		images.push_back(imread(fn[i]));
+		regex_search(fn[i], matches, rgx);
+		img_class.push_back(all_classes.at(matches[1]));
+	}
+
+	float tce = 0.0f;
+	int co = 0;
+	for (size_t ll = 0; ll < count; ll++) {
 		String o;
 		Mat img = images[ll];
 
@@ -1230,31 +1310,15 @@ int main()
 			}
 		}
 
-#if (0)
-		String d;
-		//for (int i = 0; i < imageSize[0]; i++) {
-		//  for (int j = 0; j < imageSize[1]; j++) {
-		//      for (int k = 0; k < 3; k++) {
-		//          d += to_str(floatRBG[i][j][k]) + " ";
-		//      }
-		//      d += "\n";
-		//  }
-		//}
+		float ce = 0.0f;
+		int classOut = testCNN.forwardProp(floatRBG, img_class[ll], o, &ce);
+		co = (classOut == img_class[ll]) ? co + 1 : co;
+		tce += ce;
+		o += "testing " + to_str(ll) + " expected: " + to_str(img_class[ll]) +
+			" was " + to_str(classOut);
+		o += "\naccuracy: " + to_str(co / float(ll)) + " loss: " + to_str(tce / float(ll));
 
-		d += "Element 0 0 1: " + to_str(to_str(floatRBG[0][0][1])) + "\n";
-		d += "Element 10 2 1: " + to_str(to_str(floatRBG[10][2][1])) + "\n";
-		d += "Element 45 32 2: " + to_str(to_str(floatRBG[45][32][2])) + "\n";
-		cout << d << endl;
-#endif
-
-		int classOut = testCNN.forwardProp(floatRBG, img_class[ll], o);
-		correct = (classOut == img_class[ll]) ? correct + 1 : correct;
-		o += "Testing " + to_str(ll) + " Expected: " + to_str(img_class[ll]) +
-			" was " + to_str(classOut) + " Correct: " + to_str(correct) + "/" + to_str(count) + "\n";
-		
-		testCNN.backProp(floatRBG, img_class[ll], o);
-		testCNN.update(o);
-
+		system("cls");
 		cout << o << endl;
 	}
 
