@@ -44,7 +44,7 @@ model.add(Activation('elu'))
 model.add(Dense(12))
 model.add(Activation('softmax'))
 
-if 0:
+if 1:
     model.compile(loss='categorical_crossentropy',
                   optimizer='rmsprop',
                   metrics=['accuracy'])
