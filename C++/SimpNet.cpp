@@ -28,7 +28,7 @@ using json = nlohmann::json;
 #define FC3             6
 #define DEBUG_ALL       7
 
-#define DEBUG_LAYER     DEBUG_ALL
+#define DEBUG_LAYER     FC3
 #define DEBUG_BP		0
 #define DEBUG_WEIGHTS   0
 #define XORTEST         0
@@ -83,7 +83,7 @@ private:
 	float* FC3s;        // 1 x 12
 	float* FC3o;        // 1 x 12
 
-	// kernels and weights
+	// kernels and bias
 	float**** wL1;      // 3 x 3 x 3 x 32
 	float* bL1;         // 1 x 32
 
@@ -118,25 +118,32 @@ private:
 	float* dbFC1;       // 1 x 128
 	float* dbFC1_h;     // 1 x 128
 
+	float* eL3Max;      // 1 x 128
+	float*** eL3;       // 3 x 3 x 128
+	float**** dwL3;     // 3 x 3 x 64 x 128
+	float**** dwL3_h;   // 3 x 3 x 64 x 128
+	float* dbL3;        // 1 x 128
+	float* dbL3_h;      // 1 x 128
+
 public:
 
-	// Annoying mallocs
+	// Annoying callocs
 	static void** createArray(int i, int j, size_t size)
 	{
-		void** r = (void**)malloc(i * sizeof(void*));
+		void** r = (void**)calloc(i, sizeof(void*));
 		for (int x = 0; x < i; x++) {
-			r[x] = (void*)malloc(j * size);
+			r[x] = (void*)calloc(j, size);
 		}
 		return r;
 	}
 
 	static void*** createArray(int i, int j, int k, size_t size)
 	{
-		void*** r = (void***)malloc(i * sizeof(void*));
+		void*** r = (void***)calloc(i, sizeof(void*));
 		for (int x = 0; x < i; x++) {
-			r[x] = (void**)malloc(j * sizeof(void*));
+			r[x] = (void**)calloc(j, sizeof(void*));
 			for (int y = 0; y < j; y++) {
-				r[x][y] = (void*)malloc(k * size);
+				r[x][y] = (void*)calloc(k, size);
 			}
 		}
 		return r;
@@ -144,20 +151,20 @@ public:
 
 	static void**** createArray(int i, int j, int k, int l, size_t size)
 	{
-		void**** r = (void****)malloc(i * sizeof(void*));
+		void**** r = (void****)calloc(i, sizeof(void*));
 		for (int x = 0; x < i; x++) {
-			r[x] = (void***)malloc(j * sizeof(void*));
+			r[x] = (void***)calloc(j, sizeof(void*));
 			for (int y = 0; y < j; y++) {
-				r[x][y] = (void**)malloc(k * sizeof(void*));
+				r[x][y] = (void**)calloc(k, sizeof(void*));
 				for (int z = 0; z < k; z++) {
-					r[x][y][z] = (void*)malloc(l * size);
+					r[x][y][z] = (void*)calloc(l, size);
 				}
 			}
 		}
 		return r;
 	}
 
-	// Annoying malloc frees
+	// Annoying calloc frees
 	static void freeArray(int i, int j, void** a)
 	{
 		for (int x = 0; x < i; x++) {
@@ -330,6 +337,7 @@ public:
 
 	CNN()
 	{
+		// Tensorflow defaults
 		lr = 0.001f;
 		alpha = 1.0f;
 		rho = 0.9f;
@@ -338,91 +346,28 @@ public:
 		L1s = (float***)createArray(32, 32, 32, sizeof(float));
 		L1a = (float***)createArray(32, 32, 32, sizeof(float));
 
-		for (int i = 0; i < 32; i++) {
-			for (int j = 0; j < 32; j++) {
-				for (int k = 0; k < 32; k++) {
-					L1s[i][j][k] = 0.0f;
-					L1a[i][j][k] = 0.0f;
-				}
-			}
-		}
-
 		L1Max = (float***)createArray(16, 16, 32, sizeof(float));
 		L1iMax = (uint***)createArray(16, 16, 32, sizeof(uint));
-
-		for (int i = 0; i < 16; i++) {
-			for (int j = 0; j < 16; j++) {
-				for (int k = 0; k < 32; k++) {
-					L1Max[i][j][k] = 0.0f;
-					L1iMax[i][j][k] = 0;
-				}
-			}
-		}
 
 		L2s = (float***)createArray(14, 14, 64, sizeof(float));
 		L2a = (float***)createArray(14, 14, 64, sizeof(float));
 
-
-		for (int i = 0; i < 14; i++) {
-			for (int j = 0; j < 14; j++) {
-				for (int k = 0; k < 64; k++) {
-					L2s[i][j][k] = 0.0f;
-					L2a[i][j][k] = 0.0f;
-				}
-			}
-		}
-
 		L2Max = (float***)createArray(7, 7, 64, sizeof(float));
 		L2iMax = (uint***)createArray(7, 7, 64, sizeof(uint));
-
-		for (int i = 0; i < 7; i++) {
-			for (int j = 0; j < 7; j++) {
-				for (int k = 0; k < 64; k++) {
-					L2Max[i][j][k] = 0.0f;
-					L2iMax[i][j][k] = 0;
-				}
-			}
-		}
 
 		L3s = (float***)createArray(3, 3, 128, sizeof(float));
 		L3a = (float***)createArray(3, 3, 128, sizeof(float));
 
-		for (int i = 0; i < 3; i++) {
-			for (int j = 0; j < 3; j++) {
-				for (int k = 0; k < 128; k++) {
-					L3s[i][j][k] = 0.0f;
-					L3a[i][j][k] = 0.0f;
-				}
-			}
-		}
+		L3Max = (float*)calloc(128, sizeof(float));
+		L3iMax = (uint*)calloc(128, sizeof(uint));
 
-		L3Max = (float*)malloc(128 * sizeof(float));
-		L3iMax = (uint*)malloc(128 * sizeof(uint));
+		FC1s = (float*)calloc(128, sizeof(float));
+		FC1a = (float*)calloc(128, sizeof(float));
+		FC2s = (float*)calloc(128, sizeof(float));
+		FC2a = (float*)calloc(128, sizeof(float));
 
-		for (int k = 0; k < 128; k++) {
-			L3Max[k] = 0.0f;
-			L3iMax[k] = 0;
-		}
-
-		FC1s = (float*)malloc(128 * sizeof(float));
-		FC1a = (float*)malloc(128 * sizeof(float));
-		FC2s = (float*)malloc(128 * sizeof(float));
-		FC2a = (float*)malloc(128 * sizeof(float));
-
-		for (int i = 0; i < 128; i++) {
-			FC1s[i] = 0.0f;
-			FC1a[i] = 0.0f;
-			FC2s[i] = 0.0f;
-			FC2a[i] = 0.0f;
-		}
-
-		FC3s = (float*)malloc(12 * sizeof(float));
-		FC3o = (float*)malloc(12 * sizeof(float));
-
-		for (int i = 0; i < 12; i++) {
-			FC3s[i] = 0.0f;
-			FC3o[i] = 0.0f;
-		}
+		FC3s = (float*)calloc(12, sizeof(float));
+		FC3o = (float*)calloc(12, sizeof(float));
 
 		random_device rd;  //Will be used to obtain a seed for the random number engine
 		mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
@@ -474,7 +419,13 @@ public:
 			}
 		}
 #endif
+
+		eL3Max = (float*)calloc(128, sizeof(float));
+		eL3 = (float***)createArray(3, 3, 128, sizeof(float));
+
 		wL3 = (float****)createArray(3, 3, 64, 128, sizeof(float));
+		dwL3 = (float****)createArray(3, 3, 64, 128, sizeof(float));
+		dwL3_h = (float****)createArray(3, 3, 64, 128, sizeof(float));
 #if (DEBUG_WEIGHTS)
 		for (int i = 0; i < 3; i++) {
 			for (int j = 0; j < 3; j++) {
@@ -509,10 +460,6 @@ public:
 			for (int j = 0; j < 128; j++) {
 				wFC1[i][j] = (127 - j) / 12800.0f;
 				wFC2[i][j] = (127 - i) / 12800.0f;
-				dwFC2[i][j] = 0.0f;
-				dwFC2_h[i][j] = 0.0f;
-				dwFC1[i][j] = 0.0f;
-				dwFC1_h[i][j] = 0.0f;
 			}
 		}
 #else
@@ -521,10 +468,6 @@ public:
 			for (int j = 0; j < 128; j++) {
 				wFC1[i][j] = dis4(gen);
 				wFC2[i][j] = dis4(gen);
-				dwFC2[i][j] = 0.0f;
-				dwFC2_h[i][j] = 0.0f;
-				dwFC1[i][j] = 0.0f;
-				dwFC1_h[i][j] = 0.0f;
 			}
 		}
 #endif
@@ -536,8 +479,6 @@ public:
 		for (int i = 0; i < 128; i++) {
 			for (int j = 0; j < 12; j++) {
 				wFC3[i][j] = 0.01f;
-				dwFC3[i][j] = 0.0f;
-				dwFC3_h[i][j] = 0.0f;
 			}
 		}
 #else
@@ -545,50 +486,28 @@ public:
 		for (int i = 0; i < 128; i++) {
 			for (int j = 0; j < 12; j++) {
 				wFC3[i][j] = dis5(gen);
-				dwFC3[i][j] = 0.0f;
-				dwFC3_h[i][j] = 0.0f;
 			}
 		}
 #endif
 
-		bL1 = (float*)malloc(32 * sizeof(float));
-		for (int i = 0; i < 32; i++) {
-			bL1[i] = 0.0f;
-		}
+		bL1 = (float*)calloc(32, sizeof(float));
 
-		bL2 = (float*)malloc(64 * sizeof(float));
-		for (int i = 0; i < 64; i++) {
-			bL2[i] = 0.0f;
-		}
+		bL2 = (float*)calloc(64, sizeof(float));
 
-		bL3 = (float*)malloc(128 * sizeof(float));
-		for (int i = 0; i < 128; i++) {
-			bL3[i] = 0.0f;
-		}
+		bL3 = (float*)calloc(128, sizeof(float));
+		dbL3 = (float*)calloc(128, sizeof(float));
+		dbL3_h = (float*)calloc(128, sizeof(float));
 
-		bFC1 = (float*)malloc(128 * sizeof(float));
-		bFC2 = (float*)malloc(128 * sizeof(float));
-		dbFC2 = (float*)malloc(128 * sizeof(float));
-		dbFC2_h = (float*)malloc(128 * sizeof(float));
-		dbFC1 = (float*)malloc(128 * sizeof(float));
-		dbFC1_h = (float*)malloc(128 * sizeof(float));
-		for (int i = 0; i < 128; i++) {
-			bFC1[i] = 0.0f;
-			bFC2[i] = 0.0f;
-			dbFC2[i] = 0.0f;
-			dbFC2_h[i] = 0.0f;
-			dbFC1[i] = 0.0f;
-			dbFC1_h[i] = 0.0f;
-		}
+		bFC1 = (float*)calloc(128, sizeof(float));
+		bFC2 = (float*)calloc(128, sizeof(float));
+		dbFC2 = (float*)calloc(128, sizeof(float));
+		dbFC2_h = (float*)calloc(128, sizeof(float));
+		dbFC1 = (float*)calloc(128, sizeof(float));
+		dbFC1_h = (float*)calloc(128, sizeof(float));
 
-		bFC3 = (float*)malloc(12 * sizeof(float));
-		dbFC3 = (float*)malloc(12 * sizeof(float));
-		dbFC3_h = (float*)malloc(12 * sizeof(float));
-		for (int i = 0; i < 12; i++) {
-			bFC3[i] = 0.0f;
-			dbFC3[i] = 0.0f;
-			dbFC3_h[i] = 0.0f;
-		}
+		bFC3 = (float*)calloc(12, sizeof(float));
+		dbFC3 = (float*)calloc(12, sizeof(float));
+		dbFC3_h = (float*)calloc(12, sizeof(float));
 
 #if (DEBUG_WEIGHTS)
 		String o;
@@ -1077,8 +996,6 @@ public:
 
 		// FC3 bias
 		for (int i = 0; i < 12; i++) {
-			// Save history
-			dbFC3_h[i] = dbFC3[i];
 			// Cross Entropy derivative with softmax
 			dbFC3[i] = (FC3o[i] - expected[i]);
 		}
@@ -1094,7 +1011,6 @@ public:
 		// FC3 gradient
 		for (int i = 0; i < 128; i++) {
 			for (int j = 0; j < 12; j++) {
-				dwFC3_h[i][j] = dwFC3[i][j];
 				dwFC3[i][j] = dbFC3[j] * FC2a[i];
 			}
 		}
@@ -1111,7 +1027,6 @@ public:
 
 		// FC2 bias
 		for (int i = 0; i < 128; i++) {
-			dbFC2_h[i] = dbFC2[i];
 			dbFC2[i] = 0.f;
 			for (int j = 0; j < 12; j++) {
 				// With respect to w3
@@ -1122,7 +1037,6 @@ public:
 		// FC2 gradient
 		for (int i = 0; i < 128; i++) {
 			for (int j = 0; j < 128; j++) {
-				dwFC2_h[i][j] = dwFC2[i][j];
 				// With respect to the activation function of fc2 and the output of previous layer
 				dwFC2[i][j] = dbFC2[i] * dfn(FC2s[i]) * FC1a[j];
 			}
@@ -1130,7 +1044,6 @@ public:
 
 		// FC1 bias
 		for (int i = 0; i < 128; i++) {
-			dbFC1_h[i] = dbFC1[i];
 			dbFC1[i] = 0.0f;
 			for (int j = 0; j < 128; j++) {
 				// With respect to activation function of fc2 and w2
@@ -1141,16 +1054,20 @@ public:
 		// FC1 gradient
 		for (int i = 0; i < 128; i++) {
 			for (int j = 0; j < 128; j++) {
-				dwFC1_h[i][j] = dwFC1[i][j];
 				// With respect to activation function of fc1 and the output of previous layer
 				dwFC1[i][j] = dbFC1[i] * dfn(FC1s[i]) * L3Max[j];
 			}
 		}
+
+		// L3 error
+
+		// Undo max pooling 1x1 -> 3x3
+
 	}
 
-	inline float momentum(float grad, float grad_h)
+	inline float momentum(float grad, float vd_h)
 	{
-		return (rho * grad_h) + ((1.0f - rho) * grad * grad);
+		return (rho * vd_h) + ((1.0f - rho) * grad * grad);
 	}
 
 	// Using RMSprop
@@ -1159,6 +1076,8 @@ public:
 		// FC3 bias
 		for (int i = 0; i < 12; i++) {
 			float vdb = momentum(dbFC3[i], dbFC3_h[i]);
+			// Save history
+			dbFC3_h[i] = vdb;
 			bFC3[i] -= lr * (dbFC3[i] / (sqrt(vdb) + epsilon));
 		}
 
@@ -1166,6 +1085,7 @@ public:
 		for (int i = 0; i < 128; i++) {
 			for (int j = 0; j < 12; j++) {
 				float vdw = momentum(dwFC3[i][j], dwFC3_h[i][j]);
+				dwFC3_h[i][j] = vdw;
 				wFC3[i][j] -= lr * (dwFC3[i][j] / (sqrt(vdw) + epsilon));
 			}
 		}
@@ -1173,6 +1093,7 @@ public:
 		// FC2 bias
 		for (int i = 0; i < 128; i++) {
 			float vdb = momentum(dbFC2[i], dbFC2_h[i]);
+			dbFC2_h[i] = vdb;
 			bFC2[i] -= lr * (dbFC2[i] / (sqrt(vdb) + epsilon));
 		}
 
@@ -1180,23 +1101,26 @@ public:
 		for (int i = 0; i < 128; i++) {
 			for (int j = 0; j < 128; j++) {
 				float vdw = momentum(dwFC2[i][j], dwFC2_h[i][j]);
+				dwFC2_h[i][j] = vdw;
 				wFC2[i][j] -= lr * (dwFC2[i][j] / (sqrt(vdw) + epsilon));
 			}
 		}
 
-		//// FC1 bias
-		//for (int i = 0; i < 128; i++) {
-		//	float vdb = momentum(dbFC1[i], dbFC1_h[i]);
-		//	bFC1[i] -= lr * (dbFC1[i] / (sqrt(vdb) + epsilon));
-		//}
+		// FC1 bias
+		for (int i = 0; i < 128; i++) {
+			float vdb = momentum(dbFC1[i], dbFC1_h[i]);
+			dbFC1_h[i] = vdb;
+			bFC1[i] -= lr * (dbFC1[i] / (sqrt(vdb) + epsilon));
+		}
 
-		//// FC1 weights
-		//for (int i = 0; i < 128; i++) {
-		//	for (int j = 0; j < 128; j++) {
-		//		float vdw = momentum(dwFC1[i][j], dwFC1_h[i][j]);
-		//		wFC1[i][j] -= lr * (dwFC1[i][j] / (sqrt(vdw) + epsilon));
-		//	}
-		//}
+		// FC1 weights
+		for (int i = 0; i < 128; i++) {
+			for (int j = 0; j < 128; j++) {
+				float vdw = momentum(dwFC1[i][j], dwFC1_h[i][j]);
+				dwFC1_h[i][j] = vdw;
+				wFC1[i][j] -= lr * (dwFC1[i][j] / (sqrt(vdw) + epsilon));
+			}
+		}
 	}
 };
 
@@ -1237,7 +1161,7 @@ int main()
 
 #if (TRAIN)
 	// epoch
-	for (int e = 0; e < 1; e++) {
+	for (int e = 0; e < 5; e++) {
 		float tce = 0.0f;
 		int co = 0;
 		// Shuffle
@@ -1245,7 +1169,7 @@ int main()
 		shuffle(images.begin(), images.end(), default_random_engine(seed));
 		shuffle(img_class.begin(), img_class.end(), default_random_engine(seed));
 
-		for (size_t ll = 0; ll < 1; ll++) {
+		for (size_t ll = 0; ll < count; ll++) {
 			String o;
 			Mat img = images[ll];
 
@@ -1297,7 +1221,7 @@ int main()
 
 	float tce = 0.0f;
 	int co = 0;
-	for (size_t ll = 0; ll < 1; ll++) {
+	for (size_t ll = 0; ll < count; ll++) {
 		String o;
 		Mat img = images[ll];
 
@@ -1332,7 +1256,7 @@ int main()
 
 	const int c = 500;
 	float**** input = (float****)CNN::createArray(c, imageSize[0], imageSize[1], 3, sizeof(float));
-	int* inClass = (int*)malloc(c * sizeof(int));
+	int* inClass = (int*)calloc(c * sizeof(int));
 
 	// Setup input
 	for (int k = 0; k < c; k++) {
@@ -1361,7 +1285,7 @@ int main()
 
 	const int t = 100;
 	float**** test = (float****)CNN::createArray(t, 65, 65, 3, sizeof(float));
-	int* testClass = (int*)malloc(t * sizeof(int));
+	int* testClass = (int*)calloc(t * sizeof(int));
 
 	int correct = 0;
 
