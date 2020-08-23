@@ -120,6 +120,7 @@ private:
 
 	float* eL3Max;      // 1 x 128
 	float*** eL3;       // 3 x 3 x 128
+	float*** diL3;		// 5 x 5 x 128
 	float**** dwL3;     // 3 x 3 x 64 x 128
 	float**** dwL3_h;   // 3 x 3 x 64 x 128
 	float* dbL3;        // 1 x 128
@@ -337,7 +338,7 @@ public:
 
 	CNN()
 	{
-		// Tensorflow defaults
+		// Tensorflow defaults for RMSprop
 		lr = 0.001f;
 		alpha = 1.0f;
 		rho = 0.9f;
@@ -422,6 +423,7 @@ public:
 
 		eL3Max = (float*)calloc(128, sizeof(float));
 		eL3 = (float***)createArray(3, 3, 128, sizeof(float));
+		diL3 = (float***)createArray(5, 5, 128, sizeof(float));
 
 		wL3 = (float****)createArray(3, 3, 64, 128, sizeof(float));
 		dwL3 = (float****)createArray(3, 3, 64, 128, sizeof(float));
@@ -435,7 +437,7 @@ public:
 					}
 				}
 			}
-		}
+	}
 #else
 		normal_distribution<float> dis3(0.0f, 1.0f / sqrt(576.0f));
 		for (int i = 0; i < 3; i++) {
@@ -461,7 +463,7 @@ public:
 				wFC1[i][j] = (127 - j) / 12800.0f;
 				wFC2[i][j] = (127 - i) / 12800.0f;
 			}
-		}
+}
 #else
 		normal_distribution<float> dis4(0.0f, 1.0f / sqrt(128.0f));
 		for (int i = 0; i < 128; i++) {
@@ -620,6 +622,13 @@ public:
 		freeArray(128, 128, (void**)dwFC1_h);
 		free(dbFC1);
 		free(dbFC1_h);
+		free(eL3Max);
+		freeArray(3, 3, 128, (void***)eL3);
+		freeArray(5, 5, 128, (void***)diL3);
+		freeArray(3, 3, 64, 128, (void****)dwL3);
+		freeArray(3, 3, 64, 128, (void****)dwL3_h);
+		free(dbL3);
+		free(dbL3_h);
 	}
 
 	int forwardProp(float*** image, int classNo, String& o, float* ce)
@@ -983,7 +992,7 @@ public:
 		for (int i = 0; i < 12; i++) {
 			o += to_str(FC3o[i]);
 			o.push_back(' ');
-		}
+	}
 		o.push_back('\n');
 #endif
 		return (int)(max_element(FC3o, FC3o + 12) - FC3o);
@@ -1060,9 +1069,93 @@ public:
 		}
 
 		// L3 error
+		for (int i = 0; i < 128; i++) {
+			eL3Max[i] = 0.0f;
+			for (int j = 0; j < 128; j++) {
+				// Figure out the loss w.r.t weight
+				eL3Max[i] += dbFC1[i] * dfn(FC1s[i]) * wFC1[i][j];
+			}
+		}
+
+		// L3 bias
+		for (int i = 0; i < 128; i++) {
+			dbL3[i] = eL3Max[i];
+		}
 
 		// Undo max pooling 1x1 -> 3x3
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 3; j++) {
+				for (int k = 0; k < 128; k++) {
+					eL3[i][j][k] = L3iMax[k] == (i * 3 + j) ?
+						eL3Max[k] * dfn(L3s[j][i][k]) : 0.0f;
+				}
+			}
+		}
 
+#if (DEBUG_BP == L3)
+		o += "\neFC3 max pool:\n";
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 3; j++) {
+				o += to_str(eL3[i][j][0]) + " ";
+			}
+			o += "\n";
+		}
+#endif
+
+		// Dialate L3 stride=2
+		// https://medium.com/@mayank.utexas/backpropagation-for-convolution-with-strides-fb2f2efc4faa
+		for (int i = 0; i < 5; i++) {
+			for (int j = 0; j < 5; j++) {
+				int i0 = i / 2;
+				int j0 = j / 2;
+				for (int k = 0; k < 128; k++) {
+					diL3[i][j][k] = ((i % 2 == 1) || (j % 2 == 1)) ?
+						0.0f : eL3[i0][j0][k];
+				}
+			}
+		}
+
+#if (DEBUG_BP == L3)
+		o += "\ndiL3:\n";
+		for (int i = 0; i < 5; i++) {
+			for (int j = 0; j < 5; j++) {
+				o += to_str(diL3[i][j][0]) + " ";
+			}
+			o += "\n";
+		}
+#endif
+
+		// L3 gradient
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 3; j++) {
+				for (int k = 0; k < 64; k++) {
+					for (int l = 0; l < 128; l++) {
+						// Convolve 5x5 error over 7x7 input
+						float s = 0.0f;
+						for (int x = 0; x < 5; x++) {
+							for (int y = 0; y < 5; y++) {
+								int lx = x + i;
+								int ly = y + j;
+								s += diL3[x][y][l] * L2Max[lx][ly][k];
+							}
+						}
+						dwL3[i][j][k][l] = s;
+					}
+				}
+			}
+		}
+
+#if (DEBUG_BP == L3)
+		o += "\ndwL3:\n";
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 3; j++) {
+				for (int k = 0; k < 64; k++) {
+					o += to_str(dwL3[i][j][k][0]) + " ";
+				}
+				o += "\n";
+			}
+		}
+#endif
 	}
 
 	inline float momentum(float grad, float vd_h)
@@ -1073,52 +1166,72 @@ public:
 	// Using RMSprop
 	void update(String &o)
 	{
-		// FC3 bias
-		for (int i = 0; i < 12; i++) {
-			float vdb = momentum(dbFC3[i], dbFC3_h[i]);
-			// Save history
-			dbFC3_h[i] = vdb;
-			bFC3[i] -= lr * (dbFC3[i] / (sqrt(vdb) + epsilon));
+		//// FC3 bias
+		//for (int i = 0; i < 12; i++) {
+		//	float vdb = momentum(dbFC3[i], dbFC3_h[i]);
+		//	// Save history
+		//	dbFC3_h[i] = vdb;
+		//	bFC3[i] -= lr * (dbFC3[i] / (sqrt(vdb) + epsilon));
+		//}
+
+		//// FC3 weights
+		//for (int i = 0; i < 128; i++) {
+		//	for (int j = 0; j < 12; j++) {
+		//		float vdw = momentum(dwFC3[i][j], dwFC3_h[i][j]);
+		//		dwFC3_h[i][j] = vdw;
+		//		wFC3[i][j] -= lr * (dwFC3[i][j] / (sqrt(vdw) + epsilon));
+		//	}
+		//}
+
+		//// FC2 bias
+		//for (int i = 0; i < 128; i++) {
+		//	float vdb = momentum(dbFC2[i], dbFC2_h[i]);
+		//	dbFC2_h[i] = vdb;
+		//	bFC2[i] -= lr * (dbFC2[i] / (sqrt(vdb) + epsilon));
+		//}
+
+		//// FC2 weights
+		//for (int i = 0; i < 128; i++) {
+		//	for (int j = 0; j < 128; j++) {
+		//		float vdw = momentum(dwFC2[i][j], dwFC2_h[i][j]);
+		//		dwFC2_h[i][j] = vdw;
+		//		wFC2[i][j] -= lr * (dwFC2[i][j] / (sqrt(vdw) + epsilon));
+		//	}
+		//}
+
+		//// FC1 bias
+		//for (int i = 0; i < 128; i++) {
+		//	float vdb = momentum(dbFC1[i], dbFC1_h[i]);
+		//	dbFC1_h[i] = vdb;
+		//	bFC1[i] -= lr * (dbFC1[i] / (sqrt(vdb) + epsilon));
+		//}
+
+		//// FC1 weights
+		//for (int i = 0; i < 128; i++) {
+		//	for (int j = 0; j < 128; j++) {
+		//		float vdw = momentum(dwFC1[i][j], dwFC1_h[i][j]);
+		//		dwFC1_h[i][j] = vdw;
+		//		wFC1[i][j] -= lr * (dwFC1[i][j] / (sqrt(vdw) + epsilon));
+		//	}
+		//}
+
+		// L3 bias
+		for (int i = 0; i < 128; i++) {
+			float vdb = momentum(dbL3[i], dbL3_h[i]);
+			dbL3_h[i] = vdb;
+			bL3[i] -= lr * (dbL3[i] / (sqrt(vdb) + epsilon));
 		}
 
-		// FC3 weights
-		for (int i = 0; i < 128; i++) {
-			for (int j = 0; j < 12; j++) {
-				float vdw = momentum(dwFC3[i][j], dwFC3_h[i][j]);
-				dwFC3_h[i][j] = vdw;
-				wFC3[i][j] -= lr * (dwFC3[i][j] / (sqrt(vdw) + epsilon));
-			}
-		}
-
-		// FC2 bias
-		for (int i = 0; i < 128; i++) {
-			float vdb = momentum(dbFC2[i], dbFC2_h[i]);
-			dbFC2_h[i] = vdb;
-			bFC2[i] -= lr * (dbFC2[i] / (sqrt(vdb) + epsilon));
-		}
-
-		// FC2 weights
-		for (int i = 0; i < 128; i++) {
-			for (int j = 0; j < 128; j++) {
-				float vdw = momentum(dwFC2[i][j], dwFC2_h[i][j]);
-				dwFC2_h[i][j] = vdw;
-				wFC2[i][j] -= lr * (dwFC2[i][j] / (sqrt(vdw) + epsilon));
-			}
-		}
-
-		// FC1 bias
-		for (int i = 0; i < 128; i++) {
-			float vdb = momentum(dbFC1[i], dbFC1_h[i]);
-			dbFC1_h[i] = vdb;
-			bFC1[i] -= lr * (dbFC1[i] / (sqrt(vdb) + epsilon));
-		}
-
-		// FC1 weights
-		for (int i = 0; i < 128; i++) {
-			for (int j = 0; j < 128; j++) {
-				float vdw = momentum(dwFC1[i][j], dwFC1_h[i][j]);
-				dwFC1_h[i][j] = vdw;
-				wFC1[i][j] -= lr * (dwFC1[i][j] / (sqrt(vdw) + epsilon));
+		// L3 weights
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 3; j++) {
+				for (int k = 0; k < 64; k++) {
+					for (int l = 0; l < 128; l++) {
+						float vdw = momentum(dwL3[i][j][k][l], dwL3_h[i][j][k][l]);
+						dwL3_h[i][j][k][l] = vdw;
+						wL3[i][j][k][l] -= lr * (dwL3[i][j][k][l] / (sqrt(vdw) + epsilon));
+					}
+				}
 			}
 		}
 	}
