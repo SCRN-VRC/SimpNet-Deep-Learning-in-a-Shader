@@ -31,7 +31,7 @@ using json = nlohmann::json;
 #define DEBUG_LAYER     FC3
 #define DEBUG_BP		0
 #define DEBUG_WEIGHTS   0
-#define XORTEST         0
+#define XORTEST         1
 #define TRAIN           1
 
 #define WEIGHTS_PATH    "C:\\Users\\Alan\\source\\repos\\SimpNetPython\\Weights.txt"
@@ -126,6 +126,14 @@ private:
 	float* dbL3;        // 1 x 128
 	float* dbL3_h;      // 1 x 128
 
+	float*** padL3;     // 9 x 9 x 128
+	float*** eL2Max;    // 7 x 7 x 64
+	float*** eL2;       // 14 x 14 x 64
+	float**** dwL2;     // 3 x 3 x 32 x 64
+	float**** dwL2_h;   // 3 x 3 x 32 x 64
+	float* dbL2;        // 1 x 64
+	float* dbL2_h;      // 1 x 64
+
 public:
 
 	// Annoying callocs
@@ -204,7 +212,7 @@ public:
 		ifstream ifs(path);
 		if (!ifs) {
 #if (DEBUG_LAYER)
-			cout << "Failed to open: " << path << endl;
+			std::cout << "Failed to open: " << path << std::endl;
 #endif
 			return;
 		}
@@ -232,7 +240,7 @@ public:
 			}
 			d += "\n";
 		}
-		cout << d << endl;
+		std::cout << d << std::endl;
 #endif
 		// L1 bias
 		for (int i = 0; i < 32; i++) {
@@ -308,7 +316,7 @@ public:
 		}
 
 #if (DEBUG_LAYER)
-		cout << "Weights loaded successfully " << endl;
+		std::cout << "Weights loaded successfully " << std::endl;
 #endif
 	}
 
@@ -397,7 +405,13 @@ public:
 		}
 #endif
 
+		padL3 = (float***)createArray(9, 9, 128, sizeof(float));
+		eL2Max = (float***)createArray(7, 7, 64, sizeof(float));
+		eL2 = (float***)createArray(14, 14, 64, sizeof(float));
+
 		wL2 = (float****)createArray(3, 3, 32, 64, sizeof(float));
+		dwL2 = (float****)createArray(3, 3, 32, 64, sizeof(float));
+		dwL2_h = (float****)createArray(3, 3, 32, 64, sizeof(float));
 #if (DEBUG_WEIGHTS)
 		for (int i = 0; i < 3; i++) {
 			for (int j = 0; j < 3; j++) {
@@ -495,6 +509,8 @@ public:
 		bL1 = (float*)calloc(32, sizeof(float));
 
 		bL2 = (float*)calloc(64, sizeof(float));
+		dbL2 = (float*)calloc(64, sizeof(float));
+		dbL2_h = (float*)calloc(64, sizeof(float));
 
 		bL3 = (float*)calloc(128, sizeof(float));
 		dbL3 = (float*)calloc(128, sizeof(float));
@@ -573,7 +589,7 @@ public:
 			o += "\n";
 		}
 
-		cout << o << endl;
+		std::cout << o << std::endl;
 #endif
 	}
 
@@ -629,6 +645,13 @@ public:
 		freeArray(3, 3, 64, 128, (void****)dwL3_h);
 		free(dbL3);
 		free(dbL3_h);
+		freeArray(9, 9, 128, (void***)padL3);
+		freeArray(7, 7, 64, (void***)eL2Max);
+		freeArray(14, 14, 64, (void***)eL2);
+		freeArray(3, 3, 32, 64, (void****)dwL2);
+		freeArray(3, 3, 32, 64, (void****)dwL2_h);
+		free(dbL2);
+		free(dbL2_h);
 	}
 
 	int forwardProp(float*** image, int classNo, String& o, float* ce)
@@ -1047,7 +1070,7 @@ public:
 		for (int i = 0; i < 128; i++) {
 			for (int j = 0; j < 128; j++) {
 				// With respect to the activation function of fc2 and the output of previous layer
-				dwFC2[i][j] = dbFC2[i] * dfn(FC2s[i]) * FC1a[j];
+				dwFC2[i][j] = dbFC2[j] * dfn(FC2s[j]) * FC1a[i];
 			}
 		}
 
@@ -1056,7 +1079,7 @@ public:
 			dbFC1[i] = 0.0f;
 			for (int j = 0; j < 128; j++) {
 				// With respect to activation function of fc2 and w2
-				dbFC1[i] += dbFC2[j] * dfn(FC2s[j]) * wFC2[j][i];
+				dbFC1[i] += dbFC2[j] * dfn(FC2s[j]) * wFC2[i][j];
 			}
 		}
 
@@ -1064,7 +1087,7 @@ public:
 		for (int i = 0; i < 128; i++) {
 			for (int j = 0; j < 128; j++) {
 				// With respect to activation function of fc1 and the output of previous layer
-				dwFC1[i][j] = dbFC1[i] * dfn(FC1s[i]) * L3Max[j];
+				dwFC1[i][j] = dbFC1[j] * dfn(FC1s[j]) * L3Max[i];
 			}
 		}
 
@@ -1073,7 +1096,7 @@ public:
 			eL3Max[i] = 0.0f;
 			for (int j = 0; j < 128; j++) {
 				// Figure out the loss w.r.t weight
-				eL3Max[i] += dbFC1[i] * dfn(FC1s[i]) * wFC1[i][j];
+				eL3Max[i] += dbFC1[j] * dfn(FC1s[j]) * wFC1[i][j];
 			}
 		}
 
@@ -1087,7 +1110,7 @@ public:
 			for (int j = 0; j < 3; j++) {
 				for (int k = 0; k < 128; k++) {
 					eL3[i][j][k] = L3iMax[k] == (i * 3 + j) ?
-						eL3Max[k] * dfn(L3s[j][i][k]) : 0.0f;
+						eL3Max[k] * dfn(L3s[i][j][k]) : 0.0f;
 				}
 			}
 		}
@@ -1156,6 +1179,81 @@ public:
 			}
 		}
 #endif
+
+		// Pad L3 error
+		for (int i = 0; i < 9; i++) {
+			for (int j = 0; j < 9; j++) {
+				for (int k = 0; k < 128; k++) {
+					// padding = 2
+					padL3[i][j][k] = (i < 2 || j < 2 || i > 6 || j > 6) ?
+						0.0f : diL3[i - 2][j - 2][k];
+				}
+			}
+		}
+
+		// L2 error
+		for (int i = 0; i < 7; i++) {
+			for (int j = 0; j < 7; j++) {
+				for (int k = 0; k < 64; k++) {
+					float s = 0.0f;
+					for (int l = 0; l < 128; l++) {
+						s += padL3[i + 0][j + 0][l] * wL3[2][2][k][l];
+						s += padL3[i + 0][j + 1][l] * wL3[2][1][k][l];
+						s += padL3[i + 0][j + 2][l] * wL3[2][0][k][l];
+						s += padL3[i + 1][j + 0][l] * wL3[1][2][k][l];
+						s += padL3[i + 1][j + 1][l] * wL3[1][1][k][l];
+						s += padL3[i + 1][j + 2][l] * wL3[1][0][k][l];
+						s += padL3[i + 2][j + 0][l] * wL3[0][2][k][l];
+						s += padL3[i + 2][j + 1][l] * wL3[0][1][k][l];
+						s += padL3[i + 2][j + 2][l] * wL3[0][0][k][l];
+					}
+					eL2Max[i][j][k] = s;
+				}
+			}
+		}
+
+		// L2 bias
+		for (int i = 0; i < 64; i++) {
+			float s = 0.0f;
+			for (int x = 0; x < 7; x++) {
+				for (int y = 0; y < 7; y++) {
+					s += eL2Max[x][y][i];
+				}
+			}
+			dbL2[i] = s;
+		}
+
+		// Undo max pooling 7x7 -> 14x14
+		for (int i = 0; i < 14; i++) {
+			for (int j = 0; j < 14; j++) {
+				int i0 = i / 2;
+				int j0 = j / 2;
+				for (int k = 0; k < 64; k++) {
+					eL2[i][j][k] = L2iMax[i0][j0][k] == i * 15 + j ?
+						eL2Max[i0][j0][k] * dfn(L2s[i][j][k]) : 0.0f;
+				}
+			}
+		}
+
+		// L2 gradient
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 3; j++) {
+				for (int k = 0; k < 32; k++) {
+					for (int l = 0; l < 64; l++) {
+						// Convolve 14x14 error over 16x16 input
+						float s = 0.0f;
+						for (int x = 0; x < 14; x++) {
+							for (int y = 0; y < 14; y++) {
+								int lx = x + i;
+								int ly = y + j;
+								s += eL2[x][y][l] * L1Max[lx][ly][k];
+							}
+						}
+						dwL2[i][j][k][l] = s;
+					}
+				}
+			}
+		}
 	}
 
 	inline float momentum(float grad, float vd_h)
@@ -1166,54 +1264,54 @@ public:
 	// Using RMSprop
 	void update(String &o)
 	{
-		//// FC3 bias
-		//for (int i = 0; i < 12; i++) {
-		//	float vdb = momentum(dbFC3[i], dbFC3_h[i]);
-		//	// Save history
-		//	dbFC3_h[i] = vdb;
-		//	bFC3[i] -= lr * (dbFC3[i] / (sqrt(vdb) + epsilon));
-		//}
+		// FC3 bias
+		for (int i = 0; i < 12; i++) {
+			float vdb = momentum(dbFC3[i], dbFC3_h[i]);
+			// Save history
+			dbFC3_h[i] = vdb;
+			bFC3[i] -= lr * (dbFC3[i] / (sqrt(vdb) + epsilon));
+		}
 
-		//// FC3 weights
-		//for (int i = 0; i < 128; i++) {
-		//	for (int j = 0; j < 12; j++) {
-		//		float vdw = momentum(dwFC3[i][j], dwFC3_h[i][j]);
-		//		dwFC3_h[i][j] = vdw;
-		//		wFC3[i][j] -= lr * (dwFC3[i][j] / (sqrt(vdw) + epsilon));
-		//	}
-		//}
+		// FC3 weights
+		for (int i = 0; i < 128; i++) {
+			for (int j = 0; j < 12; j++) {
+				float vdw = momentum(dwFC3[i][j], dwFC3_h[i][j]);
+				dwFC3_h[i][j] = vdw;
+				wFC3[i][j] -= lr * (dwFC3[i][j] / (sqrt(vdw) + epsilon));
+			}
+		}
 
-		//// FC2 bias
-		//for (int i = 0; i < 128; i++) {
-		//	float vdb = momentum(dbFC2[i], dbFC2_h[i]);
-		//	dbFC2_h[i] = vdb;
-		//	bFC2[i] -= lr * (dbFC2[i] / (sqrt(vdb) + epsilon));
-		//}
+		// FC2 bias
+		for (int i = 0; i < 128; i++) {
+			float vdb = momentum(dbFC2[i], dbFC2_h[i]);
+			dbFC2_h[i] = vdb;
+			bFC2[i] -= lr * (dbFC2[i] / (sqrt(vdb) + epsilon));
+		}
 
-		//// FC2 weights
-		//for (int i = 0; i < 128; i++) {
-		//	for (int j = 0; j < 128; j++) {
-		//		float vdw = momentum(dwFC2[i][j], dwFC2_h[i][j]);
-		//		dwFC2_h[i][j] = vdw;
-		//		wFC2[i][j] -= lr * (dwFC2[i][j] / (sqrt(vdw) + epsilon));
-		//	}
-		//}
+		// FC2 weights
+		for (int i = 0; i < 128; i++) {
+			for (int j = 0; j < 128; j++) {
+				float vdw = momentum(dwFC2[i][j], dwFC2_h[i][j]);
+				dwFC2_h[i][j] = vdw;
+				wFC2[i][j] -= lr * (dwFC2[i][j] / (sqrt(vdw) + epsilon));
+			}
+		}
 
-		//// FC1 bias
-		//for (int i = 0; i < 128; i++) {
-		//	float vdb = momentum(dbFC1[i], dbFC1_h[i]);
-		//	dbFC1_h[i] = vdb;
-		//	bFC1[i] -= lr * (dbFC1[i] / (sqrt(vdb) + epsilon));
-		//}
+		// FC1 bias
+		for (int i = 0; i < 128; i++) {
+			float vdb = momentum(dbFC1[i], dbFC1_h[i]);
+			dbFC1_h[i] = vdb;
+			bFC1[i] -= lr * (dbFC1[i] / (sqrt(vdb) + epsilon));
+		}
 
-		//// FC1 weights
-		//for (int i = 0; i < 128; i++) {
-		//	for (int j = 0; j < 128; j++) {
-		//		float vdw = momentum(dwFC1[i][j], dwFC1_h[i][j]);
-		//		dwFC1_h[i][j] = vdw;
-		//		wFC1[i][j] -= lr * (dwFC1[i][j] / (sqrt(vdw) + epsilon));
-		//	}
-		//}
+		// FC1 weights
+		for (int i = 0; i < 128; i++) {
+			for (int j = 0; j < 128; j++) {
+				float vdw = momentum(dwFC1[i][j], dwFC1_h[i][j]);
+				dwFC1_h[i][j] = vdw;
+				wFC1[i][j] -= lr * (dwFC1[i][j] / (sqrt(vdw) + epsilon));
+			}
+		}
 
 		// L3 bias
 		for (int i = 0; i < 128; i++) {
@@ -1230,6 +1328,26 @@ public:
 						float vdw = momentum(dwL3[i][j][k][l], dwL3_h[i][j][k][l]);
 						dwL3_h[i][j][k][l] = vdw;
 						wL3[i][j][k][l] -= lr * (dwL3[i][j][k][l] / (sqrt(vdw) + epsilon));
+					}
+				}
+			}
+		}
+
+		// L2 bias
+		for (int i = 0; i < 64; i++) {
+			float vdb = momentum(dbL2[i], dbL2_h[i]);
+			dbL2_h[i] = vdb;
+			bL2[i] -= lr * (dbL2[i] / (sqrt(vdb) + epsilon));
+		}
+
+		// L2 weights
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 3; j++) {
+				for (int k = 0; k < 32; k++) {
+					for (int l = 0; l < 64; l++) {
+						float vdw = momentum(dwL2[i][j][k][l], dwL2_h[i][j][k][l]);
+						dwL2_h[i][j][k][l] = vdw;
+						wL2[i][j][k][l] -= lr * (dwL2[i][j][k][l] / (sqrt(vdw) + epsilon));
 					}
 				}
 			}
@@ -1309,7 +1427,7 @@ int main()
 			testCNN.backProp(floatRBG, img_class[ll], o);
 			testCNN.update(o);
 
-			cout << o << endl;
+			std::cout << o << std::endl;
 		}
 	}
 #else
@@ -1356,7 +1474,7 @@ int main()
 		o += "\naccuracy: " + to_str(co / float(ll + 1)) +
 			" loss: " + to_str(tce / float(ll + 1));
 
-		cout << o << endl;
+		std::cout << o << std::endl;
 	}
 
 	CNN::freeArray(65, 65, 3, (void***)floatRBG);
@@ -1367,9 +1485,9 @@ int main()
 	default_random_engine gen{ rd() };
 	uniform_real_distribution<float> dis0(0.0f, 64.0f);
 
-	const int c = 500;
+	const int c = 700;
 	float**** input = (float****)CNN::createArray(c, imageSize[0], imageSize[1], 3, sizeof(float));
-	int* inClass = (int*)calloc(c * sizeof(int));
+	int* inClass = (int*)calloc(c, sizeof(int));
 
 	// Setup input
 	for (int k = 0; k < c; k++) {
@@ -1377,7 +1495,7 @@ int main()
 		int r1 = (int)floor(dis0(gen));
 		for (int i = 0; i < imageSize[0]; i++) {
 			for (int j = 0; j < imageSize[1]; j++) {
-				input[k][i][j][0] = (i == r0 && j == r1) ? -0.5f : 0.5f;
+				input[k][i][j][0] = (i == r0 && j == r1) ? 1.0f : 0.0f;
 				input[k][i][j][1] = input[k][i][j][0];
 				input[k][i][j][2] = input[k][i][j][0];
 			}
@@ -1386,21 +1504,28 @@ int main()
 		inClass[k] = ((r0 < (imageSize[0] * 0.5f)) == (r1 < (imageSize[1] * 0.5f))) ? 0 : 1;
 	}
 
+	float tce = 0.0f;
+	int co = 0;
 	for (int i = 0; i < c; i++) {
 		String o;
-		int classOut = testCNN.forwardProp(input[i], inClass[i], o);
-		o += "Training " + to_str(c) + " Expected: " + to_str(inClass[i]) +
-			" was " + to_str(classOut) + "\n";
+		float ce = 0.0f;
+		int classOut = testCNN.forwardProp(input[i], inClass[i], o, &ce);
+		// Accuracy
+		co = inClass[i] == classOut ? co + 1 : co;
+		// Loss
+		tce += ce;
+		o += "training " + to_str(i) + " expected: " + to_str(inClass[i]) +
+			" was " + to_str(classOut);
+		o += "\naccuracy: " + to_str(co / float(i + 1)) +
+			" loss: " + to_str(tce / float(i + 1));
 		testCNN.backProp(input[i], inClass[i], o);
 		testCNN.update(o);
-		cout << o << endl;
+		std::cout << o << std::endl;
 	}
 
 	const int t = 100;
 	float**** test = (float****)CNN::createArray(t, 65, 65, 3, sizeof(float));
-	int* testClass = (int*)calloc(t * sizeof(int));
-
-	int correct = 0;
+	int* testClass = (int*)calloc(t, sizeof(int));
 
 	// Setup input
 	for (int k = 0; k < t; k++) {
@@ -1408,23 +1533,30 @@ int main()
 		int r1 = (int)floor(dis0(gen));
 		for (int i = 0; i < 65; i++) {
 			for (int j = 0; j < 65; j++) {
-				test[k][i][j][0] = (i == r0 && j == r1) ? -0.5f : 0.5f;
+				test[k][i][j][0] = (i == r0 && j == r1) ? 1.0f : 0.0f;
 				test[k][i][j][1] = test[k][i][j][0];
 				test[k][i][j][2] = test[k][i][j][0];
 			}
 		}
 		// XOR function
-		testClass[k] = ((r0 < 4.5f) == (r1 < 4.5f)) ? 0 : 1;
+		testClass[k] = ((r0 < (imageSize[0] * 0.5f)) == (r1 < (imageSize[1] * 0.5f))) ? 0 : 1;
 	}
 
+	tce = 0.0f;
+	co = 0;
 	for (int i = 0; i < t; i++) {
 		String o;
-		int classOut = testCNN.forwardProp(test[i], testClass[i], o);
-		correct = (classOut == inClass[i]) ? correct + 1 : correct;
-		o += "Testing " + to_str(i) + " Expected: " + to_str(inClass[i]) +
-			" was " + to_str(classOut) + "\n";
-		o += "\nCorrect: " + to_str(correct) + "/" + to_str(t);
-		cout << o << endl;
+		float ce = 0.0f;
+		int classOut = testCNN.forwardProp(test[i], testClass[i], o, &ce);
+		// Accuracy
+		co = testClass[i] == classOut ? co + 1 : co;
+		// Loss
+		tce += ce;
+		o += "testing " + to_str(i) + " expected: " + to_str(testClass[i]) +
+			" was " + to_str(classOut);
+		o += "\naccuracy: " + to_str(co / float(i + 1)) +
+			" loss: " + to_str(tce / float(i + 1));
+		std::cout << o << std::endl;
 	}
 
 	CNN::freeArray(c, imageSize[0], imageSize[1], 3, (void****)input);
