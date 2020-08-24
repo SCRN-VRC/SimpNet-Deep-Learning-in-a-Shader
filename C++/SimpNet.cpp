@@ -31,7 +31,7 @@ using json = nlohmann::json;
 #define DEBUG_LAYER     FC3
 #define DEBUG_BP		0
 #define DEBUG_WEIGHTS   0
-#define XORTEST         1
+#define XORTEST         0
 #define TRAIN           1
 
 #define WEIGHTS_PATH    "C:\\Users\\Alan\\source\\repos\\SimpNetPython\\Weights.txt"
@@ -133,6 +133,15 @@ private:
 	float**** dwL2_h;   // 3 x 3 x 32 x 64
 	float* dbL2;        // 1 x 64
 	float* dbL2_h;      // 1 x 64
+
+	float*** padL2;     // 18 x 18 x 64
+	float*** eL1Max;    // 16 x 16 x 32
+	float*** eL1;       // 32 x 32 x 32
+	float*** diL1;		// 63 x 63 x 32
+	float**** dwL1;     // 3 x 3 x 3 x 32
+	float**** dwL1_h;   // 3 x 3 x 3 x 32
+	float* dbL1;        // 1 x 32
+	float* dbL1_h;      // 1 x 32
 
 public:
 
@@ -378,10 +387,17 @@ public:
 		FC3s = (float*)calloc(12, sizeof(float));
 		FC3o = (float*)calloc(12, sizeof(float));
 
-		random_device rd;  //Will be used to obtain a seed for the random number engine
-		mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+		padL2 = (float***)createArray(18, 18, 64, sizeof(float));
+		eL1Max = (float***)createArray(16, 16, 32, sizeof(float));
+		eL1 = (float***)createArray(32, 32, 32, sizeof(float));
+		diL1 = (float***)createArray(63, 63, 32, sizeof(float));
 
 		wL1 = (float****)createArray(3, 3, 3, 32, sizeof(float));
+		dwL1 = (float****)createArray(3, 3, 3, 32, sizeof(float));
+		dwL1_h = (float****)createArray(3, 3, 3, 32, sizeof(float));
+
+		random_device rd;  //Will be used to obtain a seed for the random number engine
+		mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
 #if (DEBUG_WEIGHTS)
 		for (int i = 0; i < 3; i++) {
 			for (int j = 0; j < 3; j++) {
@@ -507,6 +523,8 @@ public:
 #endif
 
 		bL1 = (float*)calloc(32, sizeof(float));
+		dbL1 = (float*)calloc(32, sizeof(float));
+		dbL1_h = (float*)calloc(32, sizeof(float));
 
 		bL2 = (float*)calloc(64, sizeof(float));
 		dbL2 = (float*)calloc(64, sizeof(float));
@@ -652,6 +670,14 @@ public:
 		freeArray(3, 3, 32, 64, (void****)dwL2_h);
 		free(dbL2);
 		free(dbL2_h);
+		freeArray(18, 18, 64, (void***)padL2);
+		freeArray(16, 16, 32, (void***)eL1Max);
+		freeArray(32, 32, 32, (void***)eL1);
+		freeArray(63, 63, 32, (void***)diL1);
+		freeArray(3, 3, 3, 32, (void****)dwL1);
+		freeArray(3, 3, 3, 32, (void****)dwL1_h);
+		free(dbL1);
+		free(dbL1_h);
 	}
 
 	int forwardProp(float*** image, int classNo, String& o, float* ce)
@@ -1070,7 +1096,7 @@ public:
 		for (int i = 0; i < 128; i++) {
 			for (int j = 0; j < 128; j++) {
 				// With respect to the activation function of fc2 and the output of previous layer
-				dwFC2[i][j] = dbFC2[j] * dfn(FC2s[j]) * FC1a[i];
+				dwFC2[i][j] = dbFC2[j] * dfn(FC2s[i]) * FC1a[i];
 			}
 		}
 
@@ -1079,7 +1105,7 @@ public:
 			dbFC1[i] = 0.0f;
 			for (int j = 0; j < 128; j++) {
 				// With respect to activation function of fc2 and w2
-				dbFC1[i] += dbFC2[j] * dfn(FC2s[j]) * wFC2[i][j];
+				dbFC1[i] += dbFC2[j] * dfn(FC2s[i]) * wFC2[i][j];
 			}
 		}
 
@@ -1087,7 +1113,7 @@ public:
 		for (int i = 0; i < 128; i++) {
 			for (int j = 0; j < 128; j++) {
 				// With respect to activation function of fc1 and the output of previous layer
-				dwFC1[i][j] = dbFC1[j] * dfn(FC1s[j]) * L3Max[i];
+				dwFC1[i][j] = dbFC1[j] * dfn(FC1s[i]) * L3Max[i];
 			}
 		}
 
@@ -1096,7 +1122,7 @@ public:
 			eL3Max[i] = 0.0f;
 			for (int j = 0; j < 128; j++) {
 				// Figure out the loss w.r.t weight
-				eL3Max[i] += dbFC1[j] * dfn(FC1s[j]) * wFC1[i][j];
+				eL3Max[i] += dbFC1[j] * dfn(FC1s[i]) * wFC1[i][j];
 			}
 		}
 
@@ -1110,7 +1136,7 @@ public:
 			for (int j = 0; j < 3; j++) {
 				for (int k = 0; k < 128; k++) {
 					eL3[i][j][k] = L3iMax[k] == (i * 3 + j) ?
-						eL3Max[k] * dfn(L3s[i][j][k]) : 0.0f;
+						eL3Max[k] * dfn(L3s[j][i][k]) : 0.0f;
 				}
 			}
 		}
@@ -1229,8 +1255,8 @@ public:
 				int i0 = i / 2;
 				int j0 = j / 2;
 				for (int k = 0; k < 64; k++) {
-					eL2[i][j][k] = L2iMax[i0][j0][k] == i * 15 + j ?
-						eL2Max[i0][j0][k] * dfn(L2s[i][j][k]) : 0.0f;
+					eL2[i][j][k] = L2iMax[i0][j0][k] == i * 14 + j ?
+						eL2Max[i0][j0][k] * dfn(L2s[j][i][k]) : 0.0f;
 				}
 			}
 		}
@@ -1250,6 +1276,92 @@ public:
 							}
 						}
 						dwL2[i][j][k][l] = s;
+					}
+				}
+			}
+		}
+
+		// Pad L2 error
+		for (int i = 0; i < 18; i++) {
+			for (int j = 0; j < 18; j++) {
+				for (int k = 0; k < 64; k++) {
+					padL2[i][j][k] = (i < 2 || j < 2 || i > 15 || j > 15) ?
+						0.0f : eL2[i - 2][j - 2][k];
+				}
+			}
+		}
+
+		// L1 error
+		for (int i = 0; i < 16; i++) {
+			for (int j = 0; j < 16; j++) {
+				for (int k = 0; k < 32; k++) {
+					float s = 0.0f;
+					for (int l = 0; l < 64; l++) {
+						s += padL2[i + 0][j + 0][l] * wL2[2][2][k][l];
+						s += padL2[i + 0][j + 1][l] * wL2[2][1][k][l];
+						s += padL2[i + 0][j + 2][l] * wL2[2][0][k][l];
+						s += padL2[i + 1][j + 0][l] * wL2[1][2][k][l];
+						s += padL2[i + 1][j + 1][l] * wL2[1][1][k][l];
+						s += padL2[i + 1][j + 2][l] * wL2[1][0][k][l];
+						s += padL2[i + 2][j + 0][l] * wL2[0][2][k][l];
+						s += padL2[i + 2][j + 1][l] * wL2[0][1][k][l];
+						s += padL2[i + 2][j + 2][l] * wL2[0][0][k][l];
+					}
+					eL1Max[i][j][k] = s;
+				}
+			}
+		}
+
+		// L1 bias
+		for (int i = 0; i < 32; i++) {
+			float s = 0.0f;
+			for (int x = 0; x < 16; x++) {
+				for (int y = 0; y < 16; y++) {
+					s += eL1Max[x][y][i];
+				}
+			}
+			dbL1[i] = s;
+		}
+
+		// Undo max pool 16x16 -> 32x32
+		for (int i = 0; i < 32; i++) {
+			for (int j = 0; j < 32; j++) {
+				int i0 = i / 2;
+				int j0 = j / 2;
+				for (int k = 0; k < 32; k++) {
+					eL1[i][j][k] = L1iMax[i0][j0][k] == (i * 32 + j) ?
+						eL1Max[i0][j0][k] * dfn(L1s[j][i][k]) : 0.0f;
+				}
+			}
+		}
+
+		// Dialate L1 stride=2
+		for (int i = 0; i < 63; i++) {
+			for (int j = 0; j < 63; j++) {
+				int i0 = i / 2;
+				int j0 = j / 2;
+				for (int k = 0; k < 32; k++) {
+					diL1[i][j][k] = ((i % 2 == 1) || (j % 2 == 1)) ?
+						0.0f : eL1[i0][j0][k];
+				}
+			}
+		}
+
+		// L1 gradient
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 3; j++) {
+				for (int k = 0; k < 3; k++) {
+					for (int l = 0; l < 32; l++) {
+						// Convolve 63x63 error over 65x65 input
+						float s = 0.0f;
+						for (int x = 0; x < 63; x++) {
+							for (int y = 0; y < 63; y++) {
+								int lx = x + i;
+								int ly = y + j;
+								s += diL1[x][y][l] * image[lx][ly][k];
+							}
+						}
+						dwL1[i][j][k][l] = s;
 					}
 				}
 			}
@@ -1348,6 +1460,26 @@ public:
 						float vdw = momentum(dwL2[i][j][k][l], dwL2_h[i][j][k][l]);
 						dwL2_h[i][j][k][l] = vdw;
 						wL2[i][j][k][l] -= lr * (dwL2[i][j][k][l] / (sqrt(vdw) + epsilon));
+					}
+				}
+			}
+		}
+
+		// L1 bias
+		for (int i = 0; i < 32; i++) {
+			float vdb = momentum(dbL1[i], dbL1_h[i]);
+			dbL1_h[i] = vdb;
+			bL1[i] -= lr * (dbL1[i] / (sqrt(vdb) + epsilon));
+		}
+
+		// L1 weights
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 3; j++) {
+				for (int k = 0; k < 3; k++) {
+					for (int l = 0; l < 32; l++) {
+						float vdw = momentum(dwL1[i][j][k][l], dwL1_h[i][j][k][l]);
+						dwL1_h[i][j][k][l] = vdw;
+						wL1[i][j][k][l] -= lr * (dwL1[i][j][k][l] / (sqrt(vdw) + epsilon));
 					}
 				}
 			}
