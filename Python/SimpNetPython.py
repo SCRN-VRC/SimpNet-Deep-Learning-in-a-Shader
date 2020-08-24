@@ -1,3 +1,7 @@
+## Python version of SimpNet
+# Used to train and export weights for the network 
+# because it's fast
+
 from keras.preprocessing.image import load_img
 from keras.preprocessing.image import img_to_array
 from keras.preprocessing.image import ImageDataGenerator

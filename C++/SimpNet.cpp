@@ -1,3 +1,13 @@
+/*
+	The C++ version of SimpNet is the intermediate step from 
+	Python -> C++ -> HLSL in my attempt to code a CNN with 
+	back propagation in a fragment shader
+	
+	I coded this to mimic GPU behavior, optimized for the GPU, 
+	so this runs slow CPU wise
+
+	- SCRN
+*/
 
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
@@ -220,9 +230,7 @@ public:
 	{
 		ifstream ifs(path);
 		if (!ifs) {
-#if (DEBUG_LAYER)
 			std::cout << "Failed to open: " << path << std::endl;
-#endif
 			return;
 		}
 		json jf = json::parse(ifs);
@@ -324,9 +332,7 @@ public:
 			bFC3[i] = jf.at(11).at(i);
 		}
 
-#if (DEBUG_LAYER)
-		std::cout << "Weights loaded successfully " << std::endl;
-#endif
+		std::cout << "Weights loaded successfully" << std::endl;
 	}
 
 	float afn(float x)
