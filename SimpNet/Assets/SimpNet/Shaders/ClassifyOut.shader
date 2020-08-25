@@ -64,7 +64,7 @@
                 };
 
                 for (int i = 0; i < 12; i++) {
-                    float2 curScore = float2(_NNBuffer.Load(int3(txL6 + txSoftout2 + int2(0, i), 0)).x, i);
+                    float2 curScore = float2(_NNBuffer.Load(int3(txFC3Area.xy + txFC3o.xy + int2(0, i), 0)).x, i);
                     for (int j = 0; j < 6; j++) {
                         float2 prevTop = curScore.x > top6[j].x ? top6[j] : curScore;
                         top6[j] = curScore.x > top6[j].x ? curScore : top6[j];

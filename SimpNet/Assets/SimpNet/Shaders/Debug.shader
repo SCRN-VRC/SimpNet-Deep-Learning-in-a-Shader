@@ -1,4 +1,4 @@
-﻿Shader "Unlit/Debug"
+﻿Shader "SimpNet/Debug"
 {
     Properties
     {

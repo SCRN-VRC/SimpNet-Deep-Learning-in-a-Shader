@@ -40,7 +40,7 @@ using json = nlohmann::json;
 
 #define DEBUG_LAYER     FC3
 #define DEBUG_BP		0
-#define DEBUG_WEIGHTS   0
+#define DEBUG_WEIGHTS   1
 #define XORTEST         0
 #define TRAIN           1
 
@@ -409,7 +409,7 @@ public:
 			for (int j = 0; j < 3; j++) {
 				for (int k = 0; k < 3; k++) {
 					for (int l = 0; l < 32; l++) {
-						wL1[i][j][k][l] = 0.01f + l / 320.0f;
+						wL1[i][j][k][l] = i * j * k / (l + 1.0f);
 					}
 				}
 			}
@@ -554,64 +554,65 @@ public:
 #if (DEBUG_WEIGHTS)
 		String o;
 		o += "\nL1 Weights\n";
-		for (int i = 0; i < 3; i++) {
-			for (int j = 0; j < 3; j++) {
-				for (int k = 0; k < 3; k++) {
-					for (int l = 0; l < 32; l++) {
-						o += to_str(wL1[i][j][k][l]) + " ";
-					}
-					o += "\n";
-				}
-			}
-		}
+		o += to_str(wL1[2][1][1][31]) + " ";
+		//for (int i = 0; i < 3; i++) {
+		//	for (int j = 0; j < 3; j++) {
+		//		for (int k = 0; k < 3; k++) {
+		//			for (int l = 0; l < 32; l++) {
+		//				o += to_str(wL1[i][j][k][l]) + " ";
+		//			}
+		//			o += "\n";
+		//		}
+		//	}
+		//}
 
-		o += "\nL2 Weights\n";
-		for (int i = 0; i < 3; i++) {
-			for (int j = 0; j < 3; j++) {
-				for (int k = 0; k < 32; k++) {
-					for (int l = 0; l < 64; l++) {
-						o += to_str(wL2[i][j][k][l]) + " ";
-					}
-					o += "\n";
-				}
-			}
-		}
+		//o += "\nL2 Weights\n";
+		//for (int i = 0; i < 3; i++) {
+		//	for (int j = 0; j < 3; j++) {
+		//		for (int k = 0; k < 32; k++) {
+		//			for (int l = 0; l < 64; l++) {
+		//				o += to_str(wL2[i][j][k][l]) + " ";
+		//			}
+		//			o += "\n";
+		//		}
+		//	}
+		//}
 
-		o += "\nL3 Weights\n";
-		for (int i = 0; i < 3; i++) {
-			for (int j = 0; j < 3; j++) {
-				for (int k = 0; k < 64; k++) {
-					for (int l = 0; l < 128; l++) {
-						o += to_str(wL3[i][j][k][l]) + " ";
-					}
-					o += "\n";
-				}
-			}
-		}
+		//o += "\nL3 Weights\n";
+		//for (int i = 0; i < 3; i++) {
+		//	for (int j = 0; j < 3; j++) {
+		//		for (int k = 0; k < 64; k++) {
+		//			for (int l = 0; l < 128; l++) {
+		//				o += to_str(wL3[i][j][k][l]) + " ";
+		//			}
+		//			o += "\n";
+		//		}
+		//	}
+		//}
 
-		o += "\nFC1 Weights\n";
-		for (int i = 0; i < 128; i++) {
-			for (int j = 0; j < 128; j++) {
-				o += to_str(wFC1[i][j]) + " ";
-			}
-			o += "\n";
-		}
+		//o += "\nFC1 Weights\n";
+		//for (int i = 0; i < 128; i++) {
+		//	for (int j = 0; j < 128; j++) {
+		//		o += to_str(wFC1[i][j]) + " ";
+		//	}
+		//	o += "\n";
+		//}
 
-		o += "\nFC2 Weights\n";
-		for (int i = 0; i < 128; i++) {
-			for (int j = 0; j < 128; j++) {
-				o += to_str(wFC2[i][j]) + " ";
-			}
-			o += "\n";
-		}
+		//o += "\nFC2 Weights\n";
+		//for (int i = 0; i < 128; i++) {
+		//	for (int j = 0; j < 128; j++) {
+		//		o += to_str(wFC2[i][j]) + " ";
+		//	}
+		//	o += "\n";
+		//}
 
-		o += "\nFC3 Weights\n";
-		for (int i = 0; i < 128; i++) {
-			for (int j = 0; j < 12; j++) {
-				o += to_str(wFC3[i][j]) + " ";
-			}
-			o += "\n";
-		}
+		//o += "\nFC3 Weights\n";
+		//for (int i = 0; i < 128; i++) {
+		//	for (int j = 0; j < 12; j++) {
+		//		o += to_str(wFC3[i][j]) + " ";
+		//	}
+		//	o += "\n";
+		//}
 
 		std::cout << o << std::endl;
 #endif
@@ -1530,7 +1531,7 @@ int main()
 
 #if (TRAIN)
 	// epoch
-	for (int e = 0; e < 5; e++) {
+	for (int e = 0; e < 1; e++) {
 		float tce = 0.0f;
 		int co = 0;
 		// Shuffle
@@ -1538,7 +1539,7 @@ int main()
 		shuffle(images.begin(), images.end(), default_random_engine(seed));
 		shuffle(img_class.begin(), img_class.end(), default_random_engine(seed));
 
-		for (size_t ll = 0; ll < count; ll++) {
+		for (size_t ll = 0; ll < 1; ll++) {
 			String o;
 			Mat img = images[ll];
 
@@ -1590,7 +1591,7 @@ int main()
 
 	float tce = 0.0f;
 	int co = 0;
-	for (size_t ll = 0; ll < count; ll++) {
+	for (size_t ll = 0; ll < 0; ll++) {
 		String o;
 		Mat img = images[ll];
 
