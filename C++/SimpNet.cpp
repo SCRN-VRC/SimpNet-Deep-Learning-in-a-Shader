@@ -496,8 +496,8 @@ public:
 #if (DEBUG_WEIGHTS)
 		for (int i = 0; i < 128; i++) {
 			for (int j = 0; j < 128; j++) {
-				wFC1[i][j] = (127 - j) / 12800.0f;
-				wFC2[i][j] = (127 - i) / 12800.0f;
+				wFC1[i][j] = (i + j) / float(i * j + 100000.0f);
+				wFC2[i][j] = (i + j) / float(i * j + 200000.0f);
 			}
 }
 #else
@@ -516,7 +516,7 @@ public:
 #if (DEBUG_WEIGHTS)
 		for (int i = 0; i < 128; i++) {
 			for (int j = 0; j < 12; j++) {
-				wFC3[i][j] = 0.01f;
+				wFC3[i][j] = (i + 12 - j) / float(j + 2000.f);
 			}
 		}
 #else
@@ -564,6 +564,18 @@ public:
 
 		for (int i = 0; i < 128; i++) {
 			bL3[i] = (i / 128.0f) - 0.5f;
+		}
+
+		for (int i = 0; i < 128; i++) {
+			bFC1[i] = i / float(i + 100.0f);
+		}
+
+		for (int i = 0; i < 128; i++) {
+			bFC2[i] = i / float(i + 1000.0f);
+		}
+
+		for (int i = 0; i < 12; i++) {
+			bFC3[i] = i / 11.f - 0.5f;
 		}
 
 		//o += "\nL1 Weights\n";
@@ -980,7 +992,7 @@ public:
 				}
 			}
 		}
-		cout << L3Max[0] << endl;
+
 #if (DEBUG_LAYER == L3 || DEBUG_LAYER == DEBUG_ALL)
 		o += "\nMax Layer 3 Index:\n";
 		for (int k = 0; k < 128; k++) {
@@ -1018,6 +1030,7 @@ public:
 			FC2s[k] += bFC2[k];
 			FC2a[k] = afn(FC2s[k]);
 		}
+
 #if (DEBUG_LAYER == FC2 || DEBUG_LAYER == DEBUG_ALL)
 		o += "\nDense Layer 2:\n";
 		for (int k = 0; k < 128; k++) {
@@ -1046,7 +1059,7 @@ public:
 			}
 			FC3o[i] = exp(FC3s[i]) / s;
 		}
-
+		cout << FC3o[2] << endl;
 		float expected[12] = { 0.0f };
 		expected[classNo] = 1.0f;
 		*ce = 0.0f;

@@ -112,7 +112,6 @@ float getBL3(Texture2D<float> tex, uint i)
     int2 pos;
     pos.x = 0;
     pos.y = i;
-   
     return tex.Load(uint3(txL3Area.xy + txBL3.xy + pos, 0)).x;
 }
 
@@ -130,6 +129,110 @@ float getL3a(Texture2D<float> tex, uint3 i)
     pos.x = i.y + i.x * 3;
     pos.y = i.z;
     return tex.Load(uint3(txL3Area.xy + txL3a.xy + pos, 0)).x;
+}
+
+float getL3Max(Texture2D<float> tex, uint i)
+{
+    int2 pos;
+    pos.x = 0;
+    pos.y = i;
+    return tex.Load(uint3(txL3Area.xy + txL3Max.xy + pos, 0)).x;
+}
+
+float getWFC1(Texture2D<float> tex, uint2 i)
+{
+    int2 pos;
+    pos.x = i.x;
+    pos.y = i.y;
+    return tex.Load(uint3(txFC1Area.xy + txWFC1.xy + pos, 0)).x;
+}
+
+float getBFC1(Texture2D<float> tex, uint i)
+{
+    int2 pos;
+    pos.x = 0;
+    pos.y = i;
+    return tex.Load(uint3(txFC1Area.xy + txBFC1.xy + pos, 0)).x;
+}
+
+float getFC1s(Texture2D<float> tex, uint i)
+{
+    int2 pos;
+    pos.x = 0;
+    pos.y = i;
+    return tex.Load(uint3(txFC1Area.xy + txFC1s.xy + pos, 0)).x;
+}
+
+float getFC1a(Texture2D<float> tex, uint i)
+{
+    int2 pos;
+    pos.x = 0;
+    pos.y = i;
+    return tex.Load(uint3(txFC1Area.xy + txFC1a.xy + pos, 0)).x;
+}
+
+float getWFC2(Texture2D<float> tex, uint2 i)
+{
+    int2 pos;
+    pos.x = i.x;
+    pos.y = i.y;
+    return tex.Load(uint3(txFC2Area.xy + txWFC2.xy + pos, 0)).x;
+}
+
+float getBFC2(Texture2D<float> tex, uint i)
+{
+    int2 pos;
+    pos.x = 0;
+    pos.y = i;
+    return tex.Load(uint3(txFC2Area.xy + txBFC2.xy + pos, 0)).x;
+}
+
+float getFC2s(Texture2D<float> tex, uint i)
+{
+    int2 pos;
+    pos.x = 0;
+    pos.y = i;
+    return tex.Load(uint3(txFC2Area.xy + txFC2s.xy + pos, 0)).x;
+}
+
+float getFC2a(Texture2D<float> tex, uint i)
+{
+    int2 pos;
+    pos.x = 0;
+    pos.y = i;
+    return tex.Load(uint3(txFC2Area.xy + txFC2a.xy + pos, 0)).x;
+}
+
+float getWFC3(Texture2D<float> tex, uint2 i)
+{
+    int2 pos;
+    pos.x = i.x;
+    pos.y = i.y;
+    return tex.Load(uint3(txFC3Area.xy + txWFC3.xy + pos, 0)).x;
+}
+
+float getBFC3(Texture2D<float> tex, uint i)
+{
+    int2 pos;
+    pos.x = 0;
+    pos.y = i;
+    return tex.Load(uint3(txFC3Area.xy + txBFC3.xy + pos, 0)).x;
+}
+
+float getFC3s(Texture2D<float> tex, uint i)
+{
+    int2 pos;
+    pos.x = 0;
+    pos.y = i;
+    return tex.Load(uint3(txFC3Area.xy + txFC3s.xy + pos, 0)).x;
+}
+
+float getFC3o(Texture2D<float> tex, uint i)
+{
+    int2 pos;
+    pos.x = 0;
+    pos.y = i;
+    return tex.Load(uint3(txFC3Area.xy + txFC3o.xy + pos, 0)).x;
 }
 
 #endif

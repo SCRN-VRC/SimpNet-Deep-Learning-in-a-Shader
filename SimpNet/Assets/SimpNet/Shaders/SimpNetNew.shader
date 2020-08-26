@@ -392,22 +392,43 @@
                     if (insideArea(txWFC1, px))
                     {
                         px -= txWFC1.xy;
-                        if (k == 0)
+                        if (_Time.y < 1.0 || _Reset > 0)
                         {
-                            buffer[0] = col.rrrr;
+                            // Debugging
+                            uint i = px.x % 128;
+                            uint j = px.y % 128;
+                            col.r = (i + j) / float(i * j + 100000);
                         }
                     }
                     else if (insideArea(txBFC1, px))
                     {
                         px -= txBFC1.xy;
+                        if (_Time.y < 1.0 || _Reset > 0)
+                        {
+                            // Debugging
+                            uint i = px.y % 128;
+                            col.r = i / float(i + 100);
+                        }
                     }
                     else if (insideArea(txFC1s, px))
                     {
                         px -= txFC1s.xy;
+                        uint k = px.y % 128;
+
+                        float sum = 0.0;
+                        for (uint l = 0; l < 128; l++) {
+                            sum += getL3Max(_Buffer, l) * getWFC1(_Buffer, uint2(l, k));
+                        }
+
+                        sum += getBFC1(_Buffer, k);
+                        col.r = sum;
                     }
                     else if (insideArea(txFC1a, px))
                     {
                         px -= txFC1a.xy;
+                        uint k = px.y % 128;
+
+                        col.r = afn(getFC1s(_Buffer, k));
                     }
                 }
                 else if (insideArea(txFC2Area, px))
@@ -416,19 +437,44 @@
                     [branch]
                     if (insideArea(txWFC2, px))
                     {
-
+                        px -= txWFC2.xy;
+                        if (_Time.y < 1.0 || _Reset > 0)
+                        {
+                            // Debugging
+                            uint i = px.x % 128;
+                            uint j = px.y % 128;
+                            col.r = (i + j) / float(i * j + 200000);
+                        }
                     }
                     else if (insideArea(txBFC2, px))
                     {
-
+                        px -= txBFC2.xy;
+                        if (_Time.y < 1.0 || _Reset > 0)
+                        {
+                            // Debugging
+                            uint i = px.y % 128;
+                            col.r = i / float(i + 1000);
+                        }
                     }
                     else if (insideArea(txFC2s, px))
                     {
+                        px -= txFC2s.xy;
+                        uint k = px.y % 128;
 
+                        float sum = 0.0;
+                        for (uint l = 0; l < 128; l++) {
+                            sum += getFC1a(_Buffer, l) * getWFC2(_Buffer, uint2(l, k));
+                        }
+
+                        sum += getBFC2(_Buffer, k);
+                        col.r = sum;
                     }
                     else if (insideArea(txFC2a, px))
                     {
+                        px -= txFC2a.xy;
+                        uint k = px.y % 128;
 
+                        col.r = afn(getFC2s(_Buffer, k));
                     }
                 }
                 else if (insideArea(txFC3Area, px))
@@ -437,19 +483,53 @@
                     [branch]
                     if (insideArea(txWFC3, px))
                     {
-
+                        px -= txWFC3.xy;
+                        if (_Time.y < 1.0 || _Reset > 0)
+                        {
+                            // Debugging
+                            uint i = px.x % 128;
+                            uint j = px.y % 12;
+                            col.r = (i + 12 - j) / float(j + 2000);
+                        }
                     }
                     else if (insideArea(txBFC3, px))
                     {
-
+                        px -= txBFC3.xy;
+                        if (_Time.y < 1.0 || _Reset > 0)
+                        {
+                            // Debugging
+                            uint i = px.y % 12;
+                            col.r = i / 11.0 - 0.5;
+                        }
                     }
                     else if (insideArea(txFC3s, px))
                     {
+                        px -= txFC3s.xy;
+                        uint i = px.y % 12;
 
+                        float sum = 0.0;
+                        for (uint j = 0; j < 128; j++) {
+                            sum += getFC2a(_Buffer, j) * getWFC3(_Buffer, uint2(j, i));
+                        }
+
+                        sum += getBFC3(_Buffer, i);
+                        col.r = sum;
                     }
                     else if (insideArea(txFC3o, px))
                     {
+                        px -= txFC3o.xy;
+                        uint i = px.y % 12;
+                        
+                        float sum = 0.0;
+                        for (uint j = 0; j < 12; j++) {
+                            sum += exp(getFC3s(_Buffer, j));
+                        }
 
+                        col.r = exp(getFC3s(_Buffer, i)) / sum;
+                        if (i == 2)
+                        {
+                            buffer[0] = col.rrrr;
+                        }
                     }
                 }
                 else if (insideArea(txB4Area, px))
