@@ -1,206 +1,135 @@
-﻿// #ifndef _SIMPNETFUNCS
-// #define _SIMPNETFUNCS
+﻿#ifndef _SIMPNETFUNCS
+#define _SIMPNETFUNCS
 
-// #include "Includes/SimpNetLayout.cginc"
+#include "Includes/SimpNetLayout.cginc"
 
-// inline float actFn(float x)
-// {
-//     // ELU
-//     return x >= 0.0f ? x : (0.15f * (exp(x) - 1.0f));
-// }
+inline float afn(float x)
+{
+    // ELU
+    return x >= 0.f ? x : alpha * (exp(x) - 1.f);
+}
 
-// inline float dactFn(float x)
-// {
-//     // ELU
-//     return x >= 0.0f ? 1.0f : exp(x) * 0.15f;
-// }
+inline float dfn(float x)
+{
+    // ELU
+    return x >= 0.f ? 1.f : alpha * exp(x);
+}
 
-// float testImage(int i, int j, int k) {
-//     return (i / 65.0 * ((65 - j) / 65.0)) + 0.2 * k;
-// }
+float testImage(uint i, uint j, uint k) {
+    return (i / 64.0 * ((64 - j) / 64.0)) + 0.2 * k;
+}
 
-// float getKern1(Texture2D<float> tex, int4 i)
-// {
-//     int2 pos;
-//     pos.x = i.x + ((i.w % 8) * 3);
-//     pos.y = i.y + i.z * 3 + ((i.w / 8) * 9);
-//     return tex.Load(int3(txL1.xy + txKern1Area.xy + pos, 0)).x;
-// }
+float getWL1(Texture2D<float> tex, int4 i)
+{
+    int2 pos;
+    pos.x = i.z + i.y * 3 + i.x * 9;
+    pos.y = i.w;
+    return tex.Load(uint3(txL1Area.xy + txWL1.xy + pos, 0)).x;
+}
 
-// float getConv1(Texture2D<float> tex, int3 i)
-// {
-//     int2 pos;
-//     pos.x = i.x + (i.z % 4) * 32;
-//     pos.y = i.y + (i.z / 4) * 32;
-//     return tex.Load(int3(txL1.xy + txConv1Area.xy + pos, 0)).x;
-// }
+float getBL1(Texture2D<float> tex, uint i)
+{
+    int2 pos;
+    pos.x = 0;
+    pos.y = i;
+    return tex.Load(uint3(txL1Area.xy + txBL1.xy + pos, 0)).x;
+}
 
-// float getMax1(Texture2D<float> tex, int3 i)
-// {
-//     int2 pos;
-//     pos.x = i.x + (i.z % 2) * 16;
-//     pos.y = i.y + (i.z / 2) * 16;
-//     return tex.Load(int3(txL1.xy + txMax1Area.xy + pos, 0)).x;
-// }
+float getL1s(Texture2D<float> tex, uint3 i)
+{
+    int2 pos;
+    pos.x = i.y + i.x * 32;
+    pos.y = i.z;
+    return tex.Load(uint3(txL1Area.xy + txL1s.xy + pos, 0)).x;
+}
 
-// float getKern2(Texture2D<float> tex, int4 i)
-// {
-//     int2 pos;
-//     pos.x = i.x + i.z * 3;
-//     pos.y = i.y + i.w * 3;
-//     return tex.Load(int3(txL2.xy + txKern2Area.xy + pos, 0)).x;
-// }
+float getL1a(Texture2D<float> tex, uint3 i)
+{
+    int2 pos;
+    pos.x = i.y + i.x * 32;
+    pos.y = i.z;
+    return tex.Load(uint3(txL1Area.xy + txL1a.xy + pos, 0)).x;
+}
 
-// float getConv2(Texture2D<float> tex, int3 i)
-// {
-//     int2 pos;
-//     pos.x = i.x + (i.z % 8) * 14;
-//     pos.y = i.y + (i.z / 8) * 14;
-//     return tex.Load(int3(txL2.xy + txConv2Area.xy + pos, 0)).x;
-// }
+float getL1Max(Texture2D<float> tex, uint3 i)
+{
+    int2 pos;
+    pos.x = i.y + i.x * 16;
+    pos.y = i.z;
+    return tex.Load(uint3(txL1Area.xy + txL1Max.xy + pos, 0)).x;
+}
 
-// float getMax2(Texture2D<float> tex, int3 i)
-// {
-//     int2 pos;
-//     pos.x = i.x + (i.z % 8) * 7;
-//     pos.y = i.y + (i.z / 8) * 7;
-//     return tex.Load(int3(txL2.xy + txMax2Area.xy + pos, 0)).x;
-// }
+float getWL2(Texture2D<float> tex, uint4 i)
+{
+    int2 pos;
+    pos.x = i.z + i.y * 32 + i.x * 96;
+    pos.y = i.w;
+    return tex.Load(uint3(txL2Area.xy + txWL2.xy + pos, 0)).x;
+}
 
-// float getKern3(Texture2D<float> tex, int4 i)
-// {
-//     int2 pos;
-//     pos.x = i.x + i.z * 3;
-//     pos.y = i.y + i.w * 3;
-//     return tex.Load(int3(txL3.xy + txKern3Area.xy + pos, 0)).x;
-// }
+float getBL2(Texture2D<float> tex, uint i)
+{
+    int2 pos;
+    pos.x = 0;
+    pos.y = i;
+    return tex.Load(uint3(txL2Area.xy + txBL2.xy + pos, 0)).x;
+}
 
-// float getConv3(Texture2D<float> tex, int3 i)
-// {
-//     int2 pos;
-//     pos.x = i.x;
-//     pos.y = i.y + i.z * 4;
-//     return tex.Load(int3(txL3.xy + txConv3Area.xy + pos, 0)).x;
-// }
+float getL2s(Texture2D<float> tex, uint3 i)
+{
+    int2 pos;
+    pos.x = i.y + i.x * 14;
+    pos.y = i.z;
+    return tex.Load(uint3(txL2Area.xy + txL2s.xy + pos, 0)).x;
+}
 
-// float getMax3(Texture2D<float> tex, int3 i)
-// {
-//     int2 pos;
-//     pos.x = i.x;
-//     pos.y = i.y + i.z * 2;
-//     return tex.Load(int3(txL3.xy + txMax3Area.xy + pos, 0)).x;
-// }
+float getL2a(Texture2D<float> tex, uint3 i)
+{
+    int2 pos;
+    pos.x = i.y + i.x * 14;
+    pos.y = i.z;
+    return tex.Load(uint3(txL2Area.xy + txL2a.xy + pos, 0)).x;
+}
 
-// float getW1(Texture2D<float> tex, int4 i)
-// {
-//     int2 pos;
-//     pos.y = i.x + i.z * 2;
-//     pos.x = i.y + i.w * 2;
-//     return tex.Load(int3(txL4.xy + txW1Area.xy + pos, 0)).x;
-// }
+float getL2Max(Texture2D<float> tex, uint3 i)
+{
+    int2 pos;
+    pos.x = i.y + i.x * 7;
+    pos.y = i.z;
+    return tex.Load(uint3(txL2Area.xy + txL2Max.xy + pos, 0)).x;
+}
 
-// float getW3(Texture2D<float> tex, int2 i)
-// {
-//     int2 pos;
-//     pos.x = i.x + (i.y / 64) * 12;
-//     pos.y = i.y % 64;
-//     return tex.Load(int3(txL6.xy + txW3Area.xy + pos, 0)).x;
-// }
+float getWL3(Texture2D<float> tex, uint4 i)
+{
+    int2 pos;
+    pos.x = i.z + i.y * 64 + i.x * 192;
+    pos.y = i.w;
+    return tex.Load(uint3(txL3Area.xy + txWL3.xy + pos, 0)).x;
+}
 
-// float getEMax3(Texture2D<float> tex, int3 i)
-// {
-//     int2 pos;
-//     pos.x = i.x;
-//     pos.y = i.y + i.z * 2;
-//     return tex.Load(int3(txB2.xy + txEMax3Area.xy + pos, 0)).x;
-// }
+float getBL3(Texture2D<float> tex, uint i)
+{
+    int2 pos;
+    pos.x = 0;
+    pos.y = i;
+   
+    return tex.Load(uint3(txL3Area.xy + txBL3.xy + pos, 0)).x;
+}
 
-// float getIMax3(Texture2D<float> tex, int3 i)
-// {
-//     int2 pos;
-//     pos.x = i.x;
-//     pos.y = i.y + i.z * 2;
-//     return tex.Load(int3(txL3.xy + txiMax3Area.xy + pos, 0)).x;
-// }
+float getL3s(Texture2D<float> tex, uint3 i)
+{
+    int2 pos;
+    pos.x = i.y + i.x * 3;
+    pos.y = i.z;
+    return tex.Load(uint3(txL3Area.xy + txL3s.xy + pos, 0)).x;
+}
 
-// float getEConv3(Texture2D<float> tex, int3 i)
-// {
-//     int2 pos;
-//     pos.x = i.x;
-//     pos.y = i.y + i.z * 4;
-//     return tex.Load(int3(txB2.xy + txEConv3Area.xy + pos, 0)).x;
-// }
+float getL3a(Texture2D<float> tex, uint3 i)
+{
+    int2 pos;
+    pos.x = i.y + i.x * 3;
+    pos.y = i.z;
+    return tex.Load(uint3(txL3Area.xy + txL3a.xy + pos, 0)).x;
+}
 
-// float getDiConv3(Texture2D<float> tex, int3 i)
-// {
-//     int2 pos;
-//     pos.x = i.x + (i.z % 8) * 7;
-//     pos.y = i.y + (i.z / 8) * 7;
-//     return tex.Load(int3(txB2.xy + txDiConv3Area.xy + pos, 0)).x;
-// }
-
-// float getEMax2(Texture2D<float> tex, int3 i)
-// {
-//     int2 pos;
-//     pos.x = i.x + (i.z % 8) * 7;
-//     pos.y = i.y + (i.z / 8) * 7;
-//     return tex.Load(int3(txB3.xy + txEMax2Area.xy + pos, 0)).x;
-// }
-
-// float getIMax2(Texture2D<float> tex, int3 i)
-// {
-//     int2 pos;
-//     pos.x = i.x + (i.z % 8) * 7;
-//     pos.y = i.y + (i.z / 8) * 7;
-//     return tex.Load(int3(txL2.xy + txiMax2Area.xy + pos, 0)).x;
-// }
-
-// float getEConv2(Texture2D<float> tex, int3 i)
-// {
-//     int2 pos;
-//     pos.x = i.x + (i.z % 8) * 14;
-//     pos.y = i.y + (i.z / 8) * 14;
-//     return tex.Load(int3(txB3.xy + txEConv2Area.xy + pos, 0)).x;
-// }
-
-// float getPConv2(Texture2D<float> tex, int3 i)
-// {
-//     int2 pos;
-//     pos.x = i.x + (i.z % 8) * 18;
-//     pos.y = i.y + (i.z / 8) * 18;
-//     return tex.Load(int3(txB4.xy + txPConv2Area.xy + pos, 0)).x;
-// }
-
-// float getEMax1(Texture2D<float> tex, int3 i)
-// {
-//     int2 pos;
-//     pos.x = i.x + (i.z % 4) * 16;
-//     pos.y = i.y + (i.z / 4) * 16;
-//     return tex.Load(int3(txB4.xy + txEMax1Area.xy + pos, 0)).x;
-// }
-
-// float getIMax1(Texture2D<float> tex, int3 i)
-// {
-//     int2 pos;
-//     pos.x = i.x + (i.z % 2) * 16;
-//     pos.y = i.y + (i.z / 2) * 16;
-//     return tex.Load(int3(txL1.xy + txiMax1Area.xy + pos, 0)).x;
-// }
-
-// float getEConv1(Texture2D<float> tex, int3 i)
-// {
-//     int2 pos;
-//     pos.x = i.x + (i.z % 4) * 32;
-//     pos.y = i.y + (i.z / 4) * 32;
-//     return tex.Load(int3(txB4.xy + txEConv1Area.xy + pos, 0)).x;
-// }
-
-// float getDiConv1(Texture2D<float> tex, int3 i)
-// {
-//     int2 pos;
-//     pos.x = i.x + (i.z % 4) * 63;
-//     pos.y = i.y + (i.z / 4) * 63;
-//     return tex.Load(int3(txB4.xy + txDiConv1Area.xy + pos, 0)).x;
-// }
-
-// #endif
+#endif

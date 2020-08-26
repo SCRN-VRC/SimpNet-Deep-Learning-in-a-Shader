@@ -439,7 +439,7 @@ public:
 			for (int j = 0; j < 3; j++) {
 				for (int k = 0; k < 32; k++) {
 					for (int l = 0; l < 64; l++) {
-						wL2[i][j][k][l] = 0.002f + l / 6400.0f;
+						wL2[i][j][k][l] = (i + j + k + l) / 1000.0f;
 					}
 				}
 			}
@@ -469,7 +469,7 @@ public:
 			for (int j = 0; j < 3; j++) {
 				for (int k = 0; k < 64; k++) {
 					for (int l = 0; l < 128; l++) {
-						wL3[i][j][k][l] = 0.0003f + l / 128000.0f;
+						wL3[i][j][k][l] = (i + j) / float(k + l + 1.0f);
 					}
 				}
 			}
@@ -553,8 +553,20 @@ public:
 
 #if (DEBUG_WEIGHTS)
 		String o;
-		o += "\nL1 Weights\n";
-		o += to_str(wL1[2][1][1][31]) + " ";
+
+		for (int i = 0; i < 32; i++) {
+			bL1[i] = i / 32.0f - 0.5f;
+		}
+
+		for (int i = 0; i < 64; i++) {
+			bL2[i] = 1.0f - (i / 64.0f) - 0.5f;
+		}
+
+		for (int i = 0; i < 128; i++) {
+			bL3[i] = (i / 128.0f) - 0.5f;
+		}
+
+		//o += "\nL1 Weights\n";
 		//for (int i = 0; i < 3; i++) {
 		//	for (int j = 0; j < 3; j++) {
 		//		for (int k = 0; k < 3; k++) {
@@ -968,7 +980,7 @@ public:
 				}
 			}
 		}
-
+		cout << L3Max[0] << endl;
 #if (DEBUG_LAYER == L3 || DEBUG_LAYER == DEBUG_ALL)
 		o += "\nMax Layer 3 Index:\n";
 		for (int k = 0; k < 128; k++) {
@@ -1547,7 +1559,8 @@ int main()
 				for (int j = 0; j < imageSize[1]; j++) {
 					for (int k = 0; k < 3; k++) {
 						// Flip BGR to RGB
-						floatRBG[i][j][k] = img.at<Vec3b>(i, j)[2 - k] / 255.0f;
+						//floatRBG[i][j][k] = img.at<Vec3b>(i, j)[2 - k] / 255.0f;
+						floatRBG[i][j][k] = (i / 64.0f * ((64 - j) / 64.0f)) + 0.2f * k;
 					}
 				}
 			}
