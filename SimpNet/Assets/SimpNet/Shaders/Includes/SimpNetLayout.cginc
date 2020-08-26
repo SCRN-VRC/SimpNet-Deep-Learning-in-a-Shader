@@ -69,17 +69,17 @@
 #define txB4Area                uint4(613, 572, 260, 268)
 
 #define txDWFC3                 uint4(0, 256, 128, 12)       // 128 x 12
-#define txDWFC3_h               uint4(128, 256, 128, 12)     // 128 x 12
+#define txDWFC3_m               uint4(128, 256, 128, 12)     // 128 x 12
 #define txDBFC3                 uint4(258, 0, 1, 12)         // 1 x 12
-#define txDBFC3_h               uint4(259, 0, 1, 12)         // 1 x 12
+#define txDBFC3_m               uint4(259, 0, 1, 12)         // 1 x 12
 #define txDWFC2                 uint4(0, 0, 128, 128)        // 128 x 128
-#define txDWFC2_h               uint4(128, 0, 128, 128)      // 128 x 128
+#define txDWFC2_m               uint4(128, 0, 128, 128)      // 128 x 128
 #define txDBFC2                 uint4(256, 0, 1, 128)        // 1 x 128
-#define txDBFC2_h               uint4(256, 128, 1, 128)      // 1 x 128
+#define txDBFC2_m               uint4(256, 128, 1, 128)      // 1 x 128
 #define txDWFC1                 uint4(0, 128, 128, 128)      // 128 x 128
-#define txDWFC1_h               uint4(128, 128, 128, 128)    // 128 x 128
+#define txDWFC1_m               uint4(128, 128, 128, 128)    // 128 x 128
 #define txDBFC1                 uint4(257, 0, 1, 128)        // 1 x 128
-#define txDBFC1_h               uint4(257, 128, 1, 128)      // 1 x 128
+#define txDBFC1_m               uint4(257, 128, 1, 128)      // 1 x 128
 
 // B3
 #define txB3Area                uint4(0, 572, 613, 256)
@@ -88,9 +88,9 @@
 #define txEL3                   uint4(601, 0, 9, 128)        // 3x3 x 128
 #define txDiL3                  uint4(576, 0, 25, 128)       // 5x5 x 128
 #define txDwL3                  uint4(0, 0, 576, 128)        // 3x3x64 x 128
-#define txDwL3_h                uint4(0, 128, 576, 128)      // 3x3x64 x 128
+#define txDwL3_m                uint4(0, 128, 576, 128)      // 3x3x64 x 128
 #define txDbL3                  uint4(611, 0, 1, 128)        // 1 x 128
-#define txDbL3_h                uint4(612, 0, 1, 128)        // 1 x 128
+#define txDbL3_m                uint4(612, 0, 1, 128)        // 1 x 128
 
 // B2
 #define txB2Area                uint4(0, 828, 565, 128)
@@ -99,21 +99,21 @@
 #define txEL2Max                uint4(369, 64, 49, 64)       // 7x7 x 64
 #define txEL2                   uint4(369, 0, 196, 64)       // 14x14 x 64
 #define txDwL2                  uint4(81, 0, 288, 64)        // 3x3x32 x 64
-#define txDwL2_h                uint4(81, 64, 288, 64)       // 3x3x32 x 64
+#define txDwL2_m                uint4(81, 64, 288, 64)       // 3x3x32 x 64
 #define txDbL2                  uint4(418, 64, 1, 64)        // 1 x 64
-#define txDbL2_h                uint4(419, 64, 1, 64)        // 1 x 64
+#define txDbL2_m                uint4(419, 64, 1, 64)        // 1 x 64
 
 // B1
 #define txB1Area                uint4(0, 288, 1024, 284)
 
 #define txPadL2                 uint4(504, 32, 324, 64)      // 18x18 x 64
-#define txEL1Max                uint4(504, 96, 256, 64)      // 7x7 x 64
-#define txEL1                   uint4(0, 0, 1024, 32)        // 14x14 x 64
+#define txEL1Max                uint4(504, 96, 256, 64)      // 16x16 x 64
+#define txEL1                   uint4(0, 0, 1024, 32)        // 32x32 x 64
 #define txDiL1                  uint4(0, 32, 504, 252)       // 63x8 x 63x4
 #define txDwL1                  uint4(828, 32, 27, 32)       // 3x3x3 x 32
-#define txDwL1_h                uint4(855, 32, 27, 32)       // 3x3x3 x 32
+#define txDwL1_m                uint4(855, 32, 27, 32)       // 3x3x3 x 32
 #define txDbL1                  uint4(882, 32, 1, 32)        // 1 x 32
-#define txDbL1_h                uint4(883, 32, 1, 32)        // 1 x 32
+#define txDbL1_m                uint4(883, 32, 1, 32)        // 1 x 32
 
 // Weight Initialization
 
@@ -139,7 +139,7 @@
 #define epsilon                 1e-07
 
 #define txTimer                 uint2(1023, 1023)
-#define txLCTrain               uint2(1022, 1023)
+#define txLC                    uint2(1022, 1023)
 
 /*
     Functions

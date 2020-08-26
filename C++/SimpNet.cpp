@@ -114,44 +114,44 @@ private:
 
 	// backprop
 	float** dwFC3;      // 128 x 12
-	float** dwFC3_h;    // 128 x 12
+	float** dwFC3_m;    // 128 x 12
 	float* dbFC3;       // 1 x 12
-	float* dbFC3_h;     // 1 x 12
+	float* dbFC3_m;     // 1 x 12
 
 	float** dwFC2;      // 128 x 128
-	float** dwFC2_h;    // 128 x 128
+	float** dwFC2_m;    // 128 x 128
 	float* dbFC2;       // 1 x 128
-	float* dbFC2_h;     // 1 x 128
+	float* dbFC2_m;     // 1 x 128
 
 	float** dwFC1;      // 128 x 128
-	float** dwFC1_h;    // 128 x 128
+	float** dwFC1_m;    // 128 x 128
 	float* dbFC1;       // 1 x 128
-	float* dbFC1_h;     // 1 x 128
+	float* dbFC1_m;     // 1 x 128
 
 	float* eL3Max;      // 1 x 128
 	float*** eL3;       // 3 x 3 x 128
 	float*** diL3;		// 5 x 5 x 128
 	float**** dwL3;     // 3 x 3 x 64 x 128
-	float**** dwL3_h;   // 3 x 3 x 64 x 128
+	float**** dwL3_m;   // 3 x 3 x 64 x 128
 	float* dbL3;        // 1 x 128
-	float* dbL3_h;      // 1 x 128
+	float* dbL3_m;      // 1 x 128
 
 	float*** padL3;     // 9 x 9 x 128
 	float*** eL2Max;    // 7 x 7 x 64
 	float*** eL2;       // 14 x 14 x 64
 	float**** dwL2;     // 3 x 3 x 32 x 64
-	float**** dwL2_h;   // 3 x 3 x 32 x 64
+	float**** dwL2_m;   // 3 x 3 x 32 x 64
 	float* dbL2;        // 1 x 64
-	float* dbL2_h;      // 1 x 64
+	float* dbL2_m;      // 1 x 64
 
 	float*** padL2;     // 18 x 18 x 64
 	float*** eL1Max;    // 16 x 16 x 32
 	float*** eL1;       // 32 x 32 x 32
 	float*** diL1;		// 63 x 63 x 32
 	float**** dwL1;     // 3 x 3 x 3 x 32
-	float**** dwL1_h;   // 3 x 3 x 3 x 32
+	float**** dwL1_m;   // 3 x 3 x 3 x 32
 	float* dbL1;        // 1 x 32
-	float* dbL1_h;      // 1 x 32
+	float* dbL1_m;      // 1 x 32
 
 public:
 
@@ -400,7 +400,7 @@ public:
 
 		wL1 = (float****)createArray(3, 3, 3, 32, sizeof(float));
 		dwL1 = (float****)createArray(3, 3, 3, 32, sizeof(float));
-		dwL1_h = (float****)createArray(3, 3, 3, 32, sizeof(float));
+		dwL1_m = (float****)createArray(3, 3, 3, 32, sizeof(float));
 
 		random_device rd;  //Will be used to obtain a seed for the random number engine
 		mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
@@ -433,7 +433,7 @@ public:
 
 		wL2 = (float****)createArray(3, 3, 32, 64, sizeof(float));
 		dwL2 = (float****)createArray(3, 3, 32, 64, sizeof(float));
-		dwL2_h = (float****)createArray(3, 3, 32, 64, sizeof(float));
+		dwL2_m = (float****)createArray(3, 3, 32, 64, sizeof(float));
 #if (DEBUG_WEIGHTS)
 		for (int i = 0; i < 3; i++) {
 			for (int j = 0; j < 3; j++) {
@@ -463,7 +463,7 @@ public:
 
 		wL3 = (float****)createArray(3, 3, 64, 128, sizeof(float));
 		dwL3 = (float****)createArray(3, 3, 64, 128, sizeof(float));
-		dwL3_h = (float****)createArray(3, 3, 64, 128, sizeof(float));
+		dwL3_m = (float****)createArray(3, 3, 64, 128, sizeof(float));
 #if (DEBUG_WEIGHTS)
 		for (int i = 0; i < 3; i++) {
 			for (int j = 0; j < 3; j++) {
@@ -490,9 +490,9 @@ public:
 		wFC1 = (float**)createArray(128, 128, sizeof(float));
 		wFC2 = (float**)createArray(128, 128, sizeof(float));
 		dwFC2 = (float**)createArray(128, 128, sizeof(float));
-		dwFC2_h = (float**)createArray(128, 128, sizeof(float));
+		dwFC2_m = (float**)createArray(128, 128, sizeof(float));
 		dwFC1 = (float**)createArray(128, 128, sizeof(float));
-		dwFC1_h = (float**)createArray(128, 128, sizeof(float));
+		dwFC1_m = (float**)createArray(128, 128, sizeof(float));
 #if (DEBUG_WEIGHTS)
 		for (int i = 0; i < 128; i++) {
 			for (int j = 0; j < 128; j++) {
@@ -512,7 +512,7 @@ public:
 
 		wFC3 = (float**)createArray(128, 12, sizeof(float));
 		dwFC3 = (float**)createArray(128, 12, sizeof(float));
-		dwFC3_h = (float**)createArray(128, 12, sizeof(float));
+		dwFC3_m = (float**)createArray(128, 12, sizeof(float));
 #if (DEBUG_WEIGHTS)
 		for (int i = 0; i < 128; i++) {
 			for (int j = 0; j < 12; j++) {
@@ -530,26 +530,26 @@ public:
 
 		bL1 = (float*)calloc(32, sizeof(float));
 		dbL1 = (float*)calloc(32, sizeof(float));
-		dbL1_h = (float*)calloc(32, sizeof(float));
+		dbL1_m = (float*)calloc(32, sizeof(float));
 
 		bL2 = (float*)calloc(64, sizeof(float));
 		dbL2 = (float*)calloc(64, sizeof(float));
-		dbL2_h = (float*)calloc(64, sizeof(float));
+		dbL2_m = (float*)calloc(64, sizeof(float));
 
 		bL3 = (float*)calloc(128, sizeof(float));
 		dbL3 = (float*)calloc(128, sizeof(float));
-		dbL3_h = (float*)calloc(128, sizeof(float));
+		dbL3_m = (float*)calloc(128, sizeof(float));
 
 		bFC1 = (float*)calloc(128, sizeof(float));
 		bFC2 = (float*)calloc(128, sizeof(float));
 		dbFC2 = (float*)calloc(128, sizeof(float));
-		dbFC2_h = (float*)calloc(128, sizeof(float));
+		dbFC2_m = (float*)calloc(128, sizeof(float));
 		dbFC1 = (float*)calloc(128, sizeof(float));
-		dbFC1_h = (float*)calloc(128, sizeof(float));
+		dbFC1_m = (float*)calloc(128, sizeof(float));
 
 		bFC3 = (float*)calloc(12, sizeof(float));
 		dbFC3 = (float*)calloc(12, sizeof(float));
-		dbFC3_h = (float*)calloc(12, sizeof(float));
+		dbFC3_m = (float*)calloc(12, sizeof(float));
 
 #if (DEBUG_WEIGHTS)
 		String o;
@@ -676,39 +676,39 @@ public:
 		free(bFC3);
 
 		freeArray(128, 12, (void**)dwFC3);
-		freeArray(128, 12, (void**)dwFC3_h);
+		freeArray(128, 12, (void**)dwFC3_m);
 		free(dbFC3);
-		free(dbFC3_h);
+		free(dbFC3_m);
 		freeArray(128, 128, (void**)dwFC2);
-		freeArray(128, 128, (void**)dwFC2_h);
+		freeArray(128, 128, (void**)dwFC2_m);
 		free(dbFC2);
-		free(dbFC2_h);
+		free(dbFC2_m);
 		freeArray(128, 128, (void**)dwFC1);
-		freeArray(128, 128, (void**)dwFC1_h);
+		freeArray(128, 128, (void**)dwFC1_m);
 		free(dbFC1);
-		free(dbFC1_h);
+		free(dbFC1_m);
 		free(eL3Max);
 		freeArray(3, 3, 128, (void***)eL3);
 		freeArray(5, 5, 128, (void***)diL3);
 		freeArray(3, 3, 64, 128, (void****)dwL3);
-		freeArray(3, 3, 64, 128, (void****)dwL3_h);
+		freeArray(3, 3, 64, 128, (void****)dwL3_m);
 		free(dbL3);
-		free(dbL3_h);
+		free(dbL3_m);
 		freeArray(9, 9, 128, (void***)padL3);
 		freeArray(7, 7, 64, (void***)eL2Max);
 		freeArray(14, 14, 64, (void***)eL2);
 		freeArray(3, 3, 32, 64, (void****)dwL2);
-		freeArray(3, 3, 32, 64, (void****)dwL2_h);
+		freeArray(3, 3, 32, 64, (void****)dwL2_m);
 		free(dbL2);
-		free(dbL2_h);
+		free(dbL2_m);
 		freeArray(18, 18, 64, (void***)padL2);
 		freeArray(16, 16, 32, (void***)eL1Max);
 		freeArray(32, 32, 32, (void***)eL1);
 		freeArray(63, 63, 32, (void***)diL1);
 		freeArray(3, 3, 3, 32, (void****)dwL1);
-		freeArray(3, 3, 3, 32, (void****)dwL1_h);
+		freeArray(3, 3, 3, 32, (void****)dwL1_m);
 		free(dbL1);
-		free(dbL1_h);
+		free(dbL1_m);
 	}
 
 	int forwardProp(float*** image, int classNo, String& o, float* ce)
@@ -1059,7 +1059,7 @@ public:
 			}
 			FC3o[i] = exp(FC3s[i]) / s;
 		}
-		cout << FC3o[2] << endl;
+
 		float expected[12] = { 0.0f };
 		expected[classNo] = 1.0f;
 		*ce = 0.0f;
@@ -1367,6 +1367,15 @@ public:
 			}
 		}
 
+		/*for (int i = 0; i < 32; i++) {
+			for (int j = 0; j < 32; j++) {
+				if (abs(eL1[i][j][0]) * 10000 > 0) {
+					cout << i << " " << j << " " << endl;
+				}
+			}
+		}*/
+		cout << eL1[25][6][2] * 10000 << endl;
+
 		// Dialate L1 stride=2
 		for (int i = 0; i < 63; i++) {
 			for (int j = 0; j < 63; j++) {
@@ -1400,9 +1409,9 @@ public:
 		}
 	}
 
-	inline float momentum(float grad, float vd_h)
+	inline float momentum(float grad, float vd_m)
 	{
-		return (rho * vd_h) + ((1.0f - rho) * grad * grad);
+		return (rho * vd_m) + ((1.0f - rho) * grad * grad);
 	}
 
 	// Using RMSprop
@@ -1410,57 +1419,57 @@ public:
 	{
 		// FC3 bias
 		for (int i = 0; i < 12; i++) {
-			float vdb = momentum(dbFC3[i], dbFC3_h[i]);
+			float vdb = momentum(dbFC3[i], dbFC3_m[i]);
 			// Save history
-			dbFC3_h[i] = vdb;
+			dbFC3_m[i] = vdb;
 			bFC3[i] -= lr * (dbFC3[i] / (sqrt(vdb) + epsilon));
 		}
 
 		// FC3 weights
 		for (int i = 0; i < 128; i++) {
 			for (int j = 0; j < 12; j++) {
-				float vdw = momentum(dwFC3[i][j], dwFC3_h[i][j]);
-				dwFC3_h[i][j] = vdw;
+				float vdw = momentum(dwFC3[i][j], dwFC3_m[i][j]);
+				dwFC3_m[i][j] = vdw;
 				wFC3[i][j] -= lr * (dwFC3[i][j] / (sqrt(vdw) + epsilon));
 			}
 		}
 
 		// FC2 bias
 		for (int i = 0; i < 128; i++) {
-			float vdb = momentum(dbFC2[i], dbFC2_h[i]);
-			dbFC2_h[i] = vdb;
+			float vdb = momentum(dbFC2[i], dbFC2_m[i]);
+			dbFC2_m[i] = vdb;
 			bFC2[i] -= lr * (dbFC2[i] / (sqrt(vdb) + epsilon));
 		}
 
 		// FC2 weights
 		for (int i = 0; i < 128; i++) {
 			for (int j = 0; j < 128; j++) {
-				float vdw = momentum(dwFC2[i][j], dwFC2_h[i][j]);
-				dwFC2_h[i][j] = vdw;
+				float vdw = momentum(dwFC2[i][j], dwFC2_m[i][j]);
+				dwFC2_m[i][j] = vdw;
 				wFC2[i][j] -= lr * (dwFC2[i][j] / (sqrt(vdw) + epsilon));
 			}
 		}
 
 		// FC1 bias
 		for (int i = 0; i < 128; i++) {
-			float vdb = momentum(dbFC1[i], dbFC1_h[i]);
-			dbFC1_h[i] = vdb;
+			float vdb = momentum(dbFC1[i], dbFC1_m[i]);
+			dbFC1_m[i] = vdb;
 			bFC1[i] -= lr * (dbFC1[i] / (sqrt(vdb) + epsilon));
 		}
 
 		// FC1 weights
 		for (int i = 0; i < 128; i++) {
 			for (int j = 0; j < 128; j++) {
-				float vdw = momentum(dwFC1[i][j], dwFC1_h[i][j]);
-				dwFC1_h[i][j] = vdw;
+				float vdw = momentum(dwFC1[i][j], dwFC1_m[i][j]);
+				dwFC1_m[i][j] = vdw;
 				wFC1[i][j] -= lr * (dwFC1[i][j] / (sqrt(vdw) + epsilon));
 			}
 		}
 
 		// L3 bias
 		for (int i = 0; i < 128; i++) {
-			float vdb = momentum(dbL3[i], dbL3_h[i]);
-			dbL3_h[i] = vdb;
+			float vdb = momentum(dbL3[i], dbL3_m[i]);
+			dbL3_m[i] = vdb;
 			bL3[i] -= lr * (dbL3[i] / (sqrt(vdb) + epsilon));
 		}
 
@@ -1469,8 +1478,8 @@ public:
 			for (int j = 0; j < 3; j++) {
 				for (int k = 0; k < 64; k++) {
 					for (int l = 0; l < 128; l++) {
-						float vdw = momentum(dwL3[i][j][k][l], dwL3_h[i][j][k][l]);
-						dwL3_h[i][j][k][l] = vdw;
+						float vdw = momentum(dwL3[i][j][k][l], dwL3_m[i][j][k][l]);
+						dwL3_m[i][j][k][l] = vdw;
 						wL3[i][j][k][l] -= lr * (dwL3[i][j][k][l] / (sqrt(vdw) + epsilon));
 					}
 				}
@@ -1479,8 +1488,8 @@ public:
 
 		// L2 bias
 		for (int i = 0; i < 64; i++) {
-			float vdb = momentum(dbL2[i], dbL2_h[i]);
-			dbL2_h[i] = vdb;
+			float vdb = momentum(dbL2[i], dbL2_m[i]);
+			dbL2_m[i] = vdb;
 			bL2[i] -= lr * (dbL2[i] / (sqrt(vdb) + epsilon));
 		}
 
@@ -1489,18 +1498,18 @@ public:
 			for (int j = 0; j < 3; j++) {
 				for (int k = 0; k < 32; k++) {
 					for (int l = 0; l < 64; l++) {
-						float vdw = momentum(dwL2[i][j][k][l], dwL2_h[i][j][k][l]);
-						dwL2_h[i][j][k][l] = vdw;
+						float vdw = momentum(dwL2[i][j][k][l], dwL2_m[i][j][k][l]);
+						dwL2_m[i][j][k][l] = vdw;
 						wL2[i][j][k][l] -= lr * (dwL2[i][j][k][l] / (sqrt(vdw) + epsilon));
 					}
 				}
 			}
 		}
-
+		cout << dwL2_m[1][2][24][12] * 10000000 << endl;
 		// L1 bias
 		for (int i = 0; i < 32; i++) {
-			float vdb = momentum(dbL1[i], dbL1_h[i]);
-			dbL1_h[i] = vdb;
+			float vdb = momentum(dbL1[i], dbL1_m[i]);
+			dbL1_m[i] = vdb;
 			bL1[i] -= lr * (dbL1[i] / (sqrt(vdb) + epsilon));
 		}
 
@@ -1509,8 +1518,8 @@ public:
 			for (int j = 0; j < 3; j++) {
 				for (int k = 0; k < 3; k++) {
 					for (int l = 0; l < 32; l++) {
-						float vdw = momentum(dwL1[i][j][k][l], dwL1_h[i][j][k][l]);
-						dwL1_h[i][j][k][l] = vdw;
+						float vdw = momentum(dwL1[i][j][k][l], dwL1_m[i][j][k][l]);
+						dwL1_m[i][j][k][l] = vdw;
 						wL1[i][j][k][l] -= lr * (dwL1[i][j][k][l] / (sqrt(vdw) + epsilon));
 					}
 				}
@@ -1560,9 +1569,9 @@ int main()
 		float tce = 0.0f;
 		int co = 0;
 		// Shuffle
-		unsigned seed = chrono::system_clock::now().time_since_epoch().count();
-		shuffle(images.begin(), images.end(), default_random_engine(seed));
-		shuffle(img_class.begin(), img_class.end(), default_random_engine(seed));
+		//unsigned seed = chrono::system_clock::now().time_since_epoch().count();
+		//shuffle(images.begin(), images.end(), default_random_engine(seed));
+		//shuffle(img_class.begin(), img_class.end(), default_random_engine(seed));
 
 		for (size_t ll = 0; ll < 1; ll++) {
 			String o;

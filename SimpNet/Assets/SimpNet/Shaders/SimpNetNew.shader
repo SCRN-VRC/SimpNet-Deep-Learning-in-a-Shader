@@ -79,22 +79,26 @@
                 float col = _Buffer.Load(uint3(px, 0)).x;
 
                 // 15 FPS
-                float4 timer = LoadValue(_Buffer, txTimer);
-                timer.x += unity_DeltaTime;
+                float timer = LoadValue(_Buffer, txTimer);
+                timer += unity_DeltaTime;
 
-                if (timer.x < 0.0667)
+                if (timer < 0.0667)
                 {
                     StoreValue(txTimer, timer, col, px);
                     return col;
                 }
-                else timer.x = 0.0;
+                else timer = 0.0;
+
+                // Layer count
+                float lcF = LoadValue(_Buffer, txLC);
+                int lc = _Stop > 0 ? 0 : floor(lcF);
 
                 [branch]
                 if (insideArea(txL1Area, px))
                 {
                     px -= txL1Area.xy;
                     [branch]
-                    if (insideArea(txWL1, px))
+                    if (lc == 1 && insideArea(txWL1, px))
                     {
                         px -= txWL1.xy;
                         if (_Time.y < 1.0 || _Reset > 0)
@@ -107,7 +111,7 @@
                             col.r = i * j * k / (l + 1.0);
                         }
                     }
-                    else if (insideArea(txBL1, px))
+                    else if (lc == 1 && insideArea(txBL1, px))
                     {
                         px -= txBL1.xy;
                         if (_Time.y < 1.0 || _Reset > 0)
@@ -117,7 +121,7 @@
                             col.r = i / 32.0 - 0.5;
                         }
                     }
-                    else if (insideArea(txL1s, px))
+                    else if (lc == 2 && insideArea(txL1s, px))
                     {
                         px -= txL1s.xy;
                         uint i = (px.x / 32) % 32;
@@ -153,7 +157,7 @@
                         sum += getBL1(_Buffer, k);
                         col.r = sum;
                     }
-                    else if (insideArea(txL1a, px))
+                    else if (lc == 3 && insideArea(txL1a, px))
                     {
                         px -= txL1a.xy;
                         uint i = (px.x / 32) % 32;
@@ -162,7 +166,7 @@
 
                         col.r = afn(getL1s(_Buffer, uint3(i, j, k)));
                     }
-                    else if (insideArea(txL1Max, px))
+                    else if (lc == 4 && insideArea(txL1Max, px))
                     {
                         px -= txL1Max.xy;
                         uint i = (px.x / 16) % 16;
@@ -177,7 +181,7 @@
                         m = max(m, getL1a(_Buffer, uint3(i1, j1, k)));
                         col.r = m;
                     }
-                    else if (insideArea(txL1iMax, px))
+                    else if (lc == 5 && insideArea(txL1iMax, px))
                     {
                         px -= txL1iMax.xy;
                         uint i = (px.x / 16) % 16;
@@ -201,7 +205,7 @@
                 {
                     px -= txL2Area.xy;
                     [branch]
-                    if (insideArea(txWL2, px))
+                    if (lc == 6 && insideArea(txWL2, px))
                     {
                         px -= txWL2.xy;
                         if (_Time.y < 1.0 || _Reset > 0)
@@ -214,7 +218,7 @@
                             col.r = (i + j + k + l) / 1000.0;
                         }
                     }
-                    else if (insideArea(txBL2, px))
+                    else if (lc == 6 && insideArea(txBL2, px))
                     {
                         px -= txBL2.xy;
                         if (_Time.y < 1.0 || _Reset > 0)
@@ -224,7 +228,7 @@
                             col.r = 1.0 - (i / 64.0) - 0.5;
                         }
                     }
-                    else if (insideArea(txL2s, px))
+                    else if (lc == 7 && insideArea(txL2s, px))
                     {
                         px -= txL2s.xy;
                         uint i = (px.x / 14) % 14;
@@ -250,7 +254,7 @@
                         sum += getBL2(_Buffer, k);
                         col.r = sum;
                     }
-                    else if (insideArea(txL2a, px))
+                    else if (lc == 8 && insideArea(txL2a, px))
                     {
                         px -= txL2a.xy;
                         uint i = (px.x / 14) % 14;
@@ -259,7 +263,7 @@
 
                         col.r = afn(getL2s(_Buffer, uint3(i, j, k)));
                     }
-                    else if (insideArea(txL2Max, px))
+                    else if (lc == 9 && insideArea(txL2Max, px))
                     {
                         px -= txL2Max.xy;
                         uint i = (px.x / 7) % 7;
@@ -274,7 +278,7 @@
                         m = max(m, getL2a(_Buffer, uint3(i1, j1, k)));
                         col.r = m;
                     }
-                    else if (insideArea(txL2iMax, px))
+                    else if (lc == 10 && insideArea(txL2iMax, px))
                     {
                         px -= txL2iMax.xy;
                         uint i = (px.x / 7) % 7;
@@ -298,7 +302,7 @@
                 {
                     px -= txL3Area.xy;
                     [branch]
-                    if (insideArea(txWL3, px))
+                    if (lc == 11 && insideArea(txWL3, px))
                     {
                         px -= txWL3.xy;
                         if (_Time.y < 1.0 || _Reset > 0)
@@ -311,7 +315,7 @@
                             col.r = (i + j) / float(k + l + 1.0);
                         }
                     }
-                    else if (insideArea(txBL3, px))
+                    else if (lc == 11 && insideArea(txBL3, px))
                     {
                         px -= txBL3.xy;
                         if (_Time.y < 1.0 || _Reset > 0)
@@ -321,7 +325,7 @@
                             col.r = (i / 128.0) - 0.5;
                         }
                     }
-                    else if (insideArea(txL3s, px))
+                    else if (lc == 12 && insideArea(txL3s, px))
                     {
                         px -= txL3s.xy;
                         uint i = (px.x / 3) % 3;
@@ -347,7 +351,7 @@
                         sum += getBL3(_Buffer, k);
                         col.r = sum;
                     }
-                    else if (insideArea(txL3a, px))
+                    else if (lc == 13 && insideArea(txL3a, px))
                     {
                         px -= txL3a.xy;
                         uint i = (px.x / 3) % 3;
@@ -356,7 +360,7 @@
 
                         col.r = afn(getL3s(_Buffer, uint3(i, j, k)));
                     }
-                    else if (insideArea(txL3Max, px))
+                    else if (lc == 14 && insideArea(txL3Max, px))
                     {
                         px -= txL3Max.xy;
                         uint k = px.y % 128;
@@ -369,7 +373,7 @@
                         }
                         col.r = m;
                     }
-                    else if (insideArea(txL3iMax, px))
+                    else if (lc == 15 && insideArea(txL3iMax, px))
                     {
                         px -= txL3iMax.xy;
                         uint k = px.y % 128;
@@ -389,7 +393,7 @@
                 {
                     px -= txFC1Area.xy;
                     [branch]
-                    if (insideArea(txWFC1, px))
+                    if (lc == 16 && insideArea(txWFC1, px))
                     {
                         px -= txWFC1.xy;
                         if (_Time.y < 1.0 || _Reset > 0)
@@ -400,7 +404,7 @@
                             col.r = (i + j) / float(i * j + 100000);
                         }
                     }
-                    else if (insideArea(txBFC1, px))
+                    else if (lc == 16 && insideArea(txBFC1, px))
                     {
                         px -= txBFC1.xy;
                         if (_Time.y < 1.0 || _Reset > 0)
@@ -410,7 +414,7 @@
                             col.r = i / float(i + 100);
                         }
                     }
-                    else if (insideArea(txFC1s, px))
+                    else if (lc == 17 && insideArea(txFC1s, px))
                     {
                         px -= txFC1s.xy;
                         uint k = px.y % 128;
@@ -423,7 +427,7 @@
                         sum += getBFC1(_Buffer, k);
                         col.r = sum;
                     }
-                    else if (insideArea(txFC1a, px))
+                    else if (lc == 18 && insideArea(txFC1a, px))
                     {
                         px -= txFC1a.xy;
                         uint k = px.y % 128;
@@ -435,7 +439,7 @@
                 {
                     px -= txFC2Area.xy;
                     [branch]
-                    if (insideArea(txWFC2, px))
+                    if (lc == 19 && insideArea(txWFC2, px))
                     {
                         px -= txWFC2.xy;
                         if (_Time.y < 1.0 || _Reset > 0)
@@ -446,7 +450,7 @@
                             col.r = (i + j) / float(i * j + 200000);
                         }
                     }
-                    else if (insideArea(txBFC2, px))
+                    else if (lc == 19 && insideArea(txBFC2, px))
                     {
                         px -= txBFC2.xy;
                         if (_Time.y < 1.0 || _Reset > 0)
@@ -456,7 +460,7 @@
                             col.r = i / float(i + 1000);
                         }
                     }
-                    else if (insideArea(txFC2s, px))
+                    else if (lc == 20 && insideArea(txFC2s, px))
                     {
                         px -= txFC2s.xy;
                         uint k = px.y % 128;
@@ -469,7 +473,7 @@
                         sum += getBFC2(_Buffer, k);
                         col.r = sum;
                     }
-                    else if (insideArea(txFC2a, px))
+                    else if (lc == 21 && insideArea(txFC2a, px))
                     {
                         px -= txFC2a.xy;
                         uint k = px.y % 128;
@@ -481,7 +485,7 @@
                 {
                     px -= txFC3Area.xy;
                     [branch]
-                    if (insideArea(txWFC3, px))
+                    if (lc == 22 && insideArea(txWFC3, px))
                     {
                         px -= txWFC3.xy;
                         if (_Time.y < 1.0 || _Reset > 0)
@@ -492,7 +496,7 @@
                             col.r = (i + 12 - j) / float(j + 2000);
                         }
                     }
-                    else if (insideArea(txBFC3, px))
+                    else if (lc == 22 && insideArea(txBFC3, px))
                     {
                         px -= txBFC3.xy;
                         if (_Time.y < 1.0 || _Reset > 0)
@@ -502,7 +506,7 @@
                             col.r = i / 11.0 - 0.5;
                         }
                     }
-                    else if (insideArea(txFC3s, px))
+                    else if (lc == 23 && insideArea(txFC3s, px))
                     {
                         px -= txFC3s.xy;
                         uint i = px.y % 12;
@@ -515,7 +519,7 @@
                         sum += getBFC3(_Buffer, i);
                         col.r = sum;
                     }
-                    else if (insideArea(txFC3o, px))
+                    else if (lc == 24 && insideArea(txFC3o, px))
                     {
                         px -= txFC3o.xy;
                         uint i = px.y % 12;
@@ -526,168 +530,429 @@
                         }
 
                         col.r = exp(getFC3s(_Buffer, i)) / sum;
-                        if (i == 2)
-                        {
-                            buffer[0] = col.rrrr;
-                        }
                     }
                 }
                 else if (insideArea(txB4Area, px))
                 {
                     px -= txB4Area.xy;
                     [branch]
-                    if (insideArea(txDBFC3_h, px))
+                    if (lc == 25 && insideArea(txDBFC3, px))
                     {
-
+                        px -= txDBFC3.xy;
+                        uint i = px.y % 12;
+                        
+                        col.r = getFC3o(_Buffer, i) - (i == _TargetClass ? 1.0 : 0.0);
                     }
-                    else if (insideArea(txDBFC3, px))
+                    else if (lc == 25 && insideArea(txDBFC3_m, px))
                     {
+                        px -= txDBFC3_m.xy;
+                        uint i = px.y % 12;
 
+                        float dbFC3 = getFC3o(_Buffer, i) - (i == _TargetClass ? 1.0 : 0.0);
+                        col.r = momentum(dbFC3, getDBFC3_m(_Buffer, i));
                     }
-                    else if (insideArea(txDWFC3_h, px))
+                    else if (lc == 26 && insideArea(txDWFC3, px))
                     {
+                        px -= txDWFC3.xy;
+                        uint i = px.x % 128;
+                        uint j = px.y % 12;
 
+                        col.r = getDBFC3(_Buffer, j) * getFC2a(_Buffer, i);
                     }
-                    else if (insideArea(txDWFC3, px))
+                    else if (lc == 26 && insideArea(txDWFC3_m, px))
                     {
+                        px -= txDWFC3_m.xy;
+                        uint i = px.x % 128;
+                        uint j = px.y % 12;
 
+                        float dwFC3 = getDBFC3(_Buffer, j) * getFC2a(_Buffer, i);
+                        col.r = momentum(dwFC3, getDWFC3_m(_Buffer, i));
                     }
-                    else if (insideArea(txDBFC2_h, px))
+                    else if (lc == 27 && insideArea(txDBFC2, px))
                     {
+                        px -= txDBFC2.xy;
+                        uint i = px.y % 128;
 
+                        float sum = 0.0;
+                        for (uint j = 0; j < 12; j++) {
+                            sum += getDBFC3(_Buffer, j) * getWFC3(_Buffer, uint2(i, j));
+                        }
+
+                        col.r = sum;
                     }
-                    else if (insideArea(txDBFC2, px))
+                    else if (lc == 27 && insideArea(txDBFC2_m, px))
                     {
+                        px -= txDBFC2_m.xy;
+                        uint i = px.y % 128;
 
+                        float dbFC2 = 0.0;
+                        for (uint j = 0; j < 12; j++) {
+                            dbFC2 += getDBFC3(_Buffer, j) * getWFC3(_Buffer, uint2(i, j));
+                        }
+
+                        col.r = momentum(dbFC2, getDBFC2_m(_Buffer, i));
                     }
-                    else if (insideArea(txDWFC2_h, px))
+                    else if (lc == 28 && insideArea(txDWFC2, px))
                     {
+                        px -= txDWFC2.xy;
+                        uint i = px.x % 128;
+                        uint j = px.y % 128;
 
+                        col.r = getDBFC2(_Buffer, j) * dfn(getFC2s(_Buffer, i)) *
+                            getFC1a(_Buffer, i);
                     }
-                    else if (insideArea(txDWFC2, px))
+                    else if (lc == 28 && insideArea(txDWFC2_m, px))
                     {
+                        px -= txDWFC2_m.xy;
+                        uint i = px.x % 128;
+                        uint j = px.y % 128;
 
+                        float dwFC2 = getDBFC2(_Buffer, j) * dfn(getFC2s(_Buffer, i)) *
+                            getFC1a(_Buffer, i);
+                        col.r = momentum(dwFC2, getDWFC2_m(_Buffer, i));
                     }
-                    else if (insideArea(txDBFC1_h, px))
+                    else if (lc == 29 && insideArea(txDBFC1, px))
                     {
+                        px -= txDBFC1.xy;
+                        uint i = px.y % 128;
 
+                        float sum = 0.0;
+                        for (uint j = 0; j < 128; j++) {
+                            sum += getDBFC2(_Buffer, j) * dfn(getFC2s(_Buffer, i)) *
+                                getWFC2(_Buffer, uint2(i, j));
+                        }
+
+                        col.r = sum;
                     }
-                    else if (insideArea(txDBFC1, px))
+                    else if (lc == 29 && insideArea(txDBFC1_m, px))
                     {
+                        px -= txDBFC1_m.xy;
+                        uint i = px.y % 128;
 
+                        float dbFC1 = 0.0;
+                        for (uint j = 0; j < 128; j++) {
+                            dbFC1 += getDBFC2(_Buffer, j) * dfn(getFC2s(_Buffer, i)) *
+                                getWFC2(_Buffer, uint2(i, j));
+                        }
+
+                        col.r = momentum(dbFC1, getDBFC1_m(_Buffer, i));
                     }
-                    else if (insideArea(txDWFC1_h, px))
+                    else if (lc == 30 && insideArea(txDWFC1, px))
                     {
+                        px -= txDWFC1.xy;
+                        uint i = px.x % 128;
+                        uint j = px.y % 128;
 
+                        col.r = getDBFC1(_Buffer, j) * dfn(getFC1s(_Buffer, i)) *
+                            getL3Max(_Buffer, i);
                     }
-                    else if (insideArea(txDWFC1, px))
+                    else if (lc == 30 && insideArea(txDWFC1_m, px))
                     {
+                        px -= txDWFC1_m.xy;
+                        uint i = px.x % 128;
+                        uint j = px.y % 128;
 
+                        float dwFC1 = getDBFC1(_Buffer, j) * dfn(getFC1s(_Buffer, i)) *
+                            getL3Max(_Buffer, i);
+                        col.r = momentum(dwFC1, getDWFC1_m(_Buffer, uint2(i, j)));
                     }
                 }
                 else if (insideArea(txB3Area, px))
                 {
                     px -= txB3Area.xy;
                     [branch]
-                    if (insideArea(txEMax3, px))
+                    if (lc == 31 && insideArea(txEMax3, px))
                     {
+                        px -= txEMax3.xy;
+                        uint i = px.y % 128;
 
+                        float sum = 0.0;
+                        for (uint j = 0; j < 128; j++) {
+                            sum += getDBFC1(_Buffer, j) * dfn(getFC1s(_Buffer, i)) *
+                                getWFC1(_Buffer, uint2(i, j));
+                        }
+                        col.r = sum;
                     }
-                    else if (insideArea(txEL3, px))
+                    else if (lc == 32 && insideArea(txEL3, px))
                     {
+                        px -= txEL3.xy;
+                        uint i = (px.x / 3) % 3;
+                        uint j = px.x % 3;
+                        uint k = px.y % 128;
 
+                        col.r = getL3iMax(_Buffer, k) == (i * 3 + j) ?
+                            getEMax3(_Buffer, k) * dfn(getL3s(_Buffer, uint3(j, i, k))) :
+                            0.0f;
                     }
-                    else if (insideArea(txDbL3_h, px))
+                    else if (lc == 33 && insideArea(txDiL3, px))
                     {
+                        px -= txDiL3.xy;
+                        uint i = (px.x / 5) % 5;
+                        uint j = px.x % 5;
+                        uint k = px.y % 128;
+                        uint i0 = i / 2;
+                        uint j0 = j / 2;
 
+                        col.r = ((i % 2 == 1) || (j % 2 == 1)) ?
+                            0.0f : getEL3(_Buffer, uint3(i0, j0, k));
                     }
-                    else if (insideArea(txDbL3, px))
+                    else if (lc == 34 && insideArea(txDbL3, px))
                     {
+                        px -= txDbL3.xy;
+                        uint i = px.y % 128;
 
+                        col.r = getEMax3(_Buffer, i);
                     }
-                    else if (insideArea(txDiL3, px))
+                    else if (lc == 34 && insideArea(txDbL3_m, px))
                     {
+                        px -= txDbL3_m.xy;
+                        uint i = px.y % 128;
 
+                        float dbL3 = getEMax3(_Buffer, i);
+                        col.r = momentum(dbL3, getDbL3(_Buffer, i));
                     }
-                    else if (insideArea(txDwL3_h, px))
+                    else if (lc == 35 && insideArea(txDwL3, px))
                     {
+                        px -= txDwL3.xy;
+                        uint i = (px.x / 192) % 3;
+                        uint j = (px.x / 64) % 3;
+                        uint k = px.x % 64;
+                        uint l = px.y % 128;
 
+                        float sum = 0.0;
+                        for (uint x = 0; x < 5; x++) {
+                            for (uint y = 0; y < 5; y++) {
+                                uint lx = x + i;
+                                uint ly = y + j;
+                                sum += getDiL3(_Buffer, uint3(x, y, l)) *
+                                    getL2Max(_Buffer, uint3(lx, ly, k));
+                            }
+                        }
+                        col.r = sum;
                     }
-                    else if (insideArea(txDwL3, px))
+                    else if (lc == 35 && insideArea(txDwL3_m, px))
                     {
+                        px -= txDwL3_m.xy;
+                        uint i = (px.x / 192) % 3;
+                        uint j = (px.x / 64) % 3;
+                        uint k = px.x % 64;
+                        uint l = px.y % 128;
 
+                        float dwL3 = 0.0;
+                        for (uint x = 0; x < 5; x++) {
+                            for (uint y = 0; y < 5; y++) {
+                                uint lx = x + i;
+                                uint ly = y + j;
+                                dwL3 += getDiL3(_Buffer, uint3(x, y, l)) *
+                                    getL2Max(_Buffer, uint3(lx, ly, k));
+                            }
+                        }
+
+                        col.r = momentum(dwL3, getDwL3_m(_Buffer, uint4(i, j, k, l)));
                     }
                 }
                 else if (insideArea(txB2Area, px))
                 {
                     px -= txB2Area.xy;
                     [branch]
-                    if (insideArea(txPadL3, px))
+                    if (lc == 36 && insideArea(txPadL3, px))
                     {
+                        px -= txPadL3.xy;
+                        uint i = (px.x / 9) % 9;
+                        uint j = px.x % 9;
+                        uint k = px.y % 128;
 
+                        col.r = (i < 2 || j < 2 || i > 6 || j > 6) ?
+                            0.0 : getDiL3(_Buffer, uint3(i - 2, j - 2, k));
                     }
-                    else if (insideArea(txEL2Max, px))
+                    else if (lc == 37 && insideArea(txEL2Max, px))
                     {
+                        px -= txEL2Max.xy;
+                        uint i = (px.x / 7) % 7;
+                        uint j = px.x % 7;
+                        uint k = px.y % 64;
 
+                        float sum = 0.0;
+                        for (int l = 0; l < 128; l++) {
+                            sum += getPadL3(_Buffer, uint3(i + 0, j + 0, l)) * getWL3(_Buffer, uint4(2, 2, k, l));
+                            sum += getPadL3(_Buffer, uint3(i + 0, j + 1, l)) * getWL3(_Buffer, uint4(2, 1, k, l));
+                            sum += getPadL3(_Buffer, uint3(i + 0, j + 2, l)) * getWL3(_Buffer, uint4(2, 0, k, l));
+                            sum += getPadL3(_Buffer, uint3(i + 1, j + 0, l)) * getWL3(_Buffer, uint4(1, 2, k, l));
+                            sum += getPadL3(_Buffer, uint3(i + 1, j + 1, l)) * getWL3(_Buffer, uint4(1, 1, k, l));
+                            sum += getPadL3(_Buffer, uint3(i + 1, j + 2, l)) * getWL3(_Buffer, uint4(1, 0, k, l));
+                            sum += getPadL3(_Buffer, uint3(i + 2, j + 0, l)) * getWL3(_Buffer, uint4(0, 2, k, l));
+                            sum += getPadL3(_Buffer, uint3(i + 2, j + 1, l)) * getWL3(_Buffer, uint4(0, 1, k, l));
+                            sum += getPadL3(_Buffer, uint3(i + 2, j + 2, l)) * getWL3(_Buffer, uint4(0, 0, k, l));
+                        }
+                        col.r = sum;
                     }
-                    else if (insideArea(txEL2, px))
+                    else if (lc == 38 && insideArea(txEL2, px))
                     {
+                        px -= txEL2.xy;
+                        uint i = (px.x / 14) % 14;
+                        uint j = px.x % 14;
+                        uint k = px.y % 64;
+                        uint i0 = i / 2;
+                        uint j0 = j / 2;
 
+                        col.r = getL2iMax(_Buffer, uint3(i0, j0, k)) == i * 14 + j ?
+                            getEL2Max(_Buffer, uint3(i0, j0, k)) *
+                            dfn(getL1s(_Buffer, uint3(j, i, k))) : 0.0f;
                     }
-                    else if (insideArea(txDbL2_h, px))
+                    else if (lc == 39 && insideArea(txDbL2, px))
                     {
+                        px -= txDbL2.xy;
+                        uint i = px.y % 64;
 
+                        float sum = 0.0;
+                        for (uint x = 0; x < 7; x++) {
+                            for (uint y = 0; y < 7; y++) {
+                                sum += getEL2Max(_Buffer, uint3(x, y, i));
+                            }
+                        }
+                        col.r = sum;
                     }
-                    else if (insideArea(txDbL2, px))
+                    else if (lc == 39 && insideArea(txDbL2_m, px))
                     {
+                        px -= txDbL2_m.xy;
+                        uint i = px.y % 64;
 
+                        float dbL2 = 0.0;
+                        for (uint x = 0; x < 7; x++) {
+                            for (uint y = 0; y < 7; y++) {
+                                dbL2 += getEL2Max(_Buffer, uint3(x, y, i));
+                            }
+                        }
+
+                        col.r = momentum(dbL2, getDbL2_m(_Buffer, i));
                     }
-                    else if (insideArea(txDwL2_h, px))
+                    else if (lc == 40 && insideArea(txDwL2, px))
                     {
+                        px -= txDwL2.xy;
+                        uint i = (px.x / 96) % 3;
+                        uint j = (px.x / 32) % 3;
+                        uint k = px.x % 32;
+                        uint l = px.y % 64;
 
+                        float sum = 0.0;
+                        for (uint x = 0; x < 14; x++) {
+                            for (uint y = 0; y < 14; y++) {
+                                uint lx = x + i;
+                                uint ly = y + j;
+                                sum += getEL2(_Buffer, uint3(x, y, l)) *
+                                    getL1Max(_Buffer, uint3(lx, ly, k));
+                            }
+                        }
+                        col.r = sum;
                     }
-                    else if (insideArea(txDwL2, px))
+                    else if (lc == 40 && insideArea(txDwL2_m, px))
                     {
+                        px -= txDwL2_m.xy;
+                        uint i = (px.x / 96) % 3;
+                        uint j = (px.x / 32) % 3;
+                        uint k = px.x % 32;
+                        uint l = px.y % 64;
 
+                        float dwL2 = 0.0;
+                        for (uint x = 0; x < 14; x++) {
+                            for (uint y = 0; y < 14; y++) {
+                                uint lx = x + i;
+                                uint ly = y + j;
+                                dwL2 += getEL2(_Buffer, uint3(x, y, l)) *
+                                    getL1Max(_Buffer, uint3(lx, ly, k));
+                            }
+                        }
+
+                        col.r = momentum(dwL2, getDwL2_m(_Buffer, uint4(i, j, k, l)));
                     }
                 }
                 else if (insideArea(txB1Area, px))
                 {
                     px -= txB1Area.xy;
                     [branch]
-                    if (insideArea(txPadL2, px))
+                    if (lc == 41 && insideArea(txPadL2, px))
                     {
+                        px -= txPadL2.xy;
+                        uint i = (px.x / 18) % 18;
+                        uint j = px.x % 18;
+                        uint k = px.y % 64;
 
+                        col.r = (i < 2 || j < 2 || i > 15 || j > 15) ?
+                            0.0f : getEL2(_Buffer, uint3(i - 2, j - 2, k));
                     }
-                    else if (insideArea(txEL1Max, px))
+                    else if (lc == 42 && insideArea(txEL1Max, px))
                     {
+                        px -= txEL1Max.xy;
+                        uint i = (px.x / 16) % 16;
+                        uint j = px.x % 16;
+                        uint k = px.y % 32;
 
+                        float sum = 0.0;
+                        for (int l = 0; l < 64; l++) {
+                            sum += getPadL2(_Buffer, uint3(i + 0, j + 0, l)) * getWL2(_Buffer, uint4(2, 2, k, l));
+                            sum += getPadL2(_Buffer, uint3(i + 0, j + 1, l)) * getWL2(_Buffer, uint4(2, 1, k, l));
+                            sum += getPadL2(_Buffer, uint3(i + 0, j + 2, l)) * getWL2(_Buffer, uint4(2, 0, k, l));
+                            sum += getPadL2(_Buffer, uint3(i + 1, j + 0, l)) * getWL2(_Buffer, uint4(1, 2, k, l));
+                            sum += getPadL2(_Buffer, uint3(i + 1, j + 1, l)) * getWL2(_Buffer, uint4(1, 1, k, l));
+                            sum += getPadL2(_Buffer, uint3(i + 1, j + 2, l)) * getWL2(_Buffer, uint4(1, 0, k, l));
+                            sum += getPadL2(_Buffer, uint3(i + 2, j + 0, l)) * getWL2(_Buffer, uint4(0, 2, k, l));
+                            sum += getPadL2(_Buffer, uint3(i + 2, j + 1, l)) * getWL2(_Buffer, uint4(0, 1, k, l));
+                            sum += getPadL2(_Buffer, uint3(i + 2, j + 2, l)) * getWL2(_Buffer, uint4(0, 0, k, l));
+                        }
+                        col.r = sum;
                     }
-                    else if (insideArea(txEL1, px))
+                    else if (lc == 43 && insideArea(txEL1, px))
                     {
+                        px -= txEL1.xy;
+                        uint i = (px.x / 32) % 32;
+                        uint j = px.x % 32;
+                        uint k = px.y % 32;
+                        uint i0 = i / 2;
+                        uint j0 = j / 2;
 
+                        col.r = getL1iMax(_Buffer, uint3(i0, j0, k)) == (i * 32 + j) ?
+                            getEL1Max(_Buffer, uint3(i0, j0, k)) *
+                            dfn(getL1s(_Buffer, uint3(j, i, k))) : 0.0f;
+
+                        if (i == 25 && j == 6 && k == 2)
+                        {
+                            buffer[0] = float4(col.r * 10000, 0, 0, lc);
+                        }
                     }
-                    else if (insideArea(txDiL1, px))
+                    else if (lc == 44 && insideArea(txDiL1, px))
                     {
+                        px -= txDiL1.xy;
+                        uint i = px.y / 4;
+                        uint j = px.x / 8;
+                        uint k = (px.x / 63) % 8 + (px.y / 63) * 8;
+                        uint i0 = i / 2;
+                        uint j0 = j / 2;
 
+                        col.r = ((i % 2 == 1) || (j % 2 == 1)) ?
+                            0.0f : getEL1(_Buffer, uint3(i0, j0, k));
+
+                        
                     }
-                    else if (insideArea(txDbL1_h, px))
+                    else if (lc == 45 && insideArea(txDbL1, px))
                     {
-
+                        px -= txDbL1.xy;
                     }
-                    else if (insideArea(txDbL1, px))
+                    else if (insideArea(txDbL1_m, px))
                     {
-
-                    }
-                    else if (insideArea(txDwL1_h, px))
-                    {
-
+                        px -= txDbL1_m.xy;
                     }
                     else if (insideArea(txDwL1, px))
                     {
-
+                        px -= txDwL1.xy;
+                    }
+                    else if (insideArea(txDwL1_m, px))
+                    {
+                        px -= txDwL1_m.xy;
                     }
                 }
+
+                lc = (lc + 1);
+                StoreValue(txLC, lc, col, px);
                 return col;
             }
             ENDCG
