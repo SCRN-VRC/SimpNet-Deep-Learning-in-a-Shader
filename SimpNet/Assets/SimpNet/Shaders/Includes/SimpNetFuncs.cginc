@@ -24,7 +24,7 @@ float testImage(uint i, uint j, uint k) {
     return (i / 64.0 * ((64 - j) / 64.0)) + 0.2 * k;
 }
 
-float getWL1(Texture2D<float> tex, int4 i)
+float getWL1(Texture2D<float> tex, uint4 i)
 {
     int2 pos;
     pos.x = i.z + i.y * 3 + i.x * 9;
@@ -385,12 +385,28 @@ float getDbL3(Texture2D<float> tex, uint i)
     return tex.Load(uint3(txB3Area.xy + txDbL3.xy + pos, 0)).x;
 }
 
+float getDbL3_m(Texture2D<float> tex, uint i)
+{
+    int2 pos;
+    pos.x = 0;
+    pos.y = i;
+    return tex.Load(uint3(txB3Area.xy + txDbL3_m.xy + pos, 0)).x;
+}
+
 float getDiL3(Texture2D<float> tex, uint3 i)
 {
     int2 pos;
     pos.x = i.y + i.x * 5;
     pos.y = i.z;
     return tex.Load(uint3(txB3Area.xy + txDiL3.xy + pos, 0)).x;
+}
+
+float getDwL3(Texture2D<float> tex, uint4 i)
+{
+    int2 pos;
+    pos.x = i.z + i.y * 64 + i.x * 192;
+    pos.y = i.w;
+    return tex.Load(uint3(txB3Area.xy + txDwL3.xy + pos, 0)).x;
 }
 
 float getDwL3_m(Texture2D<float> tex, uint4 i)
@@ -417,6 +433,14 @@ float getEL2Max(Texture2D<float> tex, uint3 i)
     return tex.Load(uint3(txB2Area.xy + txEL2Max.xy + pos, 0)).x;
 }
 
+float getDbL2(Texture2D<float> tex, uint i)
+{
+    int2 pos;
+    pos.x = 0;
+    pos.y = i;
+    return tex.Load(uint3(txB2Area.xy + txDbL2.xy + pos, 0)).x;
+}
+
 float getDbL2_m(Texture2D<float> tex, uint i)
 {
     int2 pos;
@@ -431,6 +455,14 @@ float getEL2(Texture2D<float> tex, uint3 i)
     pos.x = i.y + i.x * 14;
     pos.y = i.z;
     return tex.Load(uint3(txB2Area.xy + txEL2.xy + pos, 0)).x;
+}
+
+float getDwL2(Texture2D<float> tex, uint4 i)
+{
+    int2 pos;
+    pos.x = i.z + i.y * 32 + i.x * 96;
+    pos.y = i.w;
+    return tex.Load(uint3(txB2Area.xy + txDwL2.xy + pos, 0)).x;
 }
 
 float getDwL2_m(Texture2D<float> tex, uint4 i)
@@ -465,4 +497,43 @@ float getEL1(Texture2D<float> tex, uint3 i)
     return tex.Load(uint3(txB1Area.xy + txEL1.xy + pos, 0)).x;
 }
 
+float getDbL1(Texture2D<float> tex, uint i)
+{
+    int2 pos;
+    pos.x = 0;
+    pos.y = i;
+    return tex.Load(uint3(txB1Area.xy + txDbL1.xy + pos, 0)).x;
+}
+
+float getDbL1_m(Texture2D<float> tex, uint i)
+{
+    int2 pos;
+    pos.x = 0;
+    pos.y = i;
+    return tex.Load(uint3(txB1Area.xy + txDbL1_m.xy + pos, 0)).x;
+}
+
+float getDiL1(Texture2D<float> tex, uint3 i)
+{
+    int2 pos;
+    pos.x = i.y + (i.z % 8) * 63;
+    pos.y = i.x + (i.z / 8) * 63;
+    return tex.Load(uint3(txB1Area.xy + txDiL1.xy + pos, 0)).x;
+}
+
+float getDwL1(Texture2D<float> tex, uint4 i)
+{
+    int2 pos;
+    pos.x = i.z + i.y * 3 + i.x * 9;
+    pos.y = i.w;
+    return tex.Load(uint3(txB1Area.xy + txDwL1.xy + pos, 0)).x;
+}
+
+float getDwL1_m(Texture2D<float> tex, uint4 i)
+{
+    int2 pos;
+    pos.x = i.z + i.y * 3 + i.x * 9;
+    pos.y = i.w;
+    return tex.Load(uint3(txB1Area.xy + txDwL1_m.xy + pos, 0)).x;
+}
 #endif

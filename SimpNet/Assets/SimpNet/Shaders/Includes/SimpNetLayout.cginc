@@ -138,6 +138,9 @@
 #define rho                     0.9
 #define epsilon                 1e-07
 
+#define LAYERS_CLASSIFY         25
+#define LAYERS_TRAIN            48
+
 #define txTimer                 uint2(1023, 1023)
 #define txLC                    uint2(1022, 1023)
 

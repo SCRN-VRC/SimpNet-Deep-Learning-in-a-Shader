@@ -40,7 +40,7 @@ using json = nlohmann::json;
 
 #define DEBUG_LAYER     FC3
 #define DEBUG_BP		0
-#define DEBUG_WEIGHTS   1
+#define DEBUG_WEIGHTS   0
 #define XORTEST         0
 #define TRAIN           1
 
@@ -1367,15 +1367,6 @@ public:
 			}
 		}
 
-		/*for (int i = 0; i < 32; i++) {
-			for (int j = 0; j < 32; j++) {
-				if (abs(eL1[i][j][0]) * 10000 > 0) {
-					cout << i << " " << j << " " << endl;
-				}
-			}
-		}*/
-		cout << eL1[25][6][2] * 10000 << endl;
-
 		// Dialate L1 stride=2
 		for (int i = 0; i < 63; i++) {
 			for (int j = 0; j < 63; j++) {
@@ -1387,6 +1378,14 @@ public:
 				}
 			}
 		}
+
+		//for (int i = 0; i < 63; i++) {
+		//	for (int j = 0; j < 63; j++) {
+		//		if (abs(diL1[i][j][0]) * 10000 > 0) {
+		//			cout << i << " " << j << " " << endl;
+		//		}
+		//	}
+		//}
 
 		// L1 gradient
 		for (int i = 0; i < 3; i++) {
@@ -1505,7 +1504,7 @@ public:
 				}
 			}
 		}
-		cout << dwL2_m[1][2][24][12] * 10000000 << endl;
+
 		// L1 bias
 		for (int i = 0; i < 32; i++) {
 			float vdb = momentum(dbL1[i], dbL1_m[i]);
@@ -1565,15 +1564,15 @@ int main()
 
 #if (TRAIN)
 	// epoch
-	for (int e = 0; e < 1; e++) {
+	for (int e = 0; e < 10; e++) {
 		float tce = 0.0f;
 		int co = 0;
 		// Shuffle
-		//unsigned seed = chrono::system_clock::now().time_since_epoch().count();
-		//shuffle(images.begin(), images.end(), default_random_engine(seed));
-		//shuffle(img_class.begin(), img_class.end(), default_random_engine(seed));
+		unsigned seed = chrono::system_clock::now().time_since_epoch().count();
+		shuffle(images.begin(), images.end(), default_random_engine(seed));
+		shuffle(img_class.begin(), img_class.end(), default_random_engine(seed));
 
-		for (size_t ll = 0; ll < 1; ll++) {
+		for (size_t ll = 0; ll < count; ll++) {
 			String o;
 			Mat img = images[ll];
 
@@ -1581,8 +1580,7 @@ int main()
 				for (int j = 0; j < imageSize[1]; j++) {
 					for (int k = 0; k < 3; k++) {
 						// Flip BGR to RGB
-						//floatRBG[i][j][k] = img.at<Vec3b>(i, j)[2 - k] / 255.0f;
-						floatRBG[i][j][k] = (i / 64.0f * ((64 - j) / 64.0f)) + 0.2f * k;
+						floatRBG[i][j][k] = img.at<Vec3b>(i, j)[2 - k] / 255.0f;
 					}
 				}
 			}
@@ -1626,7 +1624,7 @@ int main()
 
 	float tce = 0.0f;
 	int co = 0;
-	for (size_t ll = 0; ll < 0; ll++) {
+	for (size_t ll = 0; ll < count; ll++) {
 		String o;
 		Mat img = images[ll];
 
