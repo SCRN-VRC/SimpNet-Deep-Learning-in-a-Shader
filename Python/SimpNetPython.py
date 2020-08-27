@@ -48,7 +48,7 @@ model.add(Activation('elu'))
 model.add(Dense(12))
 model.add(Activation('softmax'))
 
-if 1:
+if 0:
     model.compile(loss='categorical_crossentropy',
                   optimizer='rmsprop',
                   metrics=['accuracy'])
@@ -84,18 +84,88 @@ if 1:
     model.save_weights('SimpNet.h5')
     weights_list = model.get_weights()
     
-    with open("Weights.txt", 'w') as f:
+    with open("WeightsCPP.txt", 'w') as f:
         f.write(Series(weights_list).to_json(orient='values'))
         f.close()
+        
+    with open("WeightsUNITY.txt", "w") as f:
+        f.write("kern1:\n")
+        for y in range(32):
+            for x in range(27):
+                i = (x // 9) % 3
+                j = (x // 3) % 3
+                k = x % 3
+                l = y % 32
+                f.write(repr(weights_list[0][i][j][k][l]) + " ")
+            f.write("\n")
+        f.write("bias1:\n")
+        for y in range(32):
+            f.write(repr(weights_list[1][y]) + " ")
+        f.write("\nkern2:\n")
+        for y in range(64):
+            for x in range(288):
+                i = (x // 96) % 3
+                j = (x // 32) % 3
+                k = x % 32
+                l = y % 64
+                f.write(repr(weights_list[2][i][j][k][l]) + " ")
+            f.write("\n")
+        f.write("bias2:\n")
+        for y in range(64):
+            f.write(repr(weights_list[3][y]) + " ")
+        f.write("\nkern3:\n")
+        for y in range(128):
+            for x in range(576):
+                i = (x // 192) % 3
+                j = (x // 64) % 3
+                k = x % 64
+                l = y % 128
+                f.write(repr(weights_list[4][i][j][k][l]) + " ")
+            f.write("\n")
+        f.write("bias3:\n")
+        for y in range(128):
+            f.write(repr(weights_list[5][y]) + " ")
+        f.write("\nw1:\n")
+        for y in range(128):
+            for x in range(128):
+                i = x % 128
+                j = y % 128
+                f.write(repr(weights_list[6][i][j]) + " ")
+            f.write("\n")
+        f.write("biasw1:\n")
+        for y in range(128):
+            f.write(repr(weights_list[7][y]) + " ")
+        f.write("\nw2:\n")
+        for y in range(128):
+            for x in range(128):
+                i = x % 128
+                j = y % 128
+                f.write(repr(weights_list[8][i][j]) + " ")
+            f.write("\n")
+        f.write("biasw2:\n")
+        for y in range(128):
+            f.write(repr(weights_list[9][y]) + " ")
+        f.write("\nw3:\n")
+        for y in range(12):
+            for x in range(128):
+                i = x % 128
+                j = y % 12
+                f.write(repr(weights_list[10][i][j]) + " ")
+            f.write("\n")
+        f.write("biasw3:\n")
+        for y in range(12):
+            f.write(repr(weights_list[11][y]) + " ")
+        f.close()
+    
 else:
     model.load_weights('SimpNet.h5')
-
+        
 print(model.summary())
 
-# Predict
-img = load_img('D:\\Storage\\Datasets\\Test\\Fruits\\Apples\\10.jpg')
-# convert to numpy array
-img_np = img_to_array(img) / 255.
-new_image = expand_dims(img_np, 0)
+# # Predict
+# img = load_img('D:\\Storage\\Datasets\\Test\\Fruits\\Apples\\10.jpg')
+# # convert to numpy array
+# img_np = img_to_array(img) / 255.
+# new_image = expand_dims(img_np, 0)
 
-outputs = [K.function([model.input], [layer.output])([new_image, 1]) for layer in model.layers]
+# outputs = [K.function([model.input], [layer.output])([new_image, 1]) for layer in model.layers]

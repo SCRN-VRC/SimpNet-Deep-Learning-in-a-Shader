@@ -8,6 +8,7 @@
 // Layer 1
 // x, y : origin
 // z, w : width, height
+
 #define txL1Area                uint4(0, 0, 1024, 96)
 
 #define txL1s                   uint4(0, 0, 1024, 32)        // 32x32 x 32
@@ -117,23 +118,24 @@
 
 // Weight Initialization
 
-#define txInitKern1             uint2(24, 384)
-#define txInitKern2             uint2(192, 256)
+#define txInitKern1             uint2(547, 128)
+#define txInitKern2             uint2(258, 128)
 #define txInitKern3             uint2(0, 0)
-#define txInitW1                uint2(192, 0)
-#define txInitW2                uint2(288, 256)
-#define txInitW3                uint2(0, 384)
+#define txInitW1                uint2(0, 128)
+#define txInitW2                uint2(129, 128)
+#define txInitW3                uint2(258, 192)
 
-#define txInitB1                uint2(448, 0)
-#define txInitB2                uint2(449, 0)
-#define txInitB3                uint2(450, 0)
-#define txInitBw1               uint2(451, 0)
-#define txInitBw2               uint2(452, 0)
-#define txInitBw3               uint2(453, 0)
+#define txInitB1                uint2(574, 128)
+#define txInitB2                uint2(546, 128)
+#define txInitB3                uint2(576, 0)
+#define txInitBw1               uint2(128, 128)
+#define txInitBw2               uint2(257, 128)
+#define txInitBw3               uint2(386, 192)
 
 // Global Vars
 
-#define lr                      0.001
+//#define lr                      0.001
+#define lr                      0.0001
 #define alpha                   1.0
 #define rho                     0.9
 #define epsilon                 1e-07

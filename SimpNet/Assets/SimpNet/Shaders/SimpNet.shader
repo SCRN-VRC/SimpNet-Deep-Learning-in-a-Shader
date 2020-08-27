@@ -95,7 +95,6 @@
                 float lcF = LoadValue(_Buffer, txLC);
                 uint lc = _Stop > 0 ? 0 : floor(lcF);
 
-                [branch]
                 if (insideArea(txL1Area, px))
                 {
                     px -= txL1Area.xy;
@@ -110,7 +109,8 @@
                         if (initTime)
                         {
                             // Debugging
-                            col.r = i * j * k / (l + 1.0);
+                            //col.r = i * j * k / (l + 1.0);
+                            col.r = _InitWeights.Load(uint3(txInitKern1 + px, 0));
                         }
                         float delta = lr * (getDwL1(_Buffer, uint4(i, j, k, l)) /
                             (sqrt(getDwL1_m(_Buffer, uint4(i, j, k, l))) + epsilon));
@@ -124,7 +124,8 @@
                         if (initTime)
                         {
                             // Debugging
-                            col.r = i / 32.0 - 0.5;
+                            //col.r = i / 32.0 - 0.5;
+                            col.r = _InitWeights.Load(uint3(txInitB1 + px, 0));
                         }
                         float delta = lr * (getDbL1(_Buffer, i) /
                             (sqrt(getDbL1_m(_Buffer, i)) + epsilon));
@@ -143,25 +144,25 @@
                         float sum = 0.0;
                         
                         for (uint l = 0; l < 3; l++) {
-                            // sum += (_CamIn.Load(int3(j0, 64 - i0, 0))[l]) * getWL1(_Buffer, uint4(0, 0, l, k));
-                            // sum += (_CamIn.Load(int3(j0, 64 - i1, 0))[l]) * getWL1(_Buffer, uint4(0, 1, l, k));
-                            // sum += (_CamIn.Load(int3(j0, 64 - i2, 0))[l]) * getWL1(_Buffer, uint4(0, 2, l, k));
-                            // sum += (_CamIn.Load(int3(j1, 64 - i0, 0))[l]) * getWL1(_Buffer, uint4(1, 0, l, k));
-                            // sum += (_CamIn.Load(int3(j1, 64 - i1, 0))[l]) * getWL1(_Buffer, uint4(1, 1, l, k));
-                            // sum += (_CamIn.Load(int3(j1, 64 - i2, 0))[l]) * getWL1(_Buffer, uint4(1, 2, l, k));
-                            // sum += (_CamIn.Load(int3(j2, 64 - i0, 0))[l]) * getWL1(_Buffer, uint4(2, 0, l, k));
-                            // sum += (_CamIn.Load(int3(j2, 64 - i1, 0))[l]) * getWL1(_Buffer, uint4(2, 1, l, k));
-                            // sum += (_CamIn.Load(int3(j2, 64 - i2, 0))[l]) * getWL1(_Buffer, uint4(2, 2, l, k));
+                            sum += (_CamIn.Load(int3(j0, 64 - i0, 0))[l]) * getWL1(_Buffer, uint4(0, 0, l, k));
+                            sum += (_CamIn.Load(int3(j0, 64 - i1, 0))[l]) * getWL1(_Buffer, uint4(0, 1, l, k));
+                            sum += (_CamIn.Load(int3(j0, 64 - i2, 0))[l]) * getWL1(_Buffer, uint4(0, 2, l, k));
+                            sum += (_CamIn.Load(int3(j1, 64 - i0, 0))[l]) * getWL1(_Buffer, uint4(1, 0, l, k));
+                            sum += (_CamIn.Load(int3(j1, 64 - i1, 0))[l]) * getWL1(_Buffer, uint4(1, 1, l, k));
+                            sum += (_CamIn.Load(int3(j1, 64 - i2, 0))[l]) * getWL1(_Buffer, uint4(1, 2, l, k));
+                            sum += (_CamIn.Load(int3(j2, 64 - i0, 0))[l]) * getWL1(_Buffer, uint4(2, 0, l, k));
+                            sum += (_CamIn.Load(int3(j2, 64 - i1, 0))[l]) * getWL1(_Buffer, uint4(2, 1, l, k));
+                            sum += (_CamIn.Load(int3(j2, 64 - i2, 0))[l]) * getWL1(_Buffer, uint4(2, 2, l, k));
                        
-                            sum += testImage(i0, j0, l) * getWL1(_Buffer, uint4(0, 0, l, k));
-                            sum += testImage(i0, j1, l) * getWL1(_Buffer, uint4(0, 1, l, k));
-                            sum += testImage(i0, j2, l) * getWL1(_Buffer, uint4(0, 2, l, k));
-                            sum += testImage(i1, j0, l) * getWL1(_Buffer, uint4(1, 0, l, k));
-                            sum += testImage(i1, j1, l) * getWL1(_Buffer, uint4(1, 1, l, k));
-                            sum += testImage(i1, j2, l) * getWL1(_Buffer, uint4(1, 2, l, k));
-                            sum += testImage(i2, j0, l) * getWL1(_Buffer, uint4(2, 0, l, k));
-                            sum += testImage(i2, j1, l) * getWL1(_Buffer, uint4(2, 1, l, k));
-                            sum += testImage(i2, j2, l) * getWL1(_Buffer, uint4(2, 2, l, k));
+                            // sum += testImage(i0, j0, l) * getWL1(_Buffer, uint4(0, 0, l, k));
+                            // sum += testImage(i0, j1, l) * getWL1(_Buffer, uint4(0, 1, l, k));
+                            // sum += testImage(i0, j2, l) * getWL1(_Buffer, uint4(0, 2, l, k));
+                            // sum += testImage(i1, j0, l) * getWL1(_Buffer, uint4(1, 0, l, k));
+                            // sum += testImage(i1, j1, l) * getWL1(_Buffer, uint4(1, 1, l, k));
+                            // sum += testImage(i1, j2, l) * getWL1(_Buffer, uint4(1, 2, l, k));
+                            // sum += testImage(i2, j0, l) * getWL1(_Buffer, uint4(2, 0, l, k));
+                            // sum += testImage(i2, j1, l) * getWL1(_Buffer, uint4(2, 1, l, k));
+                            // sum += testImage(i2, j2, l) * getWL1(_Buffer, uint4(2, 2, l, k));
                         }
 
                         sum += getBL1(_Buffer, k);
@@ -225,7 +226,8 @@
                         if (initTime)
                         {
                             // Debugging
-                            col.r = (i + j + k + l) / 1000.0;
+                            //col.r = (i + j + k + l) / 1000.0;
+                            col.r = _InitWeights.Load(uint3(txInitKern2 + px, 0));
                         }
                         float delta = lr * (getDwL2(_Buffer, uint4(i, j, k, l)) /
                             (sqrt(getDwL2_m(_Buffer, uint4(i, j, k, l))) + epsilon));
@@ -239,7 +241,8 @@
                         if (initTime)
                         {
                             // Debugging
-                            col.r = 1.0 - (i / 64.0) - 0.5;
+                            //col.r = 1.0 - (i / 64.0) - 0.5;
+                            col.r = _InitWeights.Load(uint3(txInitB2 + px, 0));
                         }
                         float delta = lr * (getDbL2(_Buffer, i) /
                             (sqrt(getDbL2_m(_Buffer, i)) + epsilon));
@@ -330,7 +333,8 @@
                         if (initTime)
                         {
                             // Debugging
-                            col.r = (i + j) / float(k + l + 1.0);
+                            //col.r = (i + j) / float(k + l + 1.0);
+                            col.r = _InitWeights.Load(uint3(txInitKern3 + px, 0));
                         }
                         float delta = lr * (getDwL3(_Buffer, uint4(i, j, k, l)) /
                             (sqrt(getDwL3_m(_Buffer, uint4(i, j, k, l))) + epsilon));
@@ -344,7 +348,8 @@
                         if (initTime)
                         {
                             // Debugging
-                            col.r = (i / 128.0) - 0.5;
+                            //col.r = (i / 128.0) - 0.5;
+                            col.r = _InitWeights.Load(uint3(txInitB3 + px, 0));
                         }
                         float delta = lr * (getDbL3(_Buffer, i) /
                             (sqrt(getDbL3_m(_Buffer, i)) + epsilon));
@@ -427,7 +432,8 @@
                         if (initTime)
                         {
                             // Debugging
-                            col.r = (i + j) / float(i * j + 100000);
+                            //col.r = (i + j) / float(i * j + 100000);
+                            col.r = _InitWeights.Load(uint3(txInitW1 + px, 0));
                         }
                         float delta = lr * (getDWFC1(_Buffer, uint2(i, j)) /
                             (sqrt(getDWFC1_m(_Buffer, uint2(i, j))) + epsilon));
@@ -441,7 +447,8 @@
                         if (initTime)
                         {
                             // Debugging
-                            col.r = i / float(i + 100);
+                            //col.r = i / float(i + 100);
+                            col.r = _InitWeights.Load(uint3(txInitBw1 + px, 0));
                         }
                         float delta = lr * (getDBFC1(_Buffer, i) /
                             (sqrt(getDBFC1_m(_Buffer, i)) + epsilon));
@@ -481,7 +488,8 @@
                         if (initTime)
                         {
                             // Debugging
-                            col.r = (i + j) / float(i * j + 200000);
+                            //col.r = (i + j) / float(i * j + 200000);
+                            col.r = _InitWeights.Load(uint3(txInitW2 + px, 0));
                         }
                         float delta = lr * (getDWFC2(_Buffer, uint2(i, j)) /
                             (sqrt(getDWFC2_m(_Buffer, uint2(i, j))) + epsilon));
@@ -495,7 +503,8 @@
                         if (initTime)
                         {
                             // Debugging
-                            col.r = i / float(i + 1000);
+                            //col.r = i / float(i + 1000);
+                            col.r = _InitWeights.Load(uint3(txInitBw2 + px, 0));
                         }
                         float delta = lr * (getDBFC2(_Buffer, i) /
                             (sqrt(getDBFC2_m(_Buffer, i)) + epsilon));
@@ -535,7 +544,8 @@
                         if (initTime)
                         {
                             // Debugging
-                            col.r = (i + 12 - j) / float(j + 2000);
+                            //col.r = (i + 12 - j) / float(j + 2000);
+                            col.r = _InitWeights.Load(uint3(txInitW3 + px, 0));
                         }
                         float delta = lr * (getDWFC3(_Buffer, uint2(i, j)) /
                             (sqrt(getDWFC3_m(_Buffer, uint2(i, j))) + epsilon));
@@ -549,7 +559,8 @@
                         if (initTime)
                         {
                             // Debugging
-                            col.r = i / 11.0 - 0.5;
+                            //col.r = i / 11.0 - 0.5;
+                            col.r = _InitWeights.Load(uint3(txInitBw3 + px, 0));
                         }
                         float delta = lr * (getDBFC3(_Buffer, i) /
                             (sqrt(getDBFC3_m(_Buffer, i)) + epsilon));
@@ -1014,8 +1025,11 @@
                             for (uint y = 0; y < 63; y++) {
                                 uint lx = x + i;
                                 uint ly = y + j;
+                                // sum += getDiL1(_Buffer, uint3(x, y, l)) *
+                                //     testImage(lx, ly, k);
+
                                 sum += getDiL1(_Buffer, uint3(x, y, l)) *
-                                    testImage(lx, ly, k);
+                                    (_CamIn.Load(int3(ly, 64 - lx, 0))[k]);
                             }
                         }
 

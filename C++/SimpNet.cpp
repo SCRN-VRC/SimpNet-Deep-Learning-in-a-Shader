@@ -44,7 +44,7 @@ using json = nlohmann::json;
 #define XORTEST         0
 #define TRAIN           1
 
-#define WEIGHTS_PATH    "C:\\Users\\Alan\\source\\repos\\SimpNetPython\\Weights.txt"
+#define WEIGHTS_PATH    "C:\\Users\\Alan\\source\\repos\\SimpNetPython\\WeightsCPP.txt"
 #define TRAIN_DIR       "D:\\Storage\\Datasets\\Train\\"
 #define TEST_DIR        "D:\\Storage\\Datasets\\Test\\"
 #define CATEGORY        "Fruits"
@@ -246,19 +246,6 @@ public:
 			}
 		}
 
-#if (0)
-		String d = "\nwL1:\n";
-		for (int i = 0; i < 3; i++) {
-			for (int j = 0; j < 3; j++) {
-				for (int k = 0; k < 3; k++) {
-					d += to_str(wL1[i][j][k][0]) + " ";
-				}
-				d += "\n";
-			}
-			d += "\n";
-		}
-		std::cout << d << std::endl;
-#endif
 		// L1 bias
 		for (int i = 0; i < 32; i++) {
 			bL1[i] = jf.at(1).at(i);

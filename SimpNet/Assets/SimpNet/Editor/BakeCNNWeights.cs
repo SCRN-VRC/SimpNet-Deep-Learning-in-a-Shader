@@ -11,24 +11,24 @@ using UnityEngine.UI;
 public class BakeCNNWeights : EditorWindow {
     
     public TextAsset source;
-    string SavePath1 = "Assets/SimpNet/Weights.asset";
+    string SavePath1 = "Assets/SimpNet/Weights/WeightsTex.asset";
 
     public int[,] savePos =
     {
         // Weights
-        { 24, 384 },    // Kern1
-        { 192, 256 },   // Kern2
+        { 547, 128 },    // Kern1
+        { 258, 128 },   // Kern2
         { 0, 0 },       // Kern3
-        { 192, 0 },     // W1
-        { 288, 256 },   // W2
-        { 0, 384 },     // W3
+        { 0, 128 },     // W1
+        { 129, 128 },   // W2
+        { 258, 192 },     // W3
         // Bias
-        { 448, 0 },     // BK1
-        { 449, 0 },     // BK2
-        { 450, 0 },     // BK3
-        { 451, 0 },     // BW1
-        { 452, 0 },     // BW2
-        { 453, 0 }      // BW3
+        { 574, 128 },     // BK1
+        { 546, 128 },     // BK2
+        { 576, 0 },     // BK3
+        { 128, 128 },     // BW1
+        { 257, 128 },     // BW2
+        { 386, 192 }      // BW3
     };
 
     [MenuItem("Tools/SCRN/Bake CNN Weights")]
@@ -81,6 +81,8 @@ public class BakeCNNWeights : EditorWindow {
             float stf = float.Parse(fValCapture[0].Value);
             tex.SetPixel(savePos[wIndex, 0] + x, savePos[wIndex, 1] + y,
                 new Color(stf, 0.0f, 0.0f, 0.0f));
+            // tex.SetPixel(savePos[wIndex, 0] + x, savePos[wIndex, 1] + y,
+            //     new Color((wIndex + 1.0f) / 12.0f, 0.0f, 0.0f, 0.0f));
             c++;
         }
 
@@ -89,26 +91,26 @@ public class BakeCNNWeights : EditorWindow {
 
     void OnGenerateTexture()
     {
-        Texture2D tex = new Texture2D(512, 512, TextureFormat.RFloat, false);
+        Texture2D tex = new Texture2D(577, 577, TextureFormat.RFloat, false);
         tex.wrapMode = TextureWrapMode.Clamp;
         tex.filterMode = FilterMode.Point;
         tex.anisoLevel = 1;
 
         // Kern1 weights
         Regex rgWs = new Regex("(?<=kern1:)[\\s\\S]*(?=bias1:)");
-        ExtractFloats(tex, rgWs, 24, 0);
+        ExtractFloats(tex, rgWs, 27, 0);
 
         // Kern2 weights
         rgWs = new Regex("(?<=kern2:)[\\s\\S]*(?=bias2:)");
-        ExtractFloats(tex, rgWs, 96, 1);
+        ExtractFloats(tex, rgWs, 288, 1);
 
         // Kern3 weights
         rgWs = new Regex("(?<=kern3:)[\\s\\S]*(?=bias3:)");
-        ExtractFloats(tex, rgWs, 192, 2);
+        ExtractFloats(tex, rgWs, 576, 2);
 
         // W1 weights
         rgWs = new Regex("(?<=w1:)[\\s\\S]*(?=biasw1:)");
-        ExtractFloats(tex, rgWs, 256, 3);
+        ExtractFloats(tex, rgWs, 128, 3);
 
         // W2 weights
         rgWs = new Regex("(?<=w2:)[\\s\\S]*(?=biasw2:)");
@@ -116,7 +118,7 @@ public class BakeCNNWeights : EditorWindow {
 
         // W3 weights
         rgWs = new Regex("(?<=w3:)[\\s\\S]*(?=biasw3:)");
-        ExtractFloats(tex, rgWs, 24, 5);
+        ExtractFloats(tex, rgWs, 128, 5);
 
         // bias1 weights
         rgWs = new Regex("(?<=bias1:)[\\s\\S]*(?=kern2:)");
