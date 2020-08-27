@@ -34,7 +34,7 @@
             #include "Includes/SimpNetLayout.cginc"
             #include "Includes/SimpNetFuncs.cginc"
 
-            RWStructuredBuffer<float4> buffer : register(u1);
+            //RWStructuredBuffer<float4> buffer : register(u1);
             Texture2D<float4> _CamIn;
             Texture2D<float> _Buffer;
             Texture2D<float> _InitWeights;

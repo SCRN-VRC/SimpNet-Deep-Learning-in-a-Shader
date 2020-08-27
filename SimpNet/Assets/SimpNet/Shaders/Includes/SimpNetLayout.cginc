@@ -134,8 +134,7 @@
 
 // Global Vars
 
-//#define lr                      0.001
-#define lr                      0.0001
+#define lr                      0.0002 //0.001
 #define alpha                   1.0
 #define rho                     0.9
 #define epsilon                 1e-07
