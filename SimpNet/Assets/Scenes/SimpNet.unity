@@ -248,7 +248,7 @@ MonoBehaviour:
   ThrowVelocityBoostScale: 1
   currentlyHeldBy: {fileID: 0}
   pickupable: 1
-  proximity: 0.1
+  proximity: 0.01
 --- !u!54 &22688480
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -1127,7 +1127,7 @@ MonoBehaviour:
   ThrowVelocityBoostScale: 1
   currentlyHeldBy: {fileID: 0}
   pickupable: 1
-  proximity: 0.1
+  proximity: 0.01
 --- !u!54 &114286349
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -1984,7 +1984,7 @@ MonoBehaviour:
   ThrowVelocityBoostScale: 1
   currentlyHeldBy: {fileID: 0}
   pickupable: 1
-  proximity: 0.1
+  proximity: 0.01
 --- !u!54 &181046343
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -2342,7 +2342,7 @@ MonoBehaviour:
   ThrowVelocityBoostScale: 1
   currentlyHeldBy: {fileID: 0}
   pickupable: 1
-  proximity: 0.1
+  proximity: 0.01
 --- !u!54 &196306547
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -2592,7 +2592,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
-  m_BackGroundColor: {r: 1, g: 1, b: 1, a: 0}
+  m_BackGroundColor: {r: 0, g: 0, b: 0, a: 0}
   m_projectionMatrixMode: 1
   m_SensorSize: {x: 36, y: 24}
   m_LensShift: {x: 0, y: 0}
@@ -2765,7 +2765,7 @@ MonoBehaviour:
   ThrowVelocityBoostScale: 1
   currentlyHeldBy: {fileID: 0}
   pickupable: 1
-  proximity: 0.1
+  proximity: 0.01
 --- !u!54 &257213827
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -3308,7 +3308,7 @@ MonoBehaviour:
   ThrowVelocityBoostScale: 1
   currentlyHeldBy: {fileID: 0}
   pickupable: 1
-  proximity: 0.1
+  proximity: 0.01
 --- !u!54 &278793602
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -4503,7 +4503,7 @@ MonoBehaviour:
   ThrowVelocityBoostScale: 1
   currentlyHeldBy: {fileID: 0}
   pickupable: 1
-  proximity: 0.1
+  proximity: 0.01
 --- !u!54 &400621534
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -4906,7 +4906,7 @@ MonoBehaviour:
   ThrowVelocityBoostScale: 1
   currentlyHeldBy: {fileID: 0}
   pickupable: 1
-  proximity: 0.1
+  proximity: 0.01
 --- !u!54 &492872422
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -8529,7 +8529,7 @@ MonoBehaviour:
   ThrowVelocityBoostScale: 1
   currentlyHeldBy: {fileID: 0}
   pickupable: 1
-  proximity: 0.1
+  proximity: 0.01
 --- !u!54 &1099198134
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -9345,7 +9345,7 @@ MonoBehaviour:
   ThrowVelocityBoostScale: 1
   currentlyHeldBy: {fileID: 0}
   pickupable: 1
-  proximity: 0.1
+  proximity: 0.01
 --- !u!54 &1148746226
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -12452,7 +12452,7 @@ MonoBehaviour:
   ThrowVelocityBoostScale: 1
   currentlyHeldBy: {fileID: 0}
   pickupable: 1
-  proximity: 0.1
+  proximity: 0.01
 --- !u!54 &1563476440
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -13065,7 +13065,7 @@ MonoBehaviour:
   ThrowVelocityBoostScale: 1
   currentlyHeldBy: {fileID: 0}
   pickupable: 1
-  proximity: 0.1
+  proximity: 0.01
 --- !u!54 &1731949976
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -13146,7 +13146,7 @@ MonoBehaviour:
   ThrowVelocityBoostScale: 1
   currentlyHeldBy: {fileID: 0}
   pickupable: 1
-  proximity: 0.1
+  proximity: 0.01
 --- !u!54 &1755169585
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -13227,7 +13227,7 @@ MonoBehaviour:
   ThrowVelocityBoostScale: 1
   currentlyHeldBy: {fileID: 0}
   pickupable: 1
-  proximity: 0.1
+  proximity: 0.01
 --- !u!54 &1788437645
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -14368,7 +14368,7 @@ MonoBehaviour:
   ThrowVelocityBoostScale: 1
   currentlyHeldBy: {fileID: 0}
   pickupable: 1
-  proximity: 0.1
+  proximity: 0.01
 --- !u!54 &2057365485
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -15606,7 +15606,7 @@ MonoBehaviour:
   ThrowVelocityBoostScale: 1
   currentlyHeldBy: {fileID: 0}
   pickupable: 1
-  proximity: 0.1
+  proximity: 0.01
 --- !u!54 &2140249890
 Rigidbody:
   m_ObjectHideFlags: 0
