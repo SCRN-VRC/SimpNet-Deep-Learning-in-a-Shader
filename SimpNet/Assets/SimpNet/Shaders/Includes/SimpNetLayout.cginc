@@ -118,6 +118,8 @@
 
 // Weight Initialization
 
+#define BakedOffset             uint2(0, 256)
+
 #define txInitKern1             uint2(547, 128)
 #define txInitKern2             uint2(258, 128)
 #define txInitKern3             uint2(0, 0)

@@ -90,6 +90,7 @@ Material:
     - _TargetClass: 0
     - _Train: 0
     - _UVSec: 0
+    - _WeightIndex: 0
     - _ZWrite: 1
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}

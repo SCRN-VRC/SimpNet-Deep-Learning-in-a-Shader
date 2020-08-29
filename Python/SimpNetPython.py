@@ -17,10 +17,10 @@ img_width, img_height = 65, 65
 
 train_data_dir = 'D:\\Storage\\Datasets\\Train\\Fruits'
 validation_data_dir = 'D:\\Storage\\Datasets\\Test\\Fruits'
-nb_train_samples = 4278
+nb_train_samples = 4307
 nb_validation_samples = 92
-epochs = 60
-batch_size = 30
+epochs = 30
+batch_size = 50
 
 if K.image_data_format() == 'channels_first':
     input_shape = (3, img_width, img_height)
@@ -59,9 +59,11 @@ if 1:
         width_shift_range=0.2,
         height_shift_range=0.2,
         rescale=1./255,
-        shear_range=0.2,
-        zoom_range=0.2,
+        shear_range=0.05,
+        zoom_range=0.3,
         horizontal_flip=True,
+        channel_shift_range=200.0,
+        brightness_range=[0., 0.3],
         fill_mode='nearest')
     
     # this is the augmentation configuration we will use for testing:
