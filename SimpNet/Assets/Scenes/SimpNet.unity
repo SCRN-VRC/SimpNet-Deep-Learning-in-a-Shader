@@ -691,7 +691,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 'Anime
+  m_Text: 'Hololive
 
     Waifus'
 --- !u!222 &60507394
@@ -1640,6 +1640,18 @@ MonoBehaviour:
       - {fileID: 1242349068}
       ParameterBytes: 
       TakeOwnershipOfTarget: 0
+    - Name: 
+      EventType: 22
+      ParameterString: WeightsIndex
+      ParameterBoolOp: 1
+      ParameterBool: 0
+      ParameterFloat: 0
+      ParameterInt: 0
+      ParameterObject: {fileID: 0}
+      ParameterObjects:
+      - {fileID: 149397815}
+      ParameterBytes: 
+      TakeOwnershipOfTarget: 0
     Name: Unnamed
     Others: []
     Key: 0
@@ -1656,6 +1668,10 @@ MonoBehaviour:
     Timer: 0
     DataElementIdx: 0
     DataStorageShadowValues:
+    - ParameterString: 
+      ParameterBoolOp: 
+      ParameterFloat: 
+      ParameterInt: 
     - ParameterString: 
       ParameterBoolOp: 
       ParameterFloat: 
@@ -2381,7 +2397,7 @@ Camera:
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 524054
+    m_Bits: 517910
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 8400000, guid: a8ebb024ca7713049b2250589b1659f0, type: 2}
   m_TargetDisplay: 0
@@ -5161,7 +5177,7 @@ MonoBehaviour:
       ParameterBoolOp: 1
       ParameterBool: 0
       ParameterFloat: 0
-      ParameterInt: 1
+      ParameterInt: 3
       ParameterObject: {fileID: 0}
       ParameterObjects:
       - {fileID: 149397815}
@@ -9247,7 +9263,7 @@ GameObject:
   - component: {fileID: 1167639597}
   - component: {fileID: 1167639596}
   m_Layer: 0
-  m_Name: BtnAnimals
+  m_Name: BtnMemes
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -9437,8 +9453,10 @@ GameObject:
   - component: {fileID: 1179907592}
   - component: {fileID: 1179907591}
   - component: {fileID: 1179907590}
+  - component: {fileID: 1179907594}
+  - component: {fileID: 1179907593}
   m_Layer: 0
-  m_Name: BtnMemes
+  m_Name: BtnWaifus
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -9456,6 +9474,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 60507392}
+  - {fileID: 1819333829}
   m_Father: {fileID: 1118669753}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -9503,7 +9522,18 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1179907591}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1179907593}
+        m_MethodName: Interact
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1179907591
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9539,6 +9569,321 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1179907588}
   m_CullTransparentMesh: 0
+--- !u!114 &1179907593
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1179907588}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1579128511, guid: f78c4655b33cb5741983dc02e08899cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  interactTextPlacement: {fileID: 0}
+  interactText: Use
+  interactTextGO: {fileID: 0}
+  proximity: 2
+  isHidden: 0
+  UsesAdvancedOptions: 0
+  TakesOwnershipIfNecessary: 0
+  DrawLines: 1
+  Triggers:
+  - TriggerType: 17
+    BroadcastType: 4
+    Events:
+    - Name: 
+      EventType: 10
+      ParameterString: 
+      ParameterBoolOp: 1
+      ParameterBool: 0
+      ParameterFloat: 0
+      ParameterInt: 0
+      ParameterObject: {fileID: 0}
+      ParameterObjects:
+      - {fileID: 1819333828}
+      ParameterBytes: 
+      TakeOwnershipOfTarget: 0
+    - Name: 
+      EventType: 15
+      ParameterString: Reset
+      ParameterBoolOp: 0
+      ParameterBool: 0
+      ParameterFloat: 0
+      ParameterInt: 0
+      ParameterObject: {fileID: 0}
+      ParameterObjects:
+      - {fileID: 330179402}
+      ParameterBytes: 
+      TakeOwnershipOfTarget: 0
+    - Name: 
+      EventType: 33
+      ParameterString: Ayame
+      ParameterBoolOp: 0
+      ParameterBool: 0
+      ParameterFloat: 0
+      ParameterInt: 0
+      ParameterObject: {fileID: 0}
+      ParameterObjects:
+      - {fileID: 582262580}
+      ParameterBytes: 
+      TakeOwnershipOfTarget: 0
+    - Name: 
+      EventType: 33
+      ParameterString: Botan
+      ParameterBoolOp: 0
+      ParameterBool: 0
+      ParameterFloat: 0
+      ParameterInt: 0
+      ParameterObject: {fileID: 0}
+      ParameterObjects:
+      - {fileID: 31137117}
+      ParameterBytes: 
+      TakeOwnershipOfTarget: 0
+    - Name: 
+      EventType: 33
+      ParameterString: Coco
+      ParameterBoolOp: 0
+      ParameterBool: 0
+      ParameterFloat: 0
+      ParameterInt: 0
+      ParameterObject: {fileID: 0}
+      ParameterObjects:
+      - {fileID: 1176991046}
+      ParameterBytes: 
+      TakeOwnershipOfTarget: 0
+    - Name: 
+      EventType: 33
+      ParameterString: Fubuki
+      ParameterBoolOp: 0
+      ParameterBool: 0
+      ParameterFloat: 0
+      ParameterInt: 0
+      ParameterObject: {fileID: 0}
+      ParameterObjects:
+      - {fileID: 1540815312}
+      ParameterBytes: 
+      TakeOwnershipOfTarget: 0
+    - Name: 
+      EventType: 33
+      ParameterString: Haato
+      ParameterBoolOp: 0
+      ParameterBool: 0
+      ParameterFloat: 0
+      ParameterInt: 0
+      ParameterObject: {fileID: 0}
+      ParameterObjects:
+      - {fileID: 992517153}
+      ParameterBytes: 
+      TakeOwnershipOfTarget: 0
+    - Name: 
+      EventType: 33
+      ParameterString: Korone
+      ParameterBoolOp: 0
+      ParameterBool: 0
+      ParameterFloat: 0
+      ParameterInt: 0
+      ParameterObject: {fileID: 0}
+      ParameterObjects:
+      - {fileID: 1458022638}
+      ParameterBytes: 
+      TakeOwnershipOfTarget: 0
+    - Name: 
+      EventType: 33
+      ParameterString: Lamy
+      ParameterBoolOp: 0
+      ParameterBool: 0
+      ParameterFloat: 0
+      ParameterInt: 0
+      ParameterObject: {fileID: 0}
+      ParameterObjects:
+      - {fileID: 352055095}
+      ParameterBytes: 
+      TakeOwnershipOfTarget: 0
+    - Name: 
+      EventType: 33
+      ParameterString: Matsuri
+      ParameterBoolOp: 0
+      ParameterBool: 0
+      ParameterFloat: 0
+      ParameterInt: 0
+      ParameterObject: {fileID: 0}
+      ParameterObjects:
+      - {fileID: 724530780}
+      ParameterBytes: 
+      TakeOwnershipOfTarget: 0
+    - Name: 
+      EventType: 33
+      ParameterString: Okyau
+      ParameterBoolOp: 0
+      ParameterBool: 0
+      ParameterFloat: 0
+      ParameterInt: 0
+      ParameterObject: {fileID: 0}
+      ParameterObjects:
+      - {fileID: 1181913198}
+      ParameterBytes: 
+      TakeOwnershipOfTarget: 0
+    - Name: 
+      EventType: 33
+      ParameterString: Pekora
+      ParameterBoolOp: 0
+      ParameterBool: 0
+      ParameterFloat: 0
+      ParameterInt: 0
+      ParameterObject: {fileID: 0}
+      ParameterObjects:
+      - {fileID: 1838683485}
+      ParameterBytes: 
+      TakeOwnershipOfTarget: 0
+    - Name: 
+      EventType: 33
+      ParameterString: Roboco
+      ParameterBoolOp: 0
+      ParameterBool: 0
+      ParameterFloat: 0
+      ParameterInt: 0
+      ParameterObject: {fileID: 0}
+      ParameterObjects:
+      - {fileID: 1123137541}
+      ParameterBytes: 
+      TakeOwnershipOfTarget: 0
+    - Name: 
+      EventType: 33
+      ParameterString: Watame
+      ParameterBoolOp: 0
+      ParameterBool: 0
+      ParameterFloat: 0
+      ParameterInt: 0
+      ParameterObject: {fileID: 0}
+      ParameterObjects:
+      - {fileID: 379613048}
+      ParameterBytes: 
+      TakeOwnershipOfTarget: 0
+    - Name: 
+      EventType: 2
+      ParameterString: Reset
+      ParameterBoolOp: 1
+      ParameterBool: 0
+      ParameterFloat: 0
+      ParameterInt: 0
+      ParameterObject: {fileID: 0}
+      ParameterObjects:
+      - {fileID: 149397815}
+      ParameterBytes: 
+      TakeOwnershipOfTarget: 0
+    - Name: 
+      EventType: 22
+      ParameterString: WeightsIndex
+      ParameterBoolOp: 1
+      ParameterBool: 0
+      ParameterFloat: 0
+      ParameterInt: 2
+      ParameterObject: {fileID: 0}
+      ParameterObjects:
+      - {fileID: 149397815}
+      ParameterBytes: 
+      TakeOwnershipOfTarget: 0
+    Name: Unnamed
+    Others: []
+    Key: 0
+    TriggerIndividuals: 1
+    Layers:
+      serializedVersion: 2
+      m_Bits: 1
+    Repeat: 0
+    LowPeriodTime: 0
+    HighPeriodTime: 0
+    ResetOnEnable: 0
+    EventFired: 0
+    Duration: 0
+    Timer: 0
+    DataElementIdx: 0
+    DataStorageShadowValues:
+    - ParameterString: 
+      ParameterBoolOp: 
+      ParameterFloat: 
+      ParameterInt: 
+    - ParameterString: 
+      ParameterBoolOp: 
+      ParameterFloat: 
+      ParameterInt: 
+    - ParameterString: 
+      ParameterBoolOp: 
+      ParameterFloat: 
+      ParameterInt: 
+    - ParameterString: 
+      ParameterBoolOp: 
+      ParameterFloat: 
+      ParameterInt: 
+    - ParameterString: 
+      ParameterBoolOp: 
+      ParameterFloat: 
+      ParameterInt: 
+    - ParameterString: 
+      ParameterBoolOp: 
+      ParameterFloat: 
+      ParameterInt: 
+    - ParameterString: 
+      ParameterBoolOp: 
+      ParameterFloat: 
+      ParameterInt: 
+    - ParameterString: 
+      ParameterBoolOp: 
+      ParameterFloat: 
+      ParameterInt: 
+    - ParameterString: 
+      ParameterBoolOp: 
+      ParameterFloat: 
+      ParameterInt: 
+    - ParameterString: 
+      ParameterBoolOp: 
+      ParameterFloat: 
+      ParameterInt: 
+    - ParameterString: 
+      ParameterBoolOp: 
+      ParameterFloat: 
+      ParameterInt: 
+    - ParameterString: 
+      ParameterBoolOp: 
+      ParameterFloat: 
+      ParameterInt: 
+    - ParameterString: 
+      ParameterBoolOp: 
+      ParameterFloat: 
+      ParameterInt: 
+    - ParameterString: 
+      ParameterBoolOp: 
+      ParameterFloat: 
+      ParameterInt: 
+    - ParameterString: 
+      ParameterBoolOp: 
+      ParameterFloat: 
+      ParameterInt: 
+    - ParameterString: 
+      ParameterBoolOp: 
+      ParameterFloat: 
+      ParameterInt: 
+    AfterSeconds: 0
+    ProbabilityLock: 
+    Probabilities: []
+    MidiChannel: 0
+    MidiNote: 0
+    OscAddr: 
+--- !u!114 &1179907594
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1179907588}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -339397700, guid: f78c4655b33cb5741983dc02e08899cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Events: []
 --- !u!1 &1181913198
 GameObject:
   m_ObjectHideFlags: 0
@@ -10913,7 +11258,7 @@ GameObject:
   - component: {fileID: 1418355312}
   - component: {fileID: 1418355314}
   - component: {fileID: 1418355313}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Output
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -11846,7 +12191,7 @@ MonoBehaviour:
   TurnOffMirrorOcclusion: 0
   m_ReflectLayers:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 519959
   mirrorResolution: 0
   maximumAntialiasing: 1
   customShader: {fileID: 0}
@@ -13018,6 +13363,129 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1812958175}
   m_CullTransparentMesh: 0
+--- !u!1 &1819333828
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1819333829}
+  - component: {fileID: 1819333831}
+  - component: {fileID: 1819333830}
+  m_Layer: 0
+  m_Name: ResetTrigger
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!4 &1819333829
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1819333828}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 1179907589}
+  m_RootOrder: 1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1819333830
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1819333828}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1579128511, guid: f78c4655b33cb5741983dc02e08899cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  interactTextPlacement: {fileID: 0}
+  interactText: Use
+  interactTextGO: {fileID: 0}
+  proximity: 2
+  isHidden: 0
+  UsesAdvancedOptions: 0
+  TakesOwnershipIfNecessary: 0
+  DrawLines: 1
+  Triggers:
+  - TriggerType: 2
+    BroadcastType: 4
+    Events:
+    - Name: 
+      EventType: 10
+      ParameterString: 
+      ParameterBoolOp: 0
+      ParameterBool: 0
+      ParameterFloat: 0
+      ParameterInt: 0
+      ParameterObject: {fileID: 0}
+      ParameterObjects:
+      - {fileID: 1819333828}
+      ParameterBytes: 
+      TakeOwnershipOfTarget: 0
+    - Name: 
+      EventType: 2
+      ParameterString: Reset
+      ParameterBoolOp: 0
+      ParameterBool: 0
+      ParameterFloat: 0
+      ParameterInt: 0
+      ParameterObject: {fileID: 0}
+      ParameterObjects:
+      - {fileID: 149397815}
+      ParameterBytes: 
+      TakeOwnershipOfTarget: 0
+    Name: Unnamed
+    Others: []
+    Key: 0
+    TriggerIndividuals: 1
+    Layers:
+      serializedVersion: 2
+      m_Bits: 1
+    Repeat: 0
+    LowPeriodTime: 0
+    HighPeriodTime: 0
+    ResetOnEnable: 0
+    EventFired: 0
+    Duration: 0
+    Timer: 0
+    DataElementIdx: 0
+    DataStorageShadowValues:
+    - ParameterString: 
+      ParameterBoolOp: 
+      ParameterFloat: 
+      ParameterInt: 
+    - ParameterString: 
+      ParameterBoolOp: 
+      ParameterFloat: 
+      ParameterInt: 
+    AfterSeconds: 1
+    ProbabilityLock: 
+    Probabilities: []
+    MidiChannel: 0
+    MidiNote: 0
+    OscAddr: 
+--- !u!114 &1819333831
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1819333828}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -339397700, guid: f78c4655b33cb5741983dc02e08899cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Events: []
 --- !u!1 &1828665749
 GameObject:
   m_ObjectHideFlags: 0
@@ -14968,7 +15436,7 @@ Camera:
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 524054
+    m_Bits: 517910
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 8400000, guid: d860a80590ecbe445883c8cf1340deb2, type: 2}
   m_TargetDisplay: 0
