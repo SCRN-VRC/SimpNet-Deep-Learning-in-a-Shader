@@ -19,7 +19,7 @@ train_data_dir = 'D:\\Storage\\Datasets\\Train\\Hololive Waifus'
 validation_data_dir = 'D:\\Storage\\Datasets\\Test\\Hololive Waifus'
 nb_train_samples = 20998
 nb_validation_samples = 588
-epochs = 5
+epochs = 10
 batch_size = 100
 
 if K.image_data_format() == 'channels_first':
@@ -56,10 +56,10 @@ if 1:
     # this is the augmentation configuration we will use for training
     train_datagen = ImageDataGenerator(
         rotation_range=40,
-        width_shift_range=0.2,
-        height_shift_range=0.2,
+        width_shift_range=0.4,
+        height_shift_range=0.4,
         rescale=1./255,
-        shear_range=0.2,
+        shear_range=0.4,
         zoom_range=0.4,
         horizontal_flip=True,
         channel_shift_range=200.0,
@@ -68,7 +68,15 @@ if 1:
     
     # this is the augmentation configuration we will use for testing:
     # only rescaling
-    test_datagen = ImageDataGenerator(rescale=1. / 255)
+    test_datagen = ImageDataGenerator(
+        rotation_range=40,
+        width_shift_range=0.4,
+        height_shift_range=0.4,
+        rescale=1./255,
+        shear_range=0.4,
+        zoom_range=0.4,
+        horizontal_flip=True,
+        fill_mode='nearest')
     
     train_generator = train_datagen.flow_from_directory(
         train_data_dir,
