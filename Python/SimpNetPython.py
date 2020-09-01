@@ -15,12 +15,12 @@ from pandas import Series
 # dimensions of our images.
 img_width, img_height = 65, 65
 
-train_data_dir = 'D:\\Storage\\Datasets\\Train\\Hololive Waifus'
-validation_data_dir = 'D:\\Storage\\Datasets\\Test\\Hololive Waifus'
-nb_train_samples = 20998
-nb_validation_samples = 588
-epochs = 10
-batch_size = 100
+train_data_dir = 'D:\\Storage\\Datasets\\Train\\Age'
+validation_data_dir = 'D:\\Storage\\Datasets\\Test\\Age'
+nb_train_samples = 22228
+nb_validation_samples = 1476
+epochs = 30
+batch_size = 200
 
 if K.image_data_format() == 'channels_first':
     input_shape = (3, img_width, img_height)
@@ -55,12 +55,12 @@ if 1:
     
     # this is the augmentation configuration we will use for training
     train_datagen = ImageDataGenerator(
-        rotation_range=40,
-        width_shift_range=0.4,
-        height_shift_range=0.4,
+        rotation_range=20,
+        width_shift_range=0.2,
+        height_shift_range=0.2,
         rescale=1./255,
-        shear_range=0.4,
-        zoom_range=0.4,
+        shear_range=0.5,
+        zoom_range=0.2,
         horizontal_flip=True,
         channel_shift_range=200.0,
         brightness_range=[-0.15, 0.15],
@@ -68,15 +68,7 @@ if 1:
     
     # this is the augmentation configuration we will use for testing:
     # only rescaling
-    test_datagen = ImageDataGenerator(
-        rotation_range=40,
-        width_shift_range=0.4,
-        height_shift_range=0.4,
-        rescale=1./255,
-        shear_range=0.4,
-        zoom_range=0.4,
-        horizontal_flip=True,
-        fill_mode='nearest')
+    test_datagen = ImageDataGenerator(rescale=1./255)
     
     train_generator = train_datagen.flow_from_directory(
         train_data_dir,
