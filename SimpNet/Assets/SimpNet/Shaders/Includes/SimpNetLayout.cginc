@@ -136,6 +136,7 @@
 
 // Global Vars
 
+// ELU parameters
 #define lr                      0.0002 //0.001
 #define alpha                   1.0
 #define rho                     0.9
@@ -183,6 +184,8 @@ inline void StoreValue(in uint2 txPos, in float4 value, inout float4 col,
 {
     col = all(fragPos == txPos) ? value : col;
 }
+
+// Random
 
 inline float rand(float p)
 {

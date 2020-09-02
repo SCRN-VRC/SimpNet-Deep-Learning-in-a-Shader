@@ -15,6 +15,7 @@ inline float dfn(float x)
     return x >= 0.0 ? 1.0 : alpha * exp(x);
 }
 
+// Keep a weighted history of gradients for RMSProp
 inline float momentum(float grad, float vd_m)
 {
     return (rho * vd_m) + ((1.0 - rho) * grad * grad);

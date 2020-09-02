@@ -1068,12 +1068,15 @@ public:
 
 	void backProp(float*** image, int classNo, String &o)
 	{
+		// Dense layers are fully connected classic neural networks
+		// https://cs231n.github.io/optimization-2/
 		float expected[12] = { 0.0f };
 		expected[classNo] = 1.0f;
 
 		// FC3 bias
 		for (int i = 0; i < 12; i++) {
 			// Cross Entropy derivative with softmax
+			// https://peterroelants.github.io/posts/cross-entropy-softmax/
 			dbFC3[i] = (FC3o[i] - expected[i]);
 		}
 
@@ -1106,7 +1109,6 @@ public:
 		for (int i = 0; i < 128; i++) {
 			dbFC2[i] = 0.f;
 			for (int j = 0; j < 12; j++) {
-				// With respect to w3
 				dbFC2[i] += dbFC3[j] * wFC3[i][j];
 			}
 		}
@@ -1114,7 +1116,6 @@ public:
 		// FC2 gradient
 		for (int i = 0; i < 128; i++) {
 			for (int j = 0; j < 128; j++) {
-				// With respect to the activation function of fc2 and the output of previous layer
 				dwFC2[i][j] = dbFC2[j] * dfn(FC2s[i]) * FC1a[i];
 			}
 		}
@@ -1123,7 +1124,6 @@ public:
 		for (int i = 0; i < 128; i++) {
 			dbFC1[i] = 0.0f;
 			for (int j = 0; j < 128; j++) {
-				// With respect to activation function of fc2 and w2
 				dbFC1[i] += dbFC2[j] * dfn(FC2s[i]) * wFC2[i][j];
 			}
 		}
@@ -1131,7 +1131,6 @@ public:
 		// FC1 gradient
 		for (int i = 0; i < 128; i++) {
 			for (int j = 0; j < 128; j++) {
-				// With respect to activation function of fc1 and the output of previous layer
 				dwFC1[i][j] = dbFC1[j] * dfn(FC1s[i]) * L3Max[i];
 			}
 		}
@@ -1140,7 +1139,6 @@ public:
 		for (int i = 0; i < 128; i++) {
 			eL3Max[i] = 0.0f;
 			for (int j = 0; j < 128; j++) {
-				// Figure out the loss w.r.t weight
 				eL3Max[i] += dbFC1[j] * dfn(FC1s[i]) * wFC1[i][j];
 			}
 		}
