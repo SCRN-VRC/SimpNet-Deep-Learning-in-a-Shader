@@ -32,7 +32,7 @@ OR
 
 1. Open a new Unity project
 2. Import VRCSDK2
-3. Import the SimpNet.unitypackage in Releases
+3. Import the SimpNet.unitypackage in [Releases](https://github.com/SCRN-VRC/SimpNet-Deep-Learning-in-a-Shader/releases)
 4. Remove any missing scripts (Post Processing V2)
 
 I will be converting everything to Udon at some point.
