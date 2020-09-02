@@ -39,7 +39,3 @@ I will be converting everything to Udon at some point.
 
 ## How it Works
 <img src="Images/RenderTexture.png"/>
-
-### Forward Propagation
-
-### Back Propagation
