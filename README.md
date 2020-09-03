@@ -37,5 +37,20 @@ OR
 
 I will be converting everything to Udon at some point.
 
+# Python Code
+If you wish to run the Python code, here's what you need.
+* Anaconda
+* Python 3.7
+* TensorFlow
+* Keras
+
+You can follow a guide on Keras + Anaconda installations here https://inmachineswetrust.com/posts/deep-learning-setup/
+
+# C++ Code
+If you wish to run the C++ code.
+* OpenCV – 4.0.1 or above
+
+You can follow a guide on OpenCV + Visual Studio here https://www.deciphertechnic.com/install-opencv-with-visual-studio/
+
 ## How it Works
 <img src="Images/RenderTexture.png"/>
