@@ -1,6 +1,11 @@
 # SimpNet
 <img src="Images/SimpNetRender.png"/>
-A trainable convolutional neural network coded inside a fragment shader.
+
+#### Fig. 1 - Basic network structure
+
+<img src="Images/TrainingGIF.gif"/>
+
+#### Fig. 2 - Training the network to output Apples for an apple
 
 ## Overview
 * Three version of SimpNet: Python, C++, HLSL
@@ -10,7 +15,8 @@ A trainable convolutional neural network coded inside a fragment shader.
 * Four pre-trained networks included: Fruits, Age Classification, Hololive VTubers, and VRC Devs.
 
 <img src="Images/Example.png"/>
-The age classifier does not work well with anime faces.
+
+#### Fig.3 - The age classifier does not work well with anime faces
 
 ## Live Demo
 * https://www.vrchat.com/home/launch?worldId=wrld_4cbc4ccb-3c0d-419d-bc8b-e370c951edd2
@@ -55,3 +61,5 @@ You can follow a guide on OpenCV + Visual Studio here https://www.deciphertechni
 
 ## How it Works
 <img src="Images/RenderTexture.png"/>
+
+#### Fig. 4 - The render texture that contains the current state of the network for all the weights, outputs, and even the intermediate steps
