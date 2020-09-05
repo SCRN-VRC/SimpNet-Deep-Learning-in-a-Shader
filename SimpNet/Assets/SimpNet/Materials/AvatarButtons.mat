@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: SimpNet
-  m_Shader: {fileID: 4800000, guid: 9d6e18e9eae1ce24db1274ee2b5d13bc, type: 3}
+  m_Name: AvatarButtons
+  m_Shader: {fileID: 4800000, guid: ca71c0bbdfe161f49bec711c4e88fcee, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -19,20 +19,8 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
-    - _AvaWeightIndex:
-        m_Texture: {fileID: 8400000, guid: 4674fc243dcc4214984c1fce92af7840, type: 2}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _Buffer:
-        m_Texture: {fileID: 8400000, guid: 793cead095d8c5c45a03267969f92b0a, type: 2}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
     - _BumpMap:
         m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _CamIn:
-        m_Texture: {fileID: 8400000, guid: a8ebb024ca7713049b2250589b1659f0, type: 2}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _DetailAlbedoMap:
@@ -51,12 +39,8 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _InitWeights:
-        m_Texture: {fileID: 2800000, guid: f880cd457d21c2847a97ae20305b6f8a, type: 2}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: f8a44eb1b44501049ba772ef4013bbe5, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:
@@ -74,27 +58,21 @@ Material:
     m_Floats:
     - _BumpScale: 1
     - _Cutoff: 0.5
+    - _Cutout: 0.5
     - _DetailNormalMapScale: 1
+    - _DiscardOrtho: 1
     - _DstBlend: 0
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
-    - _LearnRate: 0.01
-    - _LearnRateBias: 0.0001
-    - _MaxDist: 0.02
     - _Metallic: 0
     - _Mode: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.02
-    - _Reset: 0
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
-    - _Stop: 0
-    - _TargetClass: 0
-    - _Train: 0
     - _UVSec: 0
-    - _WeightIndex: 0
     - _ZWrite: 1
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}

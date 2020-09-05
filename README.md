@@ -27,7 +27,11 @@
 * [VRChat layers must be setup already](https://docs.vrchat.com/docs/)
 * [Post Processing V2](https://github.com/Unity-Technologies/PostProcessing) (Not needed, but you do need to remove the missing scripts)
 ### Avatars
-1. Sorry I didn't make a version you can carry around
+1. Import the SimpNet.unitypackage in [Releases](https://github.com/SCRN-VRC/SimpNet-Deep-Learning-in-a-Shader/releases)
+2. In Prefabs folder, put SimpNetAvatarPrefab.prefab on your avatar
+3. Unpack the prefab and put HandCamera on your hands
+4. I suggest having them off by default
+
 ### Worlds
 1. Clone the repository
 2. Open the Unity project

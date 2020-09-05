@@ -9,6 +9,7 @@
     SubShader
     {
         Tags { "RenderType"="Opaque" }
+        Cull Off
         LOD 100
 
         Pass
@@ -58,6 +59,8 @@
                 int2 uv_id = floor(i.uv * float2(2.0, 3.0));
                 uv_id.x = uv_id.x + uv_id.y * 2;
 
+                uint wIndex = uint(LoadValue(_NNBuffer, txWeightsIndex));
+
                 float2 top6[6] = {
                     0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
                     0.0, 0.0, 0.0, 0.0, 0.0, 0.0
@@ -75,6 +78,9 @@
                 int2 pos = labelOffset.xy + fuv * labelWH;
                 pos.x += (int(top6[toIndex[uv_id.x]].y) % 2) * labelOffset.z;
                 pos.y -= (int(top6[toIndex[uv_id.x]].y) / 2) * labelOffset.w;
+
+                pos.x += (wIndex % 2) * 512;
+                pos.y += (wIndex / 2) * 512;
 
                 col.rgb = lerp(1.0, float3(0.0, 0.5, 1.0), top6[toIndex[uv_id.x]].x > fuv.x);
                 col.rgb = lerp(0.0, col.rgb, _Labels.Load(int3(pos, 0)).r);

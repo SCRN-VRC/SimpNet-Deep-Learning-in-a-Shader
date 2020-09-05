@@ -13,6 +13,7 @@ Shader "SimpNet/SimpNet"
         _CamIn ("Cam Input", 2D) = "black" {}
         _Buffer ("Buffer", 2D) = "black" {}
         _InitWeights ("Initial Weights", 2D) = "black" {}
+        _AvaWeightIndex ("Weights Index from Avatar", 2D) = "black" {}
         _WeightIndex ("Weights Index", Int) = 0
         _TargetClass ("Target Class #", Int) = 0
         _Reset ("Reset Weights", Int) = 0
@@ -42,10 +43,11 @@ Shader "SimpNet/SimpNet"
             #include "Includes/SimpNetLayout.cginc"
             #include "Includes/SimpNetFuncs.cginc"
 
-            //RWStructuredBuffer<float4> buffer : register(u1);
+            RWStructuredBuffer<float4> buffer : register(u1);
             Texture2D<float4> _CamIn;
             Texture2D<float> _Buffer;
             Texture2D<float> _InitWeights;
+            Texture2D<half> _AvaWeightIndex;
             float4 _Buffer_TexelSize;
             float _MaxDist;
             float _Train;
@@ -98,8 +100,35 @@ Shader "SimpNet/SimpNet"
                 }
                 else timer = 0.0;
 
+                float wIndex = LoadValue(_Buffer, txWeightsIndex);
+                float resetTimer = LoadValue(_Buffer, txResetTimer);
+
+                // Avatar weight index picking
+                float3 buttonPos = 0.0;
+                for (int i = 0; i < 16; i++) {
+                    for (int j = 0; j < 16; j++) {
+                        float d = _AvaWeightIndex.Load(int3(i, j, 0)).r;
+                        buttonPos.xy += d > 0.0 ? float2(i, j) : 0..xx;
+                        buttonPos.z += d > 0.0 ? 1.0 : 0.0;
+                    }
+                }
+                buttonPos.xy = floor(buttonPos.xy /
+                    max(buttonPos.z, 1.) * 0.125 + 0.125);
+                // y is flipped
+                buttonPos.y = 1.0 - buttonPos.y;
+
+                // Change to new index on input
+                wIndex = buttonPos.z > 0.0 ?
+                    avatarToWeights[buttonPos.x][buttonPos.y] :
+                    wIndex;
+
+                // Reset all the weights
+                resetTimer = buttonPos.z > 0.0 ? LAYERS_CLASSIFY : resetTimer;
+
+                buffer[0] = float4(wIndex, resetTimer, 0, 0);
+
                 // Time to load initial weights
-                bool initTime = (_Time.y < 1.0) || (_Reset > 0);
+                bool initTime = (_Time.y < 1.0) || (_Reset > 0) || (resetTimer > 0);
 
                 // Layer count, only run 1 layer per frame
                 float lcF = LoadValue(_Buffer, txLC);
@@ -123,7 +152,7 @@ Shader "SimpNet/SimpNet"
                         {
                             // Debugging
                             //col.r = i * j * k / (l + 1.0);
-                            col.r = _InitWeights.Load(uint3(_WeightIndex * BakedOffset +
+                            col.r = _InitWeights.Load(uint3((wIndex + _WeightIndex) * BakedOffset +
                                 txInitKern1 + px, 0));
                         }
 
@@ -143,7 +172,7 @@ Shader "SimpNet/SimpNet"
                         {
                             // Debugging
                             //col.r = i / 32.0 - 0.5;
-                            col.r = _InitWeights.Load(uint3(_WeightIndex * BakedOffset +
+                            col.r = _InitWeights.Load(uint3((wIndex + _WeightIndex) * BakedOffset +
                                 txInitB1 + px, 0));
                         }
 
@@ -258,7 +287,7 @@ Shader "SimpNet/SimpNet"
                         {
                             // Debugging
                             //col.r = (i + j + k + l) / 1000.0;
-                            col.r = _InitWeights.Load(uint3(_WeightIndex * BakedOffset +
+                            col.r = _InitWeights.Load(uint3((wIndex + _WeightIndex) * BakedOffset +
                                 txInitKern2 + px, 0));
                         }
 
@@ -278,7 +307,7 @@ Shader "SimpNet/SimpNet"
                         {
                             // Debugging
                             //col.r = 1.0 - (i / 64.0) - 0.5;
-                            col.r = _InitWeights.Load(uint3(_WeightIndex * BakedOffset +
+                            col.r = _InitWeights.Load(uint3((wIndex + _WeightIndex) * BakedOffset +
                                 txInitB2 + px, 0));
                         }
 
@@ -382,7 +411,7 @@ Shader "SimpNet/SimpNet"
                         {
                             // Debugging
                             //col.r = (i + j) / float(k + l + 1.0);
-                            col.r = _InitWeights.Load(uint3(_WeightIndex * BakedOffset +
+                            col.r = _InitWeights.Load(uint3((wIndex + _WeightIndex) * BakedOffset +
                                 txInitKern3 + px, 0));
                         }
 
@@ -402,7 +431,7 @@ Shader "SimpNet/SimpNet"
                         {
                             // Debugging
                             //col.r = (i / 128.0) - 0.5;
-                            col.r = _InitWeights.Load(uint3(_WeightIndex * BakedOffset +
+                            col.r = _InitWeights.Load(uint3((wIndex + _WeightIndex) * BakedOffset +
                                 txInitB3 + px, 0));
                         }
 
@@ -498,7 +527,7 @@ Shader "SimpNet/SimpNet"
                         {
                             // Debugging
                             //col.r = (i + j) / float(i * j + 100000);
-                            col.r = _InitWeights.Load(uint3(_WeightIndex * BakedOffset +
+                            col.r = _InitWeights.Load(uint3((wIndex + _WeightIndex) * BakedOffset +
                                 txInitW1 + px, 0));
                         }
 
@@ -518,7 +547,7 @@ Shader "SimpNet/SimpNet"
                         {
                             // Debugging
                             //col.r = i / float(i + 100);
-                            col.r = _InitWeights.Load(uint3(_WeightIndex * BakedOffset +
+                            col.r = _InitWeights.Load(uint3((wIndex + _WeightIndex) * BakedOffset +
                                 txInitBw1 + px, 0));
                         }
 
@@ -569,7 +598,7 @@ Shader "SimpNet/SimpNet"
                         {
                             // Debugging
                             //col.r = (i + j) / float(i * j + 200000);
-                            col.r = _InitWeights.Load(uint3(_WeightIndex * BakedOffset +
+                            col.r = _InitWeights.Load(uint3((wIndex + _WeightIndex) * BakedOffset +
                                 txInitW2 + px, 0));
                         }
 
@@ -589,7 +618,7 @@ Shader "SimpNet/SimpNet"
                         {
                             // Debugging
                             //col.r = i / float(i + 1000);
-                            col.r = _InitWeights.Load(uint3(_WeightIndex * BakedOffset +
+                            col.r = _InitWeights.Load(uint3((wIndex + _WeightIndex) * BakedOffset +
                                 txInitBw2 + px, 0));
                         }
 
@@ -640,7 +669,7 @@ Shader "SimpNet/SimpNet"
                         {
                             // Debugging
                             //col.r = (i + 12 - j) / float(j + 2000);
-                            col.r = _InitWeights.Load(uint3(_WeightIndex * BakedOffset +
+                            col.r = _InitWeights.Load(uint3((wIndex + _WeightIndex) * BakedOffset +
                                 txInitW3 + px, 0));
                         }
 
@@ -660,7 +689,7 @@ Shader "SimpNet/SimpNet"
                         {
                             // Debugging
                             //col.r = i / 11.0 - 0.5;
-                            col.r = _InitWeights.Load(uint3(_WeightIndex * BakedOffset +
+                            col.r = _InitWeights.Load(uint3((wIndex + _WeightIndex) * BakedOffset +
                                 txInitBw3 + px, 0));
                         }
 
@@ -1222,7 +1251,11 @@ Shader "SimpNet/SimpNet"
 
                 // Less layer calculations if not training
                 lc = (lc + 1) % (_Train > 0 ? LAYERS_TRAIN : LAYERS_CLASSIFY);
+                resetTimer = max(resetTimer - 1.0, 0.0);
+
                 StoreValue(txLC, lc, col, px);
+                StoreValue(txWeightsIndex, wIndex, col, px);
+                StoreValue(txResetTimer, resetTimer, col, px);
                 return col;
             }
             ENDCG

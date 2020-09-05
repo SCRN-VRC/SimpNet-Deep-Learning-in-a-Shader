@@ -134,6 +134,11 @@
 #define txInitBw2               uint2(257, 128)
 #define txInitBw3               uint2(386, 192)
 
+static int avatarToWeights[2][2] =
+{
+    1, 3, 0, 2
+};
+
 // Global Vars
 
 // ELU parameters
@@ -147,6 +152,8 @@
 
 #define txTimer                 uint2(1023, 1023)
 #define txLC                    uint2(1022, 1023)
+#define txWeightsIndex          uint2(1023, 1022)
+#define txResetTimer            uint2(1022, 1022)
 
 /*
     Functions

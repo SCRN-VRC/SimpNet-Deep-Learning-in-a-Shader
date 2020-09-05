@@ -4,6 +4,7 @@
     {
         _MainTex ("Texture", 2D) = "white" {}
         _Cutout ("Cutout", Float) = 0.5
+        _DiscardOrtho ("Discard Orthographic", Int) = 0
     }
     SubShader
     {
@@ -34,6 +35,7 @@
             sampler2D _MainTex;
             float4 _MainTex_ST;
             float _Cutout;
+            int _DiscardOrtho;
             
             v2f vert (appdata v)
             {
@@ -45,6 +47,7 @@
 
             fixed4 frag (v2f i) : SV_Target
             {
+                if (_DiscardOrtho > 0 && unity_OrthoParams.w) discard;
                 // sample the texture
                 fixed4 col = tex2D(_MainTex, i.uv);
                 col.rgb *= col.a;
