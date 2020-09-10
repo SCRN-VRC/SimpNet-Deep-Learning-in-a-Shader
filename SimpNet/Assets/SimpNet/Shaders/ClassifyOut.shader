@@ -4,7 +4,6 @@
     {
         _NNBuffer ("Neural Net Buffer", 2D) = "white" {}
         _Labels ("Labels", 2D) = "white" {}
-        _Test ("test", Vector) = (0, 0, 0, 0)
     }
     SubShader
     {
@@ -42,7 +41,6 @@
             //RWStructuredBuffer<float4> buffer : register(u1);
             Texture2D<float> _NNBuffer;
             Texture2D<float> _Labels;
-            float4 _Test;
 
             v2f vert (appdata v)
             {
