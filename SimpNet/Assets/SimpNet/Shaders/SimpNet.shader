@@ -1240,8 +1240,10 @@ Shader "SimpNet/SimpNet"
                             for (uint y = 0; y < 63; y++) {
                                 uint lx = x + i;
                                 uint ly = y + j;
+                                // dwL1 += getDiL1(_Buffer, uint3(x, y, l)) *
+                                //     testImage(lx, ly, k);
                                 dwL1 += getDiL1(_Buffer, uint3(x, y, l)) *
-                                    testImage(lx, ly, k);
+                                    (_CamIn.Load(int3(ly, 64 - lx, 0))[k]);
                             }
                         }
 
