@@ -49,10 +49,10 @@ I will be converting everything to Udon at some point.
 
 ## Python Code
 If you wish to run the Python code, here's what you need.
-* Anaconda
+* Anaconda 1.19.12
 * Python 3.7
-* TensorFlow
-* Keras
+* TensorFlow 1.14.0
+* Keras 2.3.1
 
 I suggest following a guide on Keras + Anaconda installations like this one https://inmachineswetrust.com/posts/deep-learning-setup/
 
