@@ -89,11 +89,11 @@ Shader "SimpNet/SimpNet"
                 uint2 px = _Buffer_TexelSize.zw * i.uv.xy;
                 float col = _Buffer.Load(uint3(px, 0)).x;
 
-                // 25 FPS
+                // 2ms per layer
                 float timer = LoadValue(_Buffer, txTimer);
-                timer += unity_DeltaTime;
+                timer += unity_DeltaTime.x;
 
-                if (timer < 0.04)
+                if (timer < 0.002)
                 {
                     StoreValue(txTimer, timer, col, px);
                     return col;
@@ -1258,6 +1258,7 @@ Shader "SimpNet/SimpNet"
                 StoreValue(txLC, lc, col, px);
                 StoreValue(txWeightsIndex, wIndex, col, px);
                 StoreValue(txResetTimer, resetTimer, col, px);
+                StoreValue(txTimer, timer, col, px);
                 return col;
             }
             ENDCG
