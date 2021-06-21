@@ -43,7 +43,7 @@ Shader "SimpNet/SimpNet"
             #include "Includes/SimpNetLayout.cginc"
             #include "Includes/SimpNetFuncs.cginc"
 
-            RWStructuredBuffer<float4> buffer : register(u1);
+            //RWStructuredBuffer<float4> buffer : register(u1);
             Texture2D<float4> _CamIn;
             Texture2D<float> _Buffer;
             Texture2D<float> _InitWeights;
@@ -125,7 +125,7 @@ Shader "SimpNet/SimpNet"
                 // Reset all the weights
                 resetTimer = buttonPos.z > 0.0 ? LAYERS_CLASSIFY : resetTimer;
 
-                buffer[0] = float4(wIndex, resetTimer, 0, 0);
+                //buffer[0] = float4(wIndex, resetTimer, 0, 0);
 
                 // Time to load initial weights
                 bool initTime = (_Time.y < 1.0) || (_Reset > 0) || (resetTimer > 0);
